@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Ud'A Odontoiatria - Presenze</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <!-- Configurazione PWA: diventa una vera app su smartphone -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ud'A Presenze">
+  <meta name="theme-color" content="#7a1526">
+
+  <!-- Scanner Engine QR -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --uda-red: #7a1526;
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --text: #212529;
+      --success: #1e7e34;
+      --error: #bd2130;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; padding: 12px; background: var(--bg); color: var(--text); }
+    .container { max-width: 440px; margin: 0 auto; background: var(--card); border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); overflow: hidden; }
+    
+    header { background: var(--uda-red); color: white; padding: 16px; text-align: center; }
+    header h1 { margin: 0; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+    header p { margin: 4px 0 0; font-size: 12px; opacity: 0.85; }
+
+    .form-body { padding: 16px; }
+    .field { margin-bottom: 12px; }
+    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #555; margin-bottom: 4px; }
+    select, input { width: 100%; padding: 11px; border: 1.5px solid #dcdfe6; border-radius: 8px; font-size: 14px; background: #fff; }
+    select:focus, input:focus { outline: none; border-color: var(--uda-red); }
+    
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    #reader-box { width: 100%; border-radius: 10px; overflow: hidden; background: #000; margin: 12px 0; min-height: 250px; }
+    
+    #status { min-height: 48px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; display: flex; align-items: center; justify-content: center; }
+    .standby { background: #eef1f6; color: #495057; }
+    .ok { background: #d4edda; color: var(--success); border: 1.5px solid #c3e6cb; }
+    .ko { background: #f8d7da; color: var(--error); border: 1.5px solid #f5c6cb; }
+
+    .history { margin-top: 14px; border-top: 1px solid #eee; padding-top: 10px; }
+    .history-title { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+    .history-row { font-size: 12px; padding: 5px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Università G. d'Annunzio</h1>
+    <p>CdL Odontoiatria • Timbratura Tirocini</p>
+  </header>
+
+  <div class="form-body">
+    <div class="field">
+      <label for="tutor">Docente / Tutor di Reparto:</label>
+      <input type="text" id="tutor" placeholder="Es. Prof. Rossi" required>
+    </div>
+
+    <div class="field">
+      <label for="reparto">Reparto Clinico:</label>
+      <select id="reparto">
+        <option value="Conservativa ed Endodonzia">Odontoiatria Conservativa ed Endodonzia</option>
+        <option value="Chirurgia Orale ed Implantologia">Chirurgia Orale ed Implantologia</option>
+        <option value="Parodontologia">Parodontologia</option>
+        <option value="Ortognatodonzia e Gnatologia">Ortognatodonzia e Gnatologia</option>
+        <option value="Protesi Dentaria">Protesi e Riabilitazione Orale</option>
+        <option value="Odontoiatria Pediatrica">Odontoiatria Pediatrica (Pedodonzia)</option>
+      </select>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label for="turno">Turno:</label>
+        <select id="turno">
+          <option value="Mattina (08:30 - 13:30)">Mattina</option>
+          <option value="Pomeriggio (14:00 - 19:00)">Pomeriggio</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ore">Ore Accreditate:</label>
+        <select id="ore">
+          <option value="4">4 Ore</option>
+          <option value="5">5 Ore</option>
+          <option value="2">2 Ore</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Scanner fotocamera nativa -->
+    <div id="reader-box">
+      <div id="reader"></div>
+    </div>
+
+    <div id="status" class="standby">Inquadra il badge QR dello studente</div>
+
+    <div class="history">
+      <div class="history-title">Ultime timbrature</div>
+      <div id="logList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // INCOLLA QUI IL TUO LINK APPS SCRIPT /exec
+  const ENDPOINT_API = "https://script.google.com/macros/s/AKfycbz9qia-iGTNeu_rL0I3XCbYiZ6SmjYd07UlI_YwizSX-WFPnS77lQBQvSc5EJT5G99H/exec";
+
+  let scannerAttivo = true;
+
+  // Memorizzazione automatica del Docente sul telefono
+  window.addEventListener('DOMContentLoaded', () => {
+    const tutorInput = document.getElementById("tutor");
+    const repartoSelect = document.getElementById("reparto");
+    
+    tutorInput.value = localStorage.getItem("uda_tutor") || "";
+    repartoSelect.value = localStorage.getItem("uda_reparto") || repartoSelect.value;
+
+    tutorInput.addEventListener("input", () => localStorage.setItem("uda_tutor", tutorInput.value.trim()));
+    repartoSelect.addEventListener("change", () => localStorage.setItem("uda_reparto", repartoSelect.value));
+  });
+
+  function playSound(ok) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(ok ? 880 : 220, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
+  }
+
+  function setStato(tipo, txt) {
+    const st = document.getElementById("status");
+    st.className = tipo;
+    st.innerText = txt;
+  }
+
+  function addLog(nome, ora) {
+    const list = document.getElementById("logList");
+    const item = document.createElement("div");
+    item.className = "history-row";
+    item.innerHTML = `<span><strong>${nome}</strong></span><span>${ora}</span>`;
+    list.prepend(item);
+    if (list.children.length > 5) list.removeChild(list.lastChild);
+  }
+
+  function onScanSuccess(matricola) {
+    if (!scannerAttivo) return;
+
+    const tutor = document.getElementById("tutor").value.trim();
+    if (!tutor) {
+      setStato("ko", "⚠️ Inserisci il nome del Docente!");
+      playSound(false);
+      return;
+    }
+
+    scannerAttivo = false;
+    setStato("standby", "Registrazione in corso...");
+
+    const dati = {
+      matricola: matricola,
+      reparto: document.getElementById("reparto").value,
+      turno: document.getElementById("turno").value,
+      ore: document.getElementById("ore").value,
+      tutor: tutor
+    };
+
+    // Invio diretto a Google Sheets con fallback anti-CORS
+    fetch(ENDPOINT_API, {
+      method: "POST",
+      mode: "no-cors", // Evita qualsiasi blocco di sicurezza tra domini
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(dati)
+    })
+    .then(() => {
+      // In modalità no-cors la richiesta va a buon fine direttamente
+      setStato("ok", `✅ Scansione inviata: Matr. ${matricola}`);
+      playSound(true);
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      addLog(`Matricola ${matricola}`, new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+      setTimeout(() => { scannerAttivo = true; }, 2500);
+    })
+    .catch((err) => {
+      setStato("ko", "Errore di connessione.");
+      playSound(false);
+      setTimeout(() => { scannerAttivo = true; }, 3000);
+    });
+  }
+
+  // Avvio telecamera senza restrizioni iframe
+  const html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 220, height: 220 } },
+    onScanSuccess
+  ).catch(err => {
+    setStato("ko", "Errore fotocamera: assicurati di concedere i permessi.");
+  });
+</script>
+
+</body>
+</html>
