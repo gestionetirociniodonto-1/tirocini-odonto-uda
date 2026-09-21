@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Ud'A - Portale Studenti Tirocini</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <style>
+    :root { 
+      --primary: #0f2744; --accent: #1e40af; --bg: #f8fafc; 
+      --card: #ffffff; --text: #0f172a; --border: #cbd5e1;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; padding: 14px; background: var(--bg); color: var(--text); }
+    .box { max-width: 440px; margin: 0 auto; background: var(--card); border-radius: 16px; box-shadow: 0 4px 18px rgba(15, 39, 68, 0.08); border: 1px solid #e2e8f0; overflow: hidden; }
+    
+    header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 18px; text-align: center; }
+    header h1 { margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    header p { margin: 4px 0 0; font-size: 12px; opacity: 0.85; }
+
+    .content { padding: 18px; }
+    .field { margin-bottom: 12px; }
+    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 4px; }
+    input { width: 100%; padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; }
+    input:focus { outline: none; border-color: var(--accent); }
+    
+    .btn-login { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+    #error-msg { display: none; background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 10px; text-align: center; }
+    #loading { display: none; text-align: center; color: #64748b; font-size: 13px; margin: 15px 0; }
+
+    #result { display: none; margin-top: 10px; }
+    .qr-container { text-align: center; margin: 12px 0; }
+    .qr-container img { border: 2px solid var(--accent); border-radius: 12px; padding: 6px; background: #fff; }
+    
+    /* Barra conto alla rovescia QR Dinamico */
+    .timer-bar-wrap { background: #e2e8f0; height: 6px; border-radius: 4px; overflow: hidden; margin: 8px auto; max-width: 180px; }
+    .timer-bar-fill { background: var(--accent); height: 100%; width: 100%; transition: width 1s linear; }
+
+    .progress-bar-bg { background: #e2e8f0; border-radius: 8px; height: 14px; overflow: hidden; margin: 10px 0; }
+    .progress-fill { background: #16a34a; height: 100%; width: 0%; transition: width 0.4s ease; }
+    
+    .stats-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+    .stats-table td { padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+    .stats-table td:last-child { text-align: right; font-weight: bold; }
+
+    .badge-status { text-align: center; padding: 8px; border-radius: 6px; font-weight: bold; margin-top: 14px; font-size: 12px; }
+    
+    footer { text-align: center; font-size: 11px; color: #64748b; margin-top: 16px; border-top: 1px solid #f1f5f9; padding-top: 12px; }
+    footer strong { color: var(--primary); }
+    .gdpr-note { font-size: 10px; color: #94a3b8; margin-top: 6px; line-height: 1.3; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <header>
+    <h1>Università G. d'Annunzio</h1>
+    <p>CdLM in Odontoiatria • Area Riservata Studente</p>
+  </header>
+
+  <div class="content">
+    <div id="login-form">
+      <div class="field">
+        <label for="matInput">Numero di Matricola:</label>
+        <input type="text" id="matInput" placeholder="Es. 3201456">
+      </div>
+      <div class="field">
+        <label for="pinInput">PIN di Sicurezza (4 cifre):</label>
+        <input type="password" id="pinInput" placeholder="••••" maxlength="4">
+      </div>
+      <button class="btn-login" onclick="autenticaStudente()">Accedi al Registro</button>
+      <div id="error-msg"></div>
+    </div>
+
+    <div id="loading">Autenticazione in corso...</div>
+
+    <div id="result">
+      <h3 id="studenteNome" style="margin: 0; color: var(--primary); text-align: center;"></h3>
+      <p id="studenteMatricola" style="margin: 2px 0 6px; font-size: 12px; text-align: center; color: #64748b;"></p>
+
+      <div class="qr-container">
+        <img id="qrImage" src="" width="180" height="180" alt="Tesserino QR Dinamico">
+        <div class="timer-bar-wrap">
+          <div id="timerFill" class="timer-bar-fill"></div>
+        </div>
+        <p style="font-size: 11px; color: #64748b; margin: 4px 0 0;">🔄 Tesserino Dinamico • Aggiornamento automatico ogni 30s</p>
+      </div>
+
+      <div style="font-size: 12px; font-weight: bold; display:flex; justify-content:space-between; margin-top: 10px;">
+        <span>Monte Ore Cliniche:</span>
+        <span id="totaleOreTxt">0 / 250h</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+
+      <table class="stats-table">
+        <tr><td>Conservativa ed Endodonzia</td><td id="hCons">0 h</td></tr>
+        <tr><td>Chirurgia Orale ed Implantologia</td><td id="hChir">0 h</td></tr>
+        <tr><td>Ortognatodonzia e Gnatologia</td><td id="hOrto">0 h</td></tr>
+        <tr><td>Parodontologia</td><td id="hParo">0 h</td></tr>
+        <tr><td>Protesi Dentaria</td><td id="hProt">0 h</td></tr>
+        <tr><td>Odontoiatria Pediatrica</td><td id="hPed">0 h</td></tr>
+      </table>
+
+      <div id="statoBadge" class="badge-status"></div>
+
+      <button onclick="logout()" style="width: 100%; background: none; border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px; font-size: 12px; color: #64748b; margin-top: 14px; cursor: pointer;">Disconnetti</button>
+    </div>
+
+    <footer>
+      Architettura di sistema e sviluppo: <strong>Mohaidine Aariouach</strong>
+      <div class="gdpr-note">
+        🛡️ Accesso sicuro protetto da crittografia. Trattamento dati conforme GDPR (Art. 13-14 Reg. UE 2016/679).
+      </div>
+    </footer>
+  </div>
+</div>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbz9qia-iGTNeu_rL0I3XCbYiZ6SmjYd07UlI_YwizSX-WFPnS77lQBQvSc5EJT5G99H/exec";
+  let countdownTimer = null;
+  let qrInterval = null;
+  let currentMatricola = "";
+  let currentPin = "";
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const p = new URLSearchParams(window.location.search);
+    const m = p.get('matricola');
+    const pin = p.get('pin');
+    if (m && pin) {
+      document.getElementById('matInput').value = m;
+      document.getElementById('pinInput').value = pin;
+      autenticaStudente();
+    }
+  });
+
+  // Generatore QR Dinamico Anti-Screenshot con Token Base64 temporizzato
+  function rigeneraQRDinamico() {
+    if (!currentMatricola || !currentPin) return;
+    const nowSec = Math.floor(Date.now() / 1000);
+    const token = btoa(`${currentMatricola}:${nowSec}:${currentPin}`);
+    document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(token)}`;
+
+    // Animazione barra
+    const fill = document.getElementById("timerFill");
+    fill.style.transition = "none";
+    fill.style.width = "100%";
+    setTimeout(() => {
+      fill.style.transition = "width 30s linear";
+      fill.style.width = "0%";
+    }, 50);
+  }
+
+  function autenticaStudente() {
+    const mat = document.getElementById('matInput').value.trim();
+    const pin = document.getElementById('pinInput').value.trim();
+    const err = document.getElementById('error-msg');
+
+    if (!mat || !pin) {
+      err.style.display = "block";
+      err.innerText = "Inserire sia Matricola che PIN.";
+      return;
+    }
+
+    err.style.display = "none";
+    document.getElementById('loading').style.display = "block";
+
+    fetch(`${API_URL}?matricola=${mat}&pin=${pin}`)
+      .then(r => r.json())
+      .then(d => {
+        document.getElementById('loading').style.display = "none";
+        if (!d.success) {
+          err.style.display = "block";
+          err.innerText = d.message;
+          return;
+        }
+
+        currentMatricola = mat;
+        currentPin = pin;
+
+        document.getElementById('login-form').style.display = "none";
+        document.getElementById('studenteNome').innerText = `${d.cognome} ${d.nome}`;
+        document.getElementById('studenteMatricola').innerText = `Matricola: ${d.matricola}`;
+
+        // Avvio generatore dinamico
+        rigeneraQRDinamico();
+        clearInterval(qrInterval);
+        qrInterval = setInterval(rigeneraQRDinamico, 30000);
+
+        document.getElementById('hCons').innerText = `${d.conservativa} h`;
+        document.getElementById('hChir').innerText = `${d.chirurgia} h`;
+        document.getElementById('hOrto').innerText = `${d.ortodonzia} h`;
+        document.getElementById('hParo').innerText = `${d.parodontologia} h`;
+        document.getElementById('hProt').innerText = `${d.protesi} h`;
+        document.getElementById('hPed').innerText = `${d.pedodonzia} h`;
+
+        const tot = d.totaleOre;
+        document.getElementById('totaleOreTxt').innerText = `${tot} / 250 h`;
+        document.getElementById('progressFill').style.width = `${Math.min(100, Math.round((tot / 250) * 100))}%`;
+
+        const b = document.getElementById('statoBadge');
+        b.innerText = d.stato;
+        b.style.background = tot >= 250 ? "#dcfce7" : "#fef9c3";
+        b.style.color = tot >= 250 ? "#166534" : "#854d0e";
+
+        document.getElementById('result').style.display = "block";
+      })
+      .catch(() => {
+        document.getElementById('loading').style.display = "none";
+        err.style.display = "block";
+        err.innerText = "Errore di connessione al registro.";
+      });
+  }
+
+  function logout() {
+    clearInterval(qrInterval);
+    currentMatricola = "";
+    currentPin = "";
+    document.getElementById('pinInput').value = "";
+    document.getElementById('result').style.display = "none";
+    document.getElementById('login-form').style.display = "block";
+  }
+</script>
+</body>
+</html>

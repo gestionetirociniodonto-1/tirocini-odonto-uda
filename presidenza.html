@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Ud'A - Cruscotto Direzione Tirocini</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --primary: #0f2744; --accent: #1e40af; --bg: #f8fafc;
+      --card: #ffffff; --text: #0f172a; --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); }
+    .layout { max-width: 1050px; margin: 0 auto; }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white; padding: 22px; border-radius: 14px; margin-bottom: 20px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+    }
+    header h1 { margin: 0; font-size: 18px; text-transform: uppercase; }
+    header p { margin: 4px 0 0; font-size: 13px; opacity: 0.85; }
+    .badge-pres { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); }
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .kpi-card { background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+    .kpi-value { font-size: 26px; font-weight: 800; color: var(--primary); margin-top: 4px; }
+    .kpi-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .table-container { background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
+    .toolbar { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .search-box { padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; min-width: 260px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th { background: #f1f5f9; padding: 12px 14px; font-weight: 700; color: #475569; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    tr:hover { background: #f8fafc; }
+    .badge-ok { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 11px; }
+    .badge-run { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 11px; }
+    footer { text-align: center; margin-top: 24px; font-size: 12px; color: #64748b; padding-bottom: 20px; }
+    footer strong { color: var(--primary); }
+    .gdpr-note { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <header>
+    <div>
+      <h1>Università degli Studi G. d'Annunzio</h1>
+      <p>CdLM in Odontoiatria e Protesi Dentaria • Monitoraggio CFU Clinici</p>
+    </div>
+    <div class="badge-pres">Modalità Presidenza (Sola Lettura)</div>
+  </header>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Studenti Censiti</div>
+      <div class="kpi-value" id="kpiTot">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Idonei alla Tesi</div>
+      <div class="kpi-value" style="color: #15803d;" id="kpiIdonei">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">In Corso di Completamento</div>
+      <div class="kpi-value" style="color: #b45309;" id="kpiInCorso">0</div>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div class="toolbar">
+      <input type="text" id="filtro" class="search-box" placeholder="Cerca cognome o matricola..." oninput="applicaFiltro()">
+      <button onclick="caricaPresidenza()" style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">Aggiorna Dati</button>
+    </div>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Matricola</th>
+            <th>Studente</th>
+            <th>Cons/Endo</th>
+            <th>Chirurgia</th>
+            <th>Ortodonzia</th>
+            <th>Parod.</th>
+            <th>Protesi</th>
+            <th>Pedod.</th>
+            <th>Totale Ore</th>
+            <th>Stato Requisiti</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyData">
+          <tr><td colspan="10" style="text-align:center; padding: 20px; color:#888;">Caricamento registri...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Piattaforma di Monitoraggio Tirocini Clinici • Architettura e sviluppo: <strong>Mohaidine Aariouach</strong>
+    <div class="gdpr-note">
+      🛡️ Registro Istituzionale Ud'A • Accesso autorizzato per monitoraggio carriere universitarie (Reg. UE 2016/679).
+    </div>
+  </footer>
+</div>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbz9qia-iGTNeu_rL0I3XCbYiZ6SmjYd07UlI_YwizSX-WFPnS77lQBQvSc5EJT5G99H/exec";
+  let tutti = [];
+
+  function caricaPresidenza() {
+    fetch(`${API_URL}?action=presidenza`)
+      .then(res => res.json())
+      .then(res => {
+        if (!res.success) return;
+        tutti = res.data;
+        renderTabella(tutti);
+        calcolaKPI(tutti);
+      });
+  }
+
+  function renderTabella(lista) {
+    const tbody = document.getElementById("tbodyData");
+    tbody.innerHTML = "";
+    lista.forEach(s => {
+      const isOk = s.totale >= 250;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${s.matricola}</strong></td>
+        <td>${s.cognome} ${s.nome}</td>
+        <td>${s.cons}h</td>
+        <td>${s.chir}h</td>
+        <td>${s.orto}h</td>
+        <td>${s.paro}h</td>
+        <td>${s.prot}h</td>
+        <td>${s.pedo}h</td>
+        <td><strong>${s.totale}h / 250h</strong></td>
+        <td><span class="${isOk ? 'badge-ok' : 'badge-run'}">${s.stato}</span></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function calcolaKPI(lista) {
+    document.getElementById("kpiTot").innerText = lista.length;
+    const idonei = lista.filter(s => s.totale >= 250).length;
+    document.getElementById("kpiIdonei").innerText = idonei;
+    document.getElementById("kpiInCorso").innerText = lista.length - idonei;
+  }
+
+  function applicaFiltro() {
+    const q = document.getElementById("filtro").value.toLowerCase();
+    renderTabella(tutti.filter(s => 
+      s.cognome.toLowerCase().includes(q) || 
+      s.nome.toLowerCase().includes(q) || 
+      String(s.matricola).includes(q)
+    ));
+  }
+
+  window.addEventListener('DOMContentLoaded', caricaPresidenza);
+</script>
+</body>
+</html>
