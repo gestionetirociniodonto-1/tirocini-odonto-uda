@@ -2,26 +2,47 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Ud'A Odontoiatria - Scanner Convalida</title>
+  <title>Ud'A Odontoiatria - Convalida Tirocini</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <!-- Configurazione PWA per iOS & Android -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ud'A Presenze">
   <meta name="theme-color" content="#0f2744">
+  <link rel="apple-touch-icon" href="https://img.icons8.com/color/180/caduceus.png">
+  <link rel="icon" type="image/png" href="https://img.icons8.com/color/180/caduceus.png">
+
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
   <style>
     :root {
-      --primary: #0f2744; --accent: #1e40af; --light: #eff6ff;
-      --bg: #f8fafc; --card: #ffffff; --border: #cbd5e1;
-      --text: #0f172a; --ok: #15803d; --ko: #b91c1c;
+      --primary: #0f2744;
+      --accent: #1e40af;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --border: #cbd5e1;
+      --ok: #15803d;
+      --ko: #b91c1c;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { margin: 0; padding: 12px; background-color: var(--bg); color: var(--text); }
-    .container { max-width: 450px; margin: 0 auto; background: var(--card); border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 39, 68, 0.08); overflow: hidden; border: 1px solid #e2e8f0; }
-    
+    .container { max-width: 450px; margin: 0 auto; background: var(--card); border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 39, 68, 0.08); overflow: hidden; border: 1px solid #e2e8f0; position: relative; }
+
     header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 18px 14px; text-align: center; }
     header h1 { margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 800; }
     header p { margin: 4px 0 0; font-size: 12px; opacity: 0.9; }
 
+    /* GUIDA INSTALLAZIONE SCHERMATA HOME */
+    #installPrompt { display: none; background: #eff6ff; border-bottom: 1.5px solid #bfdbfe; padding: 10px 14px; font-size: 12px; color: #1e40af; }
+    #installPrompt strong { display: block; font-size: 13px; margin-bottom: 2px; }
+
     .content { padding: 16px; }
-    .doc-badge { background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 14px; display: none; }
+
+    /* BADGE DOCENTE AUTENTICATO */
+    .doc-badge { background: #dcfce7; border: 1.5px solid #86efac; color: #166534; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+
     .form-group { margin-bottom: 12px; }
     label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 4px; }
     select, input { width: 100%; padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; background: #fff; }
@@ -29,18 +50,45 @@
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     #reader-wrapper { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin: 14px 0 10px; min-height: 250px; }
-    
-    #status-box { min-height: 48px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; display: flex; align-items: center; justify-content: center; }
-    .status-standby { background: var(--light); color: var(--accent); border: 1px solid #bfdbfe; }
-    .status-ok { background: #dcfce7; color: var(--ok); border: 1.5px solid #86efac; }
-    .status-ko { background: #fee2e2; color: var(--ko); border: 1.5px solid #fca5a5; }
 
-    /* SCHEDA RECAP IMMEDIATO DELLO STUDENTE */
-    #recapCard { display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 14px; margin-top: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    #recapCard h4 { margin: 0 0 8px; font-size: 14px; color: #166534; display: flex; align-items: center; gap: 6px; }
-    .recap-item { font-size: 13px; margin-bottom: 4px; display: flex; justify-content: space-between; }
-    .recap-item span:first-child { color: #475569; font-weight: 500; }
-    .recap-item span:last-child { font-weight: 700; color: #0f172a; }
+    #status-box { min-height: 48px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; display: flex; align-items: center; justify-content: center; background: #eff6ff; color: var(--accent); border: 1px solid #bfdbfe; }
+    .status-ko { background: #fee2e2 !important; color: var(--ko) !important; border-color: #fca5a5 !important; }
+
+    /* POPUP/BANNER CONVALIDATO IN VERDE */
+    #convalidaOverlay {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(21, 128, 61, 0.96);
+      color: white;
+      z-index: 100;
+      padding: 24px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      border-radius: 16px;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    .badge-convalidato { font-size: 28px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; background: white; color: var(--ok); padding: 8px 24px; border-radius: 50px; box-shadow: 0 4px 14px rgba(0,0,0,0.2); margin-bottom: 20px; }
+    .student-name { font-size: 24px; font-weight: 800; margin: 0 0 6px; }
+    .student-matr { font-size: 15px; opacity: 0.9; margin: 0 0 18px; font-weight: 600; }
+    .scan-details { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 12px 18px; width: 100%; max-width: 320px; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+    .btn-dismiss { background: white; color: var(--ok); border: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; }
+
+    /* MODALE PRIMO ACCESSO */
+    #modalPrimoAccesso {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: white;
+      z-index: 90;
+      padding: 24px;
+      flex-direction: column;
+      justify-content: center;
+    }
+    #modalPrimoAccesso h3 { margin-top: 0; color: var(--primary); font-size: 18px; text-align: center; }
 
     .history { margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
     .history-header { font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
@@ -48,29 +96,65 @@
 
     footer { background: #f1f5f9; padding: 12px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; }
     footer strong { color: var(--primary); }
-    .gdpr-note { font-size: 10px; color: #94a3b8; margin-top: 6px; line-height: 1.3; }
+    .gdpr-note { font-size: 10px; color: #94a3b8; margin-top: 4px; }
   </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- BANNER AGGIUNGI A HOME SCREEN -->
+  <div id="installPrompt">
+    <strong>📲 Installa come App:</strong>
+    <span id="installGuideTxt">Tocca Condividi ⎋ e scegli "Aggiungi a schermata Home" per averla come icona sul telefono.</span>
+  </div>
+
   <header>
     <h1>Università G. d'Annunzio</h1>
     <p>CdLM in Odontoiatria • Convalida Tirocini Clinici</p>
   </header>
 
-  <div class="content">
-    <div id="docBadge" class="doc-badge"></div>
+  <!-- MODALE PRIMO ACCESSO: Chiede il PIN una sola volta -->
+  <div id="modalPrimoAccesso">
+    <h3>🔒 Attivazione Dispositivo</h3>
+    <p style="font-size: 13px; color: #475569; text-align: center; margin-bottom: 20px;">
+      Benvenuto! Inserisci il tuo PIN riservato per abilitare questo telefono alla convalida delle presenze.
+    </p>
 
-    <div id="manualFields">
-      <div class="form-group">
-        <label for="tutor">Docente / Tutor Convalidante:</label>
-        <input type="text" id="tutor" placeholder="Es. Prof. Rossi">
-      </div>
-      <div class="form-group">
-        <label for="pinDocente">PIN Docente (Segreto):</label>
-        <input type="password" id="pinDocente" placeholder="••••" maxlength="6">
-      </div>
+    <div class="form-group">
+      <label>Docente / Tutor:</label>
+      <input type="text" id="setupTutor" placeholder="Es. Prof. Mario Rossi">
+    </div>
+
+    <div class="form-group">
+      <label>PIN di Sicurezza Personale (4 cifre):</label>
+      <input type="password" id="setupPin" placeholder="••••" maxlength="6" inputmode="numeric">
+    </div>
+
+    <div id="setupError" style="display:none; color:var(--ko); font-size:12px; font-weight:bold; margin-bottom:12px; text-align:center;"></div>
+
+    <button onclick="salvaCredenzialiDocente()" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; width:100%; cursor:pointer;">
+      Verifica e Blocca su questo Telefono
+    </button>
+  </div>
+
+  <!-- OVERLAY CONVALIDATO (SCHERMATA VERDE) -->
+  <div id="convalidaOverlay">
+    <div class="badge-convalidato">CONVALIDATO</div>
+    <div class="student-name" id="popNome">MARIO ROSSI</div>
+    <div class="student-matr" id="popMatr">Matricola: 3201456</div>
+    <div class="scan-details">
+      <div><strong>Reparto:</strong> <span id="popRep">-</span></div>
+      <div><strong>Turno:</strong> <span id="popTurno">-</span></div>
+      <div><strong>Ore Accreditate:</strong> <span id="popOre">-</span></div>
+      <div><strong>Ora Registrazione:</strong> <span id="popOra">-</span></div>
+    </div>
+    <button class="btn-dismiss" onclick="chiudiOverlay()">Continua Scansione</button>
+  </div>
+
+  <div class="content">
+    <div id="docBadge" class="doc-badge">
+      <span id="badgeNome">👨‍⚕️ Accesso Attivo</span>
+      <span style="font-size:11px; opacity:0.8; cursor:pointer;" onclick="resetCredenziali()">[Esci]</span>
     </div>
 
     <div class="form-group">
@@ -96,28 +180,18 @@
       <div class="form-group">
         <label for="ore">Ore Accreditate:</label>
         <select id="ore">
-          <option value="4">4 Ore (Standard)</option>
-          <option value="5">5 Ore (Lungo)</option>
-          <option value="2">2 Ore (Seminario)</option>
+          <option value="4">4 Ore</option>
+          <option value="5">5 Ore</option>
+          <option value="2">2 Ore</option>
         </select>
       </div>
     </div>
 
     <div id="reader-wrapper"><div id="reader"></div></div>
-    <div id="status-box" class="status-standby">Inquadra il badge dinamico dello studente</div>
-
-    <!-- RECAP IMMEDIATO SCANSIONE -->
-    <div id="recapCard">
-      <h4>✅ Presenza Convalidata con Successo</h4>
-      <div class="recap-item"><span>Studente:</span><span id="recNome">-</span></div>
-      <div class="recap-item"><span>Matricola:</span><span id="recMatr">-</span></div>
-      <div class="recap-item"><span>Reparto:</span><span id="recRep">-</span></div>
-      <div class="recap-item"><span>Turno / Ore:</span><span id="recOre">-</span></div>
-      <div class="recap-item"><span>Registrato alle:</span><span id="recOra">-</span></div>
-    </div>
+    <div id="status-box">Inquadra il badge dinamico dello studente</div>
 
     <div class="history">
-      <div class="history-header">Ultime convalide del turno</div>
+      <div class="history-header">Ultime convalide</div>
       <div id="logList"></div>
     </div>
   </div>
@@ -125,70 +199,137 @@
   <footer>
     Architettura di sistema e sviluppo: <strong>Mohaidine Aariouach</strong>
     <div class="gdpr-note">
-      🛡️ Trattamento conforme al GDPR (Reg. UE 2016/679). Dati gestiti a fini istituzionali e didattici Ud'A.
+      🛡️ Trattamento conforme al Regolamento UE 2016/679 (GDPR). Uso esclusivo CdLM Odontoiatria Ud'A.
     </div>
   </footer>
 </div>
 
 <script>
   const ENDPOINT_API = "https://script.google.com/macros/s/AKfycbz9qia-iGTNeu_rL0I3XCbYiZ6SmjYd07UlI_YwizSX-WFPnS77lQBQvSc5EJT5G99H/exec";
+
   let scannerAttivo = true;
+  let timerChiusuraOverlay = null;
 
   window.addEventListener('DOMContentLoaded', () => {
+    verificaGuidaInstallazione();
+
     const params = new URLSearchParams(window.location.search);
-    const t = params.get('tutor');
-    const r = params.get('rep');
-    const p = params.get('pin');
+    const tutorUrl = params.get('tutor');
+    const repUrl = params.get('rep');
 
-    if (t && p) {
-      localStorage.setItem("uda_tutor", t);
-      localStorage.setItem("uda_pin", p);
-      if (r) localStorage.setItem("uda_rep", r);
-    }
+    if (tutorUrl) localStorage.setItem("uda_tutor_name", tutorUrl);
+    if (repUrl) localStorage.setItem("uda_tutor_rep", repUrl);
 
-    const savedTutor = localStorage.getItem("uda_tutor");
-    const savedPin = localStorage.getItem("uda_pin");
-    const savedRep = localStorage.getItem("uda_rep");
-
-    if (savedTutor && savedPin) {
-      document.getElementById("manualFields").style.display = "none";
-      const badge = document.getElementById("docBadge");
-      badge.style.display = "block";
-      badge.innerHTML = `👨‍⚕️ <strong>${savedTutor}</strong> <span style="font-size:11px; float:right;">🔒 Credenziali Attive</span>`;
-      document.getElementById("tutor").value = savedTutor;
-      document.getElementById("pinDocente").value = savedPin;
-      if (savedRep) document.getElementById("reparto").value = savedRep;
-    }
+    controllaAccessoDocente();
   });
 
-  function playSound(ok) {
+  // Guida per Aggiungere a Home Screen su iOS e Android
+  function verificaGuidaInstallazione() {
+    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    if (!isStandalone) {
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const prompt = document.getElementById("installPrompt");
+      const txt = document.getElementById("installGuideTxt");
+      if (isIOS) {
+        txt.innerHTML = 'Tocca l\'icona Condividi in basso (rettangolo con freccia in su ⎋) e scegli <strong>"Aggiungi alla schermata Home"</strong>.';
+      } else {
+        txt.innerHTML = 'Tocca i 3 puntini in alto a destra e seleziona <strong>"Aggiungi a schermata Home"</strong> (o "Installa app").';
+      }
+      prompt.style.display = "block";
+    }
+  }
+
+  // Verifica se il docente è già configurato sul dispositivo
+  function controllaAccessoDocente() {
+    const savedTutor = localStorage.getItem("uda_tutor_name");
+    const savedPin = localStorage.getItem("uda_tutor_pin");
+    const savedRep = localStorage.getItem("uda_tutor_rep");
+
+    if (savedRep) document.getElementById("reparto").value = savedRep;
+
+    if (!savedTutor || !savedPin) {
+      // Primo accesso: mostra modale PIN
+      document.getElementById("modalPrimoAccesso").style.display = "flex";
+      if (savedTutor) document.getElementById("setupTutor").value = savedTutor;
+    } else {
+      // Già autenticato
+      document.getElementById("modalPrimoAccesso").style.display = "none";
+      document.getElementById("badgeNome").innerText = `👨‍⚕️ ${savedTutor} (Autenticato)`;
+      avviaFotocamera();
+    }
+  }
+
+  function salvaCredenzialiDocente() {
+    const tutor = document.getElementById("setupTutor").value.trim();
+    const pin = document.getElementById("setupPin").value.trim();
+    const errBox = document.getElementById("setupError");
+
+    if (!tutor || !pin) {
+      errBox.innerText = "Inserisci sia il Nome che il PIN.";
+      errBox.style.display = "block";
+      return;
+    }
+
+    errBox.innerText = "Verifica credenziali in corso...";
+    errBox.style.display = "block";
+
+    fetch(`${ENDPOINT_API}?action=verifica_docente&tutor=${encodeURIComponent(tutor)}&pin=${encodeURIComponent(pin)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          localStorage.setItem("uda_tutor_name", tutor);
+          localStorage.setItem("uda_tutor_pin", pin);
+          controllaAccessoDocente();
+        } else {
+          errBox.innerText = data.message;
+        }
+      })
+      .catch(() => {
+        errBox.innerText = "Errore di connessione durante la verifica.";
+      });
+  }
+
+  function resetCredenziali() {
+    if (confirm("Vuoi disconnettere questo dispositivo?")) {
+      localStorage.removeItem("uda_tutor_pin");
+      location.reload();
+    }
+  }
+
+  function playSound() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(ok ? 880 : 220, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
       osc.start();
-      osc.stop(ctx.currentTime + 0.3);
+      osc.stop(ctx.currentTime + 0.35);
     } catch(e) {}
   }
 
-  function setStato(tipo, txt) {
-    const el = document.getElementById("status-box");
-    el.className = "status-" + tipo;
-    el.innerText = txt;
+  function mostraConvalidato(data) {
+    document.getElementById("popNome").innerText = data.studente;
+    document.getElementById("popMatr").innerText = `Matricola: ${data.matricola}`;
+    document.getElementById("popRep").innerText = data.reparto;
+    document.getElementById("popTurno").innerText = data.turno;
+    document.getElementById("popOre").innerText = `${data.ore} Ore Accreditate`;
+    document.getElementById("popOra").innerText = `${data.data}, ${data.ora}`;
+
+    const overlay = document.getElementById("convalidaOverlay");
+    overlay.style.display = "flex";
+
+    // Chiude in automatico dopo 3.5 secondi se il professore non tocca lo schermo
+    clearTimeout(timerChiusuraOverlay);
+    timerChiusuraOverlay = setTimeout(chiudiOverlay, 3500);
   }
 
-  function mostraRecap(res) {
-    const card = document.getElementById("recapCard");
-    document.getElementById("recNome").innerText = res.studente;
-    document.getElementById("recMatr").innerText = res.matricola;
-    document.getElementById("recRep").innerText = res.reparto;
-    document.getElementById("recOre").innerText = `${res.turno} • ${res.ore}h`;
-    document.getElementById("recOra").innerText = `${res.data}, ${res.ora}`;
-    card.style.display = "block";
+  function chiudiOverlay() {
+    clearTimeout(timerChiusuraOverlay);
+    document.getElementById("convalidaOverlay").style.display = "none";
+    scannerAttivo = true;
   }
 
   function addLog(nome, ora) {
@@ -203,17 +344,18 @@
   function onScanSuccess(decodedText) {
     if (!scannerAttivo) return;
 
-    const tutor = document.getElementById("tutor").value.trim();
-    const pin = document.getElementById("pinDocente").value.trim();
+    const tutor = localStorage.getItem("uda_tutor_name");
+    const pin = localStorage.getItem("uda_tutor_pin");
 
     if (!tutor || !pin) {
-      setStato("ko", "⚠️ Credenziali Tutor o PIN mancanti!");
-      playSound(false);
+      controllaAccessoDocente();
       return;
     }
 
     scannerAttivo = false;
-    setStato("standby", "Verifica badge dinamico in corso...");
+    const stBox = document.getElementById("status-box");
+    stBox.className = "";
+    stBox.innerText = "Verifica presenza in corso...";
 
     fetch(ENDPOINT_API, {
       method: "POST",
@@ -230,33 +372,34 @@
     .then(r => r.json())
     .then(data => {
       if (data.success) {
-        setStato("ok", `✅ ${data.studente} convalidato!`);
-        playSound(true);
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        mostraRecap(data);
+        playSound();
+        if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+        stBox.innerText = "Inquadra il prossimo badge";
+        mostraConvalidato(data);
         addLog(`${data.studente} (${data.matricola})`, data.ora);
       } else {
-        setStato("ko", data.message);
-        playSound(false);
-        document.getElementById("recapCard").style.display = "none";
+        stBox.className = "status-ko";
+        stBox.innerText = data.message;
+        setTimeout(() => { scannerAttivo = true; }, 3000);
       }
-      setTimeout(() => { scannerAttivo = true; }, 3000);
     })
     .catch(() => {
-      setStato("ko", "Errore di connessione al database.");
-      playSound(false);
+      stBox.className = "status-ko";
+      stBox.innerText = "Errore di trasmissione presenze.";
       setTimeout(() => { scannerAttivo = true; }, 3000);
     });
   }
 
-  const html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: { width: 220, height: 220 } },
-    onScanSuccess
-  ).catch(() => {
-    setStato("ko", "Fotocamera non autorizzata.");
-  });
+  function avviaFotocamera() {
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 220, height: 220 } },
+      onScanSuccess
+    ).catch(() => {
+      document.getElementById("status-box").innerText = "Fotocamera non autorizzata. Consenti l'accesso nelle impostazioni.";
+    });
+  }
 </script>
 </body>
 </html>
