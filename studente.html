@@ -4,10 +4,15 @@
   <meta charset="UTF-8">
   <title>Ud'A - Portale Studenti Tirocini</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#0f2744">
   <style>
     :root { 
-      --primary: #0f2744; --accent: #1e40af; --bg: #f8fafc; 
-      --card: #ffffff; --text: #0f172a; --border: #cbd5e1;
+      --primary: #0f2744; 
+      --accent: #1e40af; 
+      --bg: #f8fafc; 
+      --card: #ffffff; 
+      --text: #0f172a; 
+      --border: #cbd5e1;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { margin: 0; padding: 14px; background: var(--bg); color: var(--text); }
@@ -31,7 +36,7 @@
     .qr-container { text-align: center; margin: 12px 0; }
     .qr-container img { border: 2px solid var(--accent); border-radius: 12px; padding: 6px; background: #fff; }
     
-    /* Barra conto alla rovescia QR Dinamico */
+    /* Contatore visivo QR Dinamico */
     .timer-bar-wrap { background: #e2e8f0; height: 6px; border-radius: 4px; overflow: hidden; margin: 8px auto; max-width: 180px; }
     .timer-bar-fill { background: var(--accent); height: 100%; width: 100%; transition: width 1s linear; }
 
@@ -65,7 +70,7 @@
       </div>
       <div class="field">
         <label for="pinInput">PIN di Sicurezza (4 cifre):</label>
-        <input type="password" id="pinInput" placeholder="••••" maxlength="4">
+        <input type="password" id="pinInput" placeholder="••••" maxlength="6" inputmode="numeric">
       </div>
       <button class="btn-login" onclick="autenticaStudente()">Accedi al Registro</button>
       <div id="error-msg"></div>
@@ -110,7 +115,7 @@
     <footer>
       Architettura di sistema e sviluppo: <strong>Mohaidine Aariouach</strong>
       <div class="gdpr-note">
-        🛡️ Accesso sicuro protetto da crittografia. Trattamento dati conforme GDPR (Art. 13-14 Reg. UE 2016/679).
+        🛡️ Accesso sicuro protetto da crittografia. Trattamento dati conforme GDPR (Reg. UE 2016/679).
       </div>
     </footer>
   </div>
@@ -118,7 +123,6 @@
 
 <script>
   const API_URL = "https://script.google.com/macros/s/AKfycbz9qia-iGTNeu_rL0I3XCbYiZ6SmjYd07UlI_YwizSX-WFPnS77lQBQvSc5EJT5G99H/exec";
-  let countdownTimer = null;
   let qrInterval = null;
   let currentMatricola = "";
   let currentPin = "";
@@ -134,14 +138,13 @@
     }
   });
 
-  // Generatore QR Dinamico Anti-Screenshot con Token Base64 temporizzato
+  // Generatore Token Dinamico Anti-Screenshot
   function rigeneraQRDinamico() {
     if (!currentMatricola || !currentPin) return;
     const nowSec = Math.floor(Date.now() / 1000);
     const token = btoa(`${currentMatricola}:${nowSec}:${currentPin}`);
     document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(token)}`;
 
-    // Animazione barra
     const fill = document.getElementById("timerFill");
     fill.style.transition = "none";
     fill.style.width = "100%";
@@ -158,14 +161,14 @@
 
     if (!mat || !pin) {
       err.style.display = "block";
-      err.innerText = "Inserire sia Matricola che PIN.";
+      err.innerText = "Inserisci sia la Matricola che il PIN.";
       return;
     }
 
     err.style.display = "none";
     document.getElementById('loading').style.display = "block";
 
-    fetch(`${API_URL}?matricola=${mat}&pin=${pin}`)
+    fetch(`${API_URL}?matricola=${encodeURIComponent(mat)}&pin=${encodeURIComponent(pin)}`)
       .then(r => r.json())
       .then(d => {
         document.getElementById('loading').style.display = "none";
@@ -182,7 +185,6 @@
         document.getElementById('studenteNome').innerText = `${d.cognome} ${d.nome}`;
         document.getElementById('studenteMatricola').innerText = `Matricola: ${d.matricola}`;
 
-        // Avvio generatore dinamico
         rigeneraQRDinamico();
         clearInterval(qrInterval);
         qrInterval = setInterval(rigeneraQRDinamico, 30000);
@@ -208,7 +210,7 @@
       .catch(() => {
         document.getElementById('loading').style.display = "none";
         err.style.display = "block";
-        err.innerText = "Errore di connessione al registro.";
+        err.innerText = "Errore di connessione al database Google.";
       });
   }
 
