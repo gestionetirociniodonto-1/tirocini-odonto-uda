@@ -2,53 +2,53 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Ud'A Odontoiatria - Presenze</title>
+  <title>Ud'A Odontoiatria - Scanner Convalida</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  
-  <!-- Configurazione PWA: diventa una vera app su smartphone -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Ud'A Presenze">
-  <meta name="theme-color" content="#7a1526">
-
-  <!-- Scanner Engine QR -->
+  <meta name="theme-color" content="#0f2744">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
   <style>
     :root {
-      --uda-red: #7a1526;
-      --bg: #f5f6f8;
-      --card: #ffffff;
-      --text: #212529;
-      --success: #1e7e34;
-      --error: #bd2130;
+      --primary: #0f2744; --accent: #1e40af; --light: #eff6ff;
+      --bg: #f8fafc; --card: #ffffff; --border: #cbd5e1;
+      --text: #0f172a; --ok: #15803d; --ko: #b91c1c;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; padding: 12px; background: var(--bg); color: var(--text); }
-    .container { max-width: 440px; margin: 0 auto; background: var(--card); border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); overflow: hidden; }
+    body { margin: 0; padding: 12px; background-color: var(--bg); color: var(--text); }
+    .container { max-width: 450px; margin: 0 auto; background: var(--card); border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 39, 68, 0.08); overflow: hidden; border: 1px solid #e2e8f0; }
     
-    header { background: var(--uda-red); color: white; padding: 16px; text-align: center; }
-    header h1 { margin: 0; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
-    header p { margin: 4px 0 0; font-size: 12px; opacity: 0.85; }
+    header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 18px 14px; text-align: center; }
+    header h1 { margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 800; }
+    header p { margin: 4px 0 0; font-size: 12px; opacity: 0.9; }
 
-    .form-body { padding: 16px; }
-    .field { margin-bottom: 12px; }
-    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #555; margin-bottom: 4px; }
-    select, input { width: 100%; padding: 11px; border: 1.5px solid #dcdfe6; border-radius: 8px; font-size: 14px; background: #fff; }
-    select:focus, input:focus { outline: none; border-color: var(--uda-red); }
+    .content { padding: 16px; }
+    .doc-badge { background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 14px; display: none; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 4px; }
+    select, input { width: 100%; padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; background: #fff; }
+    select:focus, input:focus { outline: none; border-color: var(--accent); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #reader-wrapper { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin: 14px 0 10px; min-height: 250px; }
     
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #status-box { min-height: 48px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; display: flex; align-items: center; justify-content: center; }
+    .status-standby { background: var(--light); color: var(--accent); border: 1px solid #bfdbfe; }
+    .status-ok { background: #dcfce7; color: var(--ok); border: 1.5px solid #86efac; }
+    .status-ko { background: #fee2e2; color: var(--ko); border: 1.5px solid #fca5a5; }
 
-    #reader-box { width: 100%; border-radius: 10px; overflow: hidden; background: #000; margin: 12px 0; min-height: 250px; }
-    
-    #status { min-height: 48px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; display: flex; align-items: center; justify-content: center; }
-    .standby { background: #eef1f6; color: #495057; }
-    .ok { background: #d4edda; color: var(--success); border: 1.5px solid #c3e6cb; }
-    .ko { background: #f8d7da; color: var(--error); border: 1.5px solid #f5c6cb; }
+    /* SCHEDA RECAP IMMEDIATO DELLO STUDENTE */
+    #recapCard { display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 14px; margin-top: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    #recapCard h4 { margin: 0 0 8px; font-size: 14px; color: #166534; display: flex; align-items: center; gap: 6px; }
+    .recap-item { font-size: 13px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .recap-item span:first-child { color: #475569; font-weight: 500; }
+    .recap-item span:last-child { font-weight: 700; color: #0f172a; }
 
-    .history { margin-top: 14px; border-top: 1px solid #eee; padding-top: 10px; }
-    .history-title { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; margin-bottom: 6px; }
-    .history-row { font-size: 12px; padding: 5px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; }
+    .history { margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+    .history-header { font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
+    .history-item { font-size: 12px; padding: 6px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; }
+
+    footer { background: #f1f5f9; padding: 12px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; }
+    footer strong { color: var(--primary); }
+    .gdpr-note { font-size: 10px; color: #94a3b8; margin-top: 6px; line-height: 1.3; }
   </style>
 </head>
 <body>
@@ -56,17 +56,25 @@
 <div class="container">
   <header>
     <h1>Università G. d'Annunzio</h1>
-    <p>CdL Odontoiatria • Timbratura Tirocini</p>
+    <p>CdLM in Odontoiatria • Convalida Tirocini Clinici</p>
   </header>
 
-  <div class="form-body">
-    <div class="field">
-      <label for="tutor">Docente / Tutor di Reparto:</label>
-      <input type="text" id="tutor" placeholder="Es. Prof. Rossi" required>
+  <div class="content">
+    <div id="docBadge" class="doc-badge"></div>
+
+    <div id="manualFields">
+      <div class="form-group">
+        <label for="tutor">Docente / Tutor Convalidante:</label>
+        <input type="text" id="tutor" placeholder="Es. Prof. Rossi">
+      </div>
+      <div class="form-group">
+        <label for="pinDocente">PIN Docente (Segreto):</label>
+        <input type="password" id="pinDocente" placeholder="••••" maxlength="6">
+      </div>
     </div>
 
-    <div class="field">
-      <label for="reparto">Reparto Clinico:</label>
+    <div class="form-group">
+      <label for="reparto">Reparto Clinico Ospedaliero:</label>
       <select id="reparto">
         <option value="Conservativa ed Endodonzia">Odontoiatria Conservativa ed Endodonzia</option>
         <option value="Chirurgia Orale ed Implantologia">Chirurgia Orale ed Implantologia</option>
@@ -77,54 +85,80 @@
       </select>
     </div>
 
-    <div class="grid">
-      <div class="field">
+    <div class="grid-2">
+      <div class="form-group">
         <label for="turno">Turno:</label>
         <select id="turno">
           <option value="Mattina (08:30 - 13:30)">Mattina</option>
           <option value="Pomeriggio (14:00 - 19:00)">Pomeriggio</option>
         </select>
       </div>
-      <div class="field">
+      <div class="form-group">
         <label for="ore">Ore Accreditate:</label>
         <select id="ore">
-          <option value="4">4 Ore</option>
-          <option value="5">5 Ore</option>
-          <option value="2">2 Ore</option>
+          <option value="4">4 Ore (Standard)</option>
+          <option value="5">5 Ore (Lungo)</option>
+          <option value="2">2 Ore (Seminario)</option>
         </select>
       </div>
     </div>
 
-    <!-- Scanner fotocamera nativa -->
-    <div id="reader-box">
-      <div id="reader"></div>
+    <div id="reader-wrapper"><div id="reader"></div></div>
+    <div id="status-box" class="status-standby">Inquadra il badge dinamico dello studente</div>
+
+    <!-- RECAP IMMEDIATO SCANSIONE -->
+    <div id="recapCard">
+      <h4>✅ Presenza Convalidata con Successo</h4>
+      <div class="recap-item"><span>Studente:</span><span id="recNome">-</span></div>
+      <div class="recap-item"><span>Matricola:</span><span id="recMatr">-</span></div>
+      <div class="recap-item"><span>Reparto:</span><span id="recRep">-</span></div>
+      <div class="recap-item"><span>Turno / Ore:</span><span id="recOre">-</span></div>
+      <div class="recap-item"><span>Registrato alle:</span><span id="recOra">-</span></div>
     </div>
 
-    <div id="status" class="standby">Inquadra il badge QR dello studente</div>
-
     <div class="history">
-      <div class="history-title">Ultime timbrature</div>
+      <div class="history-header">Ultime convalide del turno</div>
       <div id="logList"></div>
     </div>
   </div>
+
+  <footer>
+    Architettura di sistema e sviluppo: <strong>Mohaidine Aariouach</strong>
+    <div class="gdpr-note">
+      🛡️ Trattamento conforme al GDPR (Reg. UE 2016/679). Dati gestiti a fini istituzionali e didattici Ud'A.
+    </div>
+  </footer>
 </div>
 
 <script>
-  // INCOLLA QUI IL TUO LINK APPS SCRIPT /exec
   const ENDPOINT_API = "https://script.google.com/macros/s/AKfycbz9qia-iGTNeu_rL0I3XCbYiZ6SmjYd07UlI_YwizSX-WFPnS77lQBQvSc5EJT5G99H/exec";
-
   let scannerAttivo = true;
 
-  // Memorizzazione automatica del Docente sul telefono
   window.addEventListener('DOMContentLoaded', () => {
-    const tutorInput = document.getElementById("tutor");
-    const repartoSelect = document.getElementById("reparto");
-    
-    tutorInput.value = localStorage.getItem("uda_tutor") || "";
-    repartoSelect.value = localStorage.getItem("uda_reparto") || repartoSelect.value;
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get('tutor');
+    const r = params.get('rep');
+    const p = params.get('pin');
 
-    tutorInput.addEventListener("input", () => localStorage.setItem("uda_tutor", tutorInput.value.trim()));
-    repartoSelect.addEventListener("change", () => localStorage.setItem("uda_reparto", repartoSelect.value));
+    if (t && p) {
+      localStorage.setItem("uda_tutor", t);
+      localStorage.setItem("uda_pin", p);
+      if (r) localStorage.setItem("uda_rep", r);
+    }
+
+    const savedTutor = localStorage.getItem("uda_tutor");
+    const savedPin = localStorage.getItem("uda_pin");
+    const savedRep = localStorage.getItem("uda_rep");
+
+    if (savedTutor && savedPin) {
+      document.getElementById("manualFields").style.display = "none";
+      const badge = document.getElementById("docBadge");
+      badge.style.display = "block";
+      badge.innerHTML = `👨‍⚕️ <strong>${savedTutor}</strong> <span style="font-size:11px; float:right;">🔒 Credenziali Attive</span>`;
+      document.getElementById("tutor").value = savedTutor;
+      document.getElementById("pinDocente").value = savedPin;
+      if (savedRep) document.getElementById("reparto").value = savedRep;
+    }
   });
 
   function playSound(ok) {
@@ -142,73 +176,87 @@
   }
 
   function setStato(tipo, txt) {
-    const st = document.getElementById("status");
-    st.className = tipo;
-    st.innerText = txt;
+    const el = document.getElementById("status-box");
+    el.className = "status-" + tipo;
+    el.innerText = txt;
+  }
+
+  function mostraRecap(res) {
+    const card = document.getElementById("recapCard");
+    document.getElementById("recNome").innerText = res.studente;
+    document.getElementById("recMatr").innerText = res.matricola;
+    document.getElementById("recRep").innerText = res.reparto;
+    document.getElementById("recOre").innerText = `${res.turno} • ${res.ore}h`;
+    document.getElementById("recOra").innerText = `${res.data}, ${res.ora}`;
+    card.style.display = "block";
   }
 
   function addLog(nome, ora) {
     const list = document.getElementById("logList");
-    const item = document.createElement("div");
-    item.className = "history-row";
-    item.innerHTML = `<span><strong>${nome}</strong></span><span>${ora}</span>`;
-    list.prepend(item);
+    const row = document.createElement("div");
+    row.className = "history-item";
+    row.innerHTML = `<span><strong>${nome}</strong></span><span>${ora}</span>`;
+    list.prepend(row);
     if (list.children.length > 5) list.removeChild(list.lastChild);
   }
 
-  function onScanSuccess(matricola) {
+  function onScanSuccess(decodedText) {
     if (!scannerAttivo) return;
 
     const tutor = document.getElementById("tutor").value.trim();
-    if (!tutor) {
-      setStato("ko", "⚠️ Inserisci il nome del Docente!");
+    const pin = document.getElementById("pinDocente").value.trim();
+
+    if (!tutor || !pin) {
+      setStato("ko", "⚠️ Credenziali Tutor o PIN mancanti!");
       playSound(false);
       return;
     }
 
     scannerAttivo = false;
-    setStato("standby", "Registrazione in corso...");
+    setStato("standby", "Verifica badge dinamico in corso...");
 
-    const dati = {
-      matricola: matricola,
-      reparto: document.getElementById("reparto").value,
-      turno: document.getElementById("turno").value,
-      ore: document.getElementById("ore").value,
-      tutor: tutor
-    };
-
-    // Invio diretto a Google Sheets con fallback anti-CORS
     fetch(ENDPOINT_API, {
       method: "POST",
-      mode: "no-cors", // Evita qualsiasi blocco di sicurezza tra domini
       headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(dati)
+      body: JSON.stringify({
+        qrPayload: decodedText,
+        reparto: document.getElementById("reparto").value,
+        turno: document.getElementById("turno").value,
+        ore: document.getElementById("ore").value,
+        tutor: tutor,
+        pinDocente: pin
+      })
     })
-    .then(() => {
-      // In modalità no-cors la richiesta va a buon fine direttamente
-      setStato("ok", `✅ Scansione inviata: Matr. ${matricola}`);
-      playSound(true);
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-      addLog(`Matricola ${matricola}`, new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
-      setTimeout(() => { scannerAttivo = true; }, 2500);
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        setStato("ok", `✅ ${data.studente} convalidato!`);
+        playSound(true);
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        mostraRecap(data);
+        addLog(`${data.studente} (${data.matricola})`, data.ora);
+      } else {
+        setStato("ko", data.message);
+        playSound(false);
+        document.getElementById("recapCard").style.display = "none";
+      }
+      setTimeout(() => { scannerAttivo = true; }, 3000);
     })
-    .catch((err) => {
-      setStato("ko", "Errore di connessione.");
+    .catch(() => {
+      setStato("ko", "Errore di connessione al database.");
       playSound(false);
       setTimeout(() => { scannerAttivo = true; }, 3000);
     });
   }
 
-  // Avvio telecamera senza restrizioni iframe
   const html5QrCode = new Html5Qrcode("reader");
   html5QrCode.start(
     { facingMode: "environment" },
     { fps: 10, qrbox: { width: 220, height: 220 } },
     onScanSuccess
-  ).catch(err => {
-    setStato("ko", "Errore fotocamera: assicurati di concedere i permessi.");
+  ).catch(() => {
+    setStato("ko", "Fotocamera non autorizzata.");
   });
 </script>
-
 </body>
 </html>
