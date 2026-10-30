@@ -1,190 +1,83 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <!-- ========================================== -->
-  <!-- BLOCCO 1: CONFIG E LIBRERIA QR LOCALE      -->
-  <!-- ========================================== -->
   <meta charset="UTF-8">
-  <title>Ud'A - Tesserino Dinamico Studente</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="theme-color" content="#0f2744">
+  <title>Ud'A - Fascicolo Studente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-
-  <!-- ========================================== -->
-  <!-- BLOCCO 2: STILI CSS                        -->
-  <!-- ========================================== -->
   <style>
-    :root { 
-      --primary: #0f2744; --accent: #1e40af; --bg: #f1f5f9; 
-      --card: #ffffff; --text: #0f172a; --border: #cbd5e1;
-      --tpv: #0284c7; --ppv: #f59e0b; --ok: #16a34a;
-    }
-    * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-    body { margin: 0; padding: 14px; background: var(--bg); color: var(--text); display: flex; justify-content: center; }
-    .box { width: 100%; max-width: 440px; background: var(--card); border-radius: 16px; box-shadow: 0 8px 24px rgba(15,39,68,0.12); border: 1px solid var(--border); overflow: hidden; }
-    header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 18px; text-align: center; }
-    header h1 { margin: 0; font-size: 16px; text-transform: uppercase; }
-    header p { margin: 4px 0 0; font-size: 12px; opacity: 0.85; }
-    .content { padding: 20px; }
-    .field { margin-bottom: 14px; }
-    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px; }
-    input { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 15px; }
-    .btn-primary { width: 100%; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    :root { --bg: #f8fafc; --card: #fff; --text: #0f172a; --tpv: #0284c7; --border: #e2e8f0; }
+    body { margin:0; padding:12px; background: var(--bg); color: var(--text); font-family: system-ui; display: flex; flex-direction: column; min-height: 100vh; }
+    .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+    h2 { margin:0 0 10px; font-size: 18px; color: var(--text); }
+    .qr-container { background: #0f172a; padding: 20px; border-radius: 12px; text-align: center; }
+    canvas { background: white; padding: 10px; border-radius: 8px; }
+    .progress-bg { background: #f1f5f9; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 5px; }
+    .progress-fill { background: var(--tpv); height: 100%; transition: 0.5s; }
+    .sub-discipline { font-size: 11px; display: flex; justify-content: space-between; margin-top: 8px; color: #475569; border-top: 1px dashed var(--border); padding-top: 8px;}
     
-    #dashboard { display: none; }
-    .student-header { text-align: center; margin-bottom: 20px; }
-    .student-header h2 { margin: 0; color: var(--primary); font-size: 22px; font-weight: 800; }
-    .student-header p { margin: 2px 0 0; color: #64748b; font-size: 13px; font-weight: 600; }
-    .qr-wrapper { background: #0f172a; padding: 24px; border-radius: 16px; text-align: center; margin-bottom: 20px; }
-    .qr-box { background: white; padding: 12px; border-radius: 12px; display: inline-block; }
-    canvas { display: block; margin: 0 auto; }
-    .timer-container { background: #334155; height: 6px; border-radius: 4px; overflow: hidden; margin-top: 16px; }
-    .timer-fill { background: #38bdf8; height: 100%; width: 100%; }
-    .lum-warning { color: #fef08a; font-size: 11px; margin-top: 10px; font-weight: bold; }
+    #modalPrivacy { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; padding: 20px; }
+    .privacy-box { background: white; padding: 20px; border-radius: 16px; max-width: 400px; }
+    .btn { background: var(--tpv); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
     
-    .tracker-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-    .tracker-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; margin-bottom: 8px; }
-    .tpv-title { color: var(--tpv); }
-    .tpv-bar-bg { background: #e0f2fe; height: 10px; border-radius: 6px; overflow: hidden; }
-    .tpv-bar-fill { background: var(--tpv); height: 100%; transition: width 0.5s ease; }
-    .std-title { color: #475569; }
-    .ppv-title { color: var(--ppv); }
-    .ppv-dots { display: flex; gap: 8px; }
-    .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); background: #f8fafc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; font-weight: bold; }
-    .dot.active { background: var(--ok); border-color: var(--ok); color: white; }
-    .btn-logout { width: 100%; background: none; border: 1px solid var(--border); padding: 10px; border-radius: 8px; color: #64748b; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    .footer-tribute { margin-top: auto; text-align: center; font-size: 10px; color: #64748b; padding: 10px; }
   </style>
 </head>
 <body>
 
-<div class="box">
-  <header><h1>Università G. d'Annunzio</h1><p>Area Clinica Abilitante</p></header>
-  <div class="content">
-    
-    <!-- ========================================== -->
-    <!-- BLOCCO 3: MODULO LOGIN                     -->
-    <!-- ========================================== -->
-    <div id="login-form">
-      <div class="field"><label>Numero di Matricola</label><input type="text" id="matInput" placeholder="Es. 3201456"></div>
-      <div class="field"><label>PIN Sicurezza</label><input type="password" id="pinInput" placeholder="••••"></div>
-      <button class="btn-primary" onclick="effettuaLogin()">Accedi al Tesserino</button>
-      <div id="error-msg" style="display:none; color:#dc2626; font-size:12px; text-align:center; font-weight:bold; margin-top:10px;"></div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- BLOCCO 4: DASHBOARD & TRACKER NORMATIVO    -->
-    <!-- ========================================== -->
-    <div id="dashboard">
-      <div class="student-header"><h2 id="stNome">-</h2><p id="stMatr">-</p></div>
-      <div class="qr-wrapper">
-        <div class="qr-box"><canvas id="qr-canvas"></canvas></div>
-        <div class="timer-container"><div id="timerFill" class="timer-fill"></div></div>
-        <div class="lum-warning">☀️ Alza la luminosità dello schermo</div>
-      </div>
-      
-      <!-- Trackers -->
-      <div class="tracker-card">
-        <div class="tracker-header"><span class="tpv-title">TPV (Primo Operatore)</span><span id="txtTpv">0 / 600h</span></div>
-        <div class="tpv-bar-bg"><div id="barTpv" class="tpv-bar-fill" style="width: 0%;"></div></div>
-      </div>
-      <div class="tracker-card">
-        <div class="tracker-header"><span class="std-title">Tirocinio Standard</span><span id="txtStd">0h</span></div>
-      </div>
-      <div class="tracker-card">
-        <div class="tracker-header"><span class="ppv-title">Casi Clinici PPV</span></div>
-        <div class="ppv-dots"><div class="dot" id="ppv1">✓</div><div class="dot" id="ppv2">✓</div><div class="dot" id="ppv3">✓</div></div>
-      </div>
-      <button class="btn-logout" onclick="logout()">Disconnetti</button>
+  <div id="modalPrivacy">
+    <div class="privacy-box">
+      <h2>Privacy GDPR & D.M. 653/2022</h2>
+      <p style="font-size:12px; color:#475569;">Acconsenti al trattamento dei dati clinici. Frodi accertate (es. screenshot del QR) costituiscono reato accademico.</p>
+      <button class="btn" onclick="accettaPrivacy()">Accetto e Continuo</button>
     </div>
   </div>
-</div>
+
+  <div class="box" style="text-align:center;">
+    <h2 id="nomeSt">Mario Rossi - 3201456</h2>
+    <div class="qr-container"><canvas id="qr"></canvas></div>
+    <div style="font-size:11px; margin-top:10px; color:#64748b;">⏳ Validità Token: <b id="timer">60</b>s</div>
+  </div>
+
+  <div class="box">
+    <h2>Requisiti TPV (1° Operatore)</h2>
+    <div style="font-size:13px; font-weight:bold; color:var(--tpv);">Totale Globale: <span id="totTpv">120</span> / 600h</div>
+    <div class="progress-bg"><div class="progress-fill" id="barTpv" style="width:20%"></div></div>
+    
+    <div id="listaReparti" style="margin-top:15px;">
+      <div class="sub-discipline"><span>Chirurgia Orale A (Max 60h)</span><b>20 / 60h</b></div>
+      <div class="sub-discipline"><span>Protesi A (Max 120h)</span><b>60 / 120h</b></div>
+      <div class="sub-discipline"><span>Ortognatodonzia A (Max 120h)</span><b>40 / 120h</b></div>
+    </div>
+  </div>
+
+  <div class="footer-tribute">
+    🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
+    Sistema di Gestione Clinica Abilitante D.M. 653/2022<br>
+    Software Architecture & Engineering by <b>Mohaidine Aariouach</b>
+  </div>
 
 <script>
-  // ========================================== 
-  // SEZIONE 1: CONFIGURAZIONE SUPABASE
-  // ========================================== 
-  const SUPABASE_URL = "https://gifwjaazrxhwglemzfpp.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpZndqYWF6cnhod2dsZW16ZnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMDEzNjAsImV4cCI6MjEwODU3NzM2MH0.-T_blS16bhiDPs4An0p0hrsyHGXNzqlHujONfiK0-9A";
+  let qr; const MATRICOLA = "3201456";
 
-  let qrGenerator = null;
-  let timerInterval = null;
-  let currentMatricola = "";
-  let currentPin = "";
+  window.onload = () => {
+    if(!localStorage.getItem('uda_privacy')) document.getElementById('modalPrivacy').style.display = 'flex';
+    qr = new QRious({ element: document.getElementById('qr'), size: 200, level: 'M' });
+    setInterval(generaToken, 1000);
+  };
 
-  window.addEventListener('DOMContentLoaded', () => {
-    qrGenerator = new QRious({ element: document.getElementById('qr-canvas'), size: 200, level: 'H' });
-    if(localStorage.getItem("uda_st_mat")) {
-      currentMatricola = localStorage.getItem("uda_st_mat");
-      currentPin = localStorage.getItem("uda_st_pin");
-      caricaDatiSupabase();
+  function accettaPrivacy() {
+    localStorage.setItem('uda_privacy', 'true');
+    document.getElementById('modalPrivacy').style.display = 'none';
+  }
+
+  function generaToken() {
+    const epoch = Math.floor(Date.now() / 1000);
+    const rimanenti = 60 - (epoch % 60);
+    document.getElementById('timer').innerText = rimanenti;
+    if (rimanenti === 60 || qr.value === "") {
+      qr.value = btoa(`${MATRICOLA}|${epoch}`);
     }
-  });
-
-  function effettuaLogin() {
-    currentMatricola = document.getElementById('matInput').value.trim();
-    currentPin = document.getElementById('pinInput').value.trim();
-    if(!currentMatricola || !currentPin) return document.getElementById('error-msg').style.display = 'block';
-    
-    localStorage.setItem("uda_st_mat", currentMatricola);
-    localStorage.setItem("uda_st_pin", currentPin);
-    caricaDatiSupabase();
-  }
-
-  // ========================================== 
-  // SEZIONE 2: FETCH DATI (VISTA SQL)
-  // ========================================== 
-  async function caricaDatiSupabase() {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/vista_cruscotto_presidenza?matricola=eq.${currentMatricola}&select=*`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-      });
-      const dati = await response.json();
-      
-      const stat = dati[0] || { ore_tpv: 0, ore_standard: 0, casi_ppv_certificati: 0, cognome: 'Studente', nome: currentMatricola };
-      popolaInterfaccia(stat);
-    } catch(e) {
-      document.getElementById('error-msg').innerText = "Impossibile connettersi al database clinico.";
-      document.getElementById('error-msg').style.display = 'block';
-    }
-  }
-
-  function popolaInterfaccia(stat) {
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('stNome').innerText = `${stat.cognome} ${stat.nome}`;
-    document.getElementById('stMatr').innerText = `Matricola: ${currentMatricola}`;
-    document.getElementById('txtTpv').innerText = `${stat.ore_tpv} / 600h`;
-    document.getElementById('barTpv').style.width = `${Math.min((stat.ore_tpv / 600) * 100, 100)}%`;
-    document.getElementById('txtStd').innerText = `${stat.ore_standard} h`;
-    
-    document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
-    for(let i=1; i<=3; i++) { if(i <= stat.casi_ppv_certificati) document.getElementById(`ppv${i}`).classList.add('active'); }
-    
-    avviaMotoreQR();
-  }
-
-  // ========================================== 
-  // SEZIONE 3: MOTORE GENERAZIONE QR
-  // ========================================== 
-  function avviaMotoreQR() {
-    aggiornaToken();
-    if(timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      const secondiPassati = Math.floor(Date.now() / 1000) % 30;
-      document.getElementById('timerFill').style.width = `${((30 - secondiPassati) / 30) * 100}%`;
-      if(secondiPassati === 0) aggiornaToken();
-    }, 1000);
-  }
-
-  function aggiornaToken() {
-    const token = btoa(`${currentMatricola}:${Math.floor(Date.now() / 1000)}:${currentPin}`);
-    qrGenerator.value = token;
-  }
-
-  function logout() {
-    clearInterval(timerInterval);
-    localStorage.removeItem("uda_st_mat"); localStorage.removeItem("uda_st_pin");
-    location.reload();
   }
 </script>
 </body>
