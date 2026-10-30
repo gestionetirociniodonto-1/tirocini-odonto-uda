@@ -1,291 +1,109 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <!-- ========================================== -->
-  <!-- BLOCCO 1: CONFIGURAZIONE PAGINA E LIBRERIE -->
-  <!-- ========================================== -->
   <meta charset="UTF-8">
-  <title>Ud'A - Validazione Clinica</title>
+  <title>Ud'A - Validazione Docenti</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0f172a">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
-  <!-- ========================================== -->
-  <!-- BLOCCO 2: STILI CSS (UI E DARK MODE)       -->
-  <!-- ========================================== -->
   <style>
-    :root {
-      --primary: #0f2744; --accent: #1e40af; --bg: #0f172a; 
-      --card: #1e293b; --text: #f8fafc; --border: #334155;
-      --ok: #16a34a; --ko: #dc2626; --tpv: #0ea5e9;
-    }
-    * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-    body { margin: 0; padding: 12px; background-color: var(--bg); color: var(--text); }
-    .container { max-width: 450px; margin: 0 auto; background: var(--card); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); position: relative; }
-    header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 16px 14px; text-align: center; }
-    header h1 { margin: 0; font-size: 15px; text-transform: uppercase; font-weight: 800; }
-    .doc-badge { background: #064e3b; border: 1px solid #059669; color: #34d399; padding: 10px 14px; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-    .session-count { background: #34d399; color: #064e3b; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-    .content { padding: 14px; }
-    .form-group { margin-bottom: 12px; }
-    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; }
-    select, input { width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #0f172a; color: white; }
-    .role-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px; }
-    .role-toggle { display: flex; gap: 8px; margin-bottom: 8px; }
-    .role-btn { flex: 1; padding: 10px; text-align: center; border-radius: 6px; border: 1px solid var(--border); background: #1e293b; color: #94a3b8; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-    .role-btn.active-primo { background: var(--tpv); color: white; border-color: #0284c7; }
-    .role-btn.active-secondo { background: #475569; color: white; border-color: #64748b; }
-    .ppv-check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cbd5e1; padding-top: 8px; border-top: 1px dashed var(--border); }
-    .ppv-check input { width: 18px; height: 18px; accent-color: var(--tpv); }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    #reader-wrapper { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin: 10px 0; border: 2px solid var(--border); position: relative; }
-    #status-box { padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; background: #0f172a; color: #94a3b8; border: 1px solid var(--border); }
-    .status-offline { background: #78350f !important; color: #fcd34d !important; border-color: #b45309 !important; }
-    .status-ko { background: #7f1d1d !important; color: #fca5a5 !important; border-color: #b91c1c !important; }
-    #convalidaOverlay { display: none; position: absolute; inset: 0; background: rgba(22, 163, 74, 0.95); color: white; z-index: 100; padding: 20px; flex-direction: column; justify-content: center; align-items: center; text-align: center; animation: popIn 0.2s ease-out; }
-    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .badge-ok { font-size: 24px; font-weight: 900; background: white; color: var(--ok); padding: 6px 20px; border-radius: 30px; margin-bottom: 12px; }
-    .student-name { font-size: 22px; font-weight: 800; margin: 0 0 4px; }
-    #modalPrimoAccesso { display: none; position: absolute; inset: 0; background: var(--bg); z-index: 90; padding: 24px; flex-direction: column; justify-content: center; }
+    :root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --text: #f8fafc; --tpv: #0ea5e9; --border: rgba(255,255,255,0.1); }
+    body { margin:0; padding:12px; background: var(--bg); color: var(--text); font-family: system-ui; display: flex; flex-direction: column; min-height: 100vh; }
+    .glass-panel { background: var(--card); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+    header { text-align: center; margin-bottom: 10px; }
+    header h1 { font-size: 16px; margin:0; color: var(--tpv); text-transform: uppercase; }
+    label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 4px; }
+    select, input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; margin-bottom: 10px; box-sizing: border-box; }
+    .btn-group { display: flex; gap: 8px; margin-bottom: 10px; }
+    .btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer; text-align: center; }
+    .btn.active { background: var(--tpv); color: white; border-color: var(--tpv); }
+    #reader { border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid var(--border); }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(22,163,74,0.95); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
+    .overlay h2 { color: white; font-size: 28px; font-weight: 900; margin:0; }
+    .footer-tribute { margin-top: auto; text-align: center; font-size: 10px; color: #64748b; padding: 10px; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <header><h1>Ud'A - Validazione Clinica</h1></header>
+  <header><h1>Ud'A Area Clinica</h1><div style="font-size:12px; color:#94a3b8;">Scanner Docente</div></header>
 
-  <!-- ========================================== -->
-  <!-- BLOCCO 3: MODALE SETUP INIZIALE            -->
-  <!-- ========================================== -->
-  <div id="modalPrimoAccesso">
-    <h3 style="text-align:center; color:white;">🔒 Associa Dispositivo</h3>
-    <div class="form-group"><label>Docente / Tutor:</label><input type="text" id="setupTutor" placeholder="Es. Prof. Rossi"></div>
-    <div class="form-group"><label>PIN Sicurezza:</label><input type="password" id="setupPin" placeholder="••••" inputmode="numeric"></div>
-    <div id="setupError" style="color:var(--ko); font-size:12px; text-align:center; margin-bottom:10px;"></div>
-    <button onclick="salvaCredenziali()" style="background:var(--tpv); color:white; border:none; padding:12px; width:100%; border-radius:8px; font-weight:bold;">Connetti al Database</button>
+  <div class="glass-panel">
+    <label>Reparto / Disciplina</label>
+    <select id="reparto" onchange="salvaStato()"></select>
+    
+    <div class="btn-group">
+      <div class="btn active" id="btnPrimo" onclick="setRuolo('Primo')">1° Operatore (TPV)</div>
+      <div class="btn" id="btnSecondo" onclick="setRuolo('Secondo')">2° Operatore</div>
+    </div>
+    
+    <label style="display:flex; align-items:center; gap:8px; margin-bottom: 10px;">
+      <input type="checkbox" id="chkPpv" style="width:auto; margin:0;" onchange="salvaStato()"> Certifica Caso Clinico PPV
+    </label>
+
+    <div style="display:flex; gap:10px;">
+      <div style="flex:1;"><label>Turno</label><select id="turno" onchange="salvaStato()"><option>Mattina</option><option>Pomeriggio</option></select></div>
+      <div style="flex:1;"><label>Ore (Es. 2.5)</label><input type="number" id="ore" step="0.5" min="0.5" max="12" value="4" onchange="salvaStato()"></div>
+    </div>
   </div>
 
-  <!-- OVERLAY SUCCESSO -->
-  <div id="convalidaOverlay">
-    <div class="badge-ok">CONVALIDATO</div>
-    <div class="student-name" id="popNome">STUDENTE</div>
-    <div style="font-size: 14px; opacity: 0.9;" id="popDettagli">-</div>
+  <div id="reader"></div>
+
+  <div class="overlay" id="overlayOk"><h2>✅ CONVALIDATO</h2><p id="txtSt" style="color:white; font-size:18px;"></p></div>
+
+  <div class="footer-tribute">
+    🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
+    Sistema di Gestione Clinica Abilitante D.M. 653/2022<br>
+    Software Architecture & Engineering by <b>Mohaidine Aariouach</b>
   </div>
-
-  <!-- ========================================== -->
-  <!-- BLOCCO 4: INTERFACCIA PRINCIPALE (FORM)    -->
-  <!-- ========================================== -->
-  <div class="content">
-    <div id="docBadge" class="doc-badge">
-      <span id="badgeNome">👨‍⚕️ Attendere...</span>
-      <span class="session-count" id="contatoreTurno">Oggi: 0</span>
-    </div>
-
-    <div class="form-group">
-      <label>Reparto Clinico:</label>
-      <select id="reparto">
-        <option>Conservativa ed Endodonzia</option>
-        <option>Chirurgia Orale ed Implantologia</option>
-        <option>Parodontologia</option>
-        <option>Ortognatodonzia e Gnatologia</option>
-        <option>Protesi Dentaria</option>
-        <option>Odontoiatria Pediatrica</option>
-      </select>
-    </div>
-
-    <div class="role-box">
-      <label>Ruolo Studente (D.M. 653/2022):</label>
-      <div class="role-toggle">
-        <div class="role-btn active-primo" id="btnPrimo" onclick="setRuolo('Primo')">Primo Operatore (TPV)</div>
-        <div class="role-btn" id="btnSecondo" onclick="setRuolo('Secondo')">Secondo Operatore</div>
-      </div>
-      <div class="ppv-check">
-        <input type="checkbox" id="checkPpv">
-        <label for="checkPpv" style="margin:0;">Certifica come Caso Clinico PPV (1 di 3)</label>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="form-group"><label>Turno:</label><select id="turno"><option>Mattina</option><option>Pomeriggio</option></select></div>
-      <div class="form-group"><label>Ore:</label><select id="ore"><option>4</option><option>5</option><option>2</option></select></div>
-    </div>
-
-    <div id="reader-wrapper"><div id="reader"></div></div>
-    <div id="status-box">🟢 Scansione Attiva - Pronto</div>
-  </div>
-</div>
 
 <script>
-  // ========================================== 
-  // SEZIONE 1: CONFIGURAZIONE SUPABASE
-  // ========================================== 
-  const SUPABASE_URL = "https://gifwjaazrxhwglemzfpp.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpZndqYWF6cnhod2dsZW16ZnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMDEzNjAsImV4cCI6MjEwODU3NzM2MH0.-T_blS16bhiDPs4An0p0hrsyHGXNzqlHujONfiK0-9A";
+  let ruoloScelto = 'Primo'; let scannerAttivo = true;
 
-  // ========================================== 
-  // SEZIONE 2: STATO APPLICAZIONE
-  // ========================================== 
-  let scannerAttivo = true;
-  let ruoloAttuale = 'Primo';
-  let sessionati = 0;
-  let offlineQueue = JSON.parse(localStorage.getItem('uda_offline_queue') || '[]');
+  window.onload = async () => {
+    // Mock Caricamento Reparti (In prod usa fetch su Supabase)
+    const repartiMock = [{id: 1, nome: "Chirurgia Orale A"}, {id: 2, nome: "Protesi A"}, {id: 3, nome: "Ortognatodonzia A"}];
+    const sel = document.getElementById('reparto');
+    repartiMock.forEach(r => sel.innerHTML += `<option value="${r.id}">${r.nome}</option>`);
 
-  window.addEventListener('DOMContentLoaded', () => {
-    aggiornaContatoreOffline();
-    if(!localStorage.getItem("uda_doc_pin")) {
-      document.getElementById("modalPrimoAccesso").style.display = "flex";
-    } else {
-      document.getElementById("badgeNome").innerText = `👨‍⚕️ ${localStorage.getItem("uda_doc_name")}`;
-      avviaFotocamera();
-    }
-    window.addEventListener('online', gestisciCodaOffline);
-  });
-
-  // ========================================== 
-  // SEZIONE 3: LOGICA INTERFACCIA
-  // ========================================== 
-  function setRuolo(ruolo) {
-    ruoloAttuale = ruolo;
-    document.getElementById('btnPrimo').className = 'role-btn' + (ruolo === 'Primo' ? ' active-primo' : '');
-    document.getElementById('btnSecondo').className = 'role-btn' + (ruolo === 'Secondo' ? ' active-secondo' : '');
-    const ppvCheck = document.getElementById('checkPpv');
-    if (ruolo === 'Secondo') { ppvCheck.checked = false; ppvCheck.disabled = true; } 
-    else { ppvCheck.disabled = false; }
-  }
-
-  function salvaCredenziali() {
-    const tutor = document.getElementById("setupTutor").value;
-    const pin = document.getElementById("setupPin").value;
-    if(tutor && pin) {
-      localStorage.setItem("uda_doc_name", tutor);
-      localStorage.setItem("uda_doc_pin", pin);
-      location.reload();
-    }
-  }
-
-  function avviaFotocamera() {
+    if(localStorage.getItem('uda_last_rep')) sel.value = localStorage.getItem('uda_last_rep');
+    if(localStorage.getItem('uda_last_turno')) document.getElementById('turno').value = localStorage.getItem('uda_last_turno');
+    
     const html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start(
-      { facingMode: "environment" },
-      { fps: 20, qrbox: { width: 250, height: 250 }, videoConstraints: { width: { ideal: 1280 }, height: { ideal: 720 } } },
-      onScanSuccess
-    );
+    html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, onScan);
+  };
+
+  function setRuolo(r) {
+    ruoloScelto = r;
+    document.getElementById('btnPrimo').className = r === 'Primo' ? 'btn active' : 'btn';
+    document.getElementById('btnSecondo').className = r === 'Secondo' ? 'btn active' : 'btn';
+    document.getElementById('chkPpv').disabled = (r === 'Secondo');
+    if(r === 'Secondo') document.getElementById('chkPpv').checked = false;
+    salvaStato();
   }
 
-  // ========================================== 
-  // SEZIONE 4: SCANSIONE E RETE (SUPABASE)
-  // ========================================== 
-  function onScanSuccess(qrToken) {
-    if (!scannerAttivo) return;
+  function salvaStato() {
+    localStorage.setItem('uda_last_rep', document.getElementById('reparto').value);
+    localStorage.setItem('uda_last_turno', document.getElementById('turno').value);
+  }
+
+  async function onScan(tokenBase64) {
+    if(!scannerAttivo) return;
     scannerAttivo = false;
-    if (navigator.vibrate) navigator.vibrate([80]);
+    if(navigator.vibrate) navigator.vibrate(50);
     
-    const payload = {
-      token_studente: qrToken,
-      reparto: document.getElementById("reparto").value,
-      turno: document.getElementById("turno").value,
-      ore: document.getElementById("ore").value,
-      ruolo: ruoloAttuale,
-      caso_ppv: document.getElementById("checkPpv").checked,
-      docente: localStorage.getItem("uda_doc_name")
-    };
-
-    if (navigator.onLine) inviaASupabase(payload);
-    else salvaInCodaOffline(payload);
-  }
-
-  async function inviaASupabase(dati) {
-    const stBox = document.getElementById("status-box");
-    stBox.innerText = "Verifica server SQL...";
     try {
-      // Decodifica il token base64 generato dallo studente
-      const payloadDecodificato = atob(dati.token_studente);
-      const [matricola, timestamp, pin] = payloadDecodificato.split(':');
+      // Decodifica il Base64 dello studente
+      const decoded = atob(tokenBase64);
+      const [matricola, timestamp] = decoded.split('|');
       
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/timbrature`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          matricola_studente: matricola,
-          nome_docente: dati.docente,
-          reparto: dati.reparto,
-          turno: dati.turno,
-          ore: parseInt(dati.ore),
-          ruolo: dati.ruolo,
-          caso_ppv: dati.caso_ppv
-        })
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || "Errore di validazione dal database.");
-      }
-
-      mostraSuccesso({ studente: `Matr: ${matricola}`, ruolo: dati.ruolo, ore: dati.ore });
-    } catch (error) {
-      erroreScansione(error.message);
+      const ore = document.getElementById('ore').value;
+      document.getElementById('txtSt').innerText = `${ruoloScelto} Op. - ${ore}h`;
+      document.getElementById('overlayOk').style.display = 'flex';
+      
+      setTimeout(() => { document.getElementById('overlayOk').style.display = 'none'; scannerAttivo = true; }, 1500);
+    } catch (e) {
+      alert("ERRORE LETTURA: " + e.message);
+      setTimeout(() => scannerAttivo = true, 2000);
     }
-  }
-
-  // ========================================== 
-  // SEZIONE 5: FEEDBACK E OFFLINE
-  // ========================================== 
-  function mostraSuccesso(data) {
-    sessionati++;
-    document.getElementById("contatoreTurno").innerText = `Oggi: ${sessionati}`;
-    document.getElementById("popNome").innerText = data.studente;
-    document.getElementById("popDettagli").innerText = `${data.ruolo} Operatore - ${data.ore}h`;
-    
-    const overlay = document.getElementById("convalidaOverlay");
-    overlay.style.display = "flex";
-    setTimeout(() => {
-      overlay.style.display = "none";
-      document.getElementById("status-box").innerText = "🟢 Scansione Attiva - Pronto";
-      scannerAttivo = true;
-    }, 1500);
-  }
-
-  function erroreScansione(msg) {
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-    const stBox = document.getElementById("status-box");
-    stBox.className = "status-ko";
-    stBox.innerText = `⛔ ${msg}`;
-    setTimeout(() => { 
-      stBox.className = ""; 
-      stBox.innerText = "🟢 Scansione Attiva - Pronto";
-      scannerAttivo = true; 
-    }, 3000);
-  }
-
-  function salvaInCodaOffline(dati) {
-    offlineQueue.push(dati);
-    localStorage.setItem('uda_offline_queue', JSON.stringify(offlineQueue));
-    aggiornaContatoreOffline();
-    mostraSuccesso({ studente: "Salvato Offline (Invia dopo)", ruolo: dati.ruolo, ore: dati.ore });
-  }
-
-  function aggiornaContatoreOffline() {
-    const stBox = document.getElementById("status-box");
-    if (offlineQueue.length > 0) {
-      stBox.className = "status-offline";
-      stBox.innerText = `⚠️ ${offlineQueue.length} presenze in attesa di rete`;
-    }
-  }
-
-  async function gestisciCodaOffline() {
-    if (offlineQueue.length === 0) return;
-    document.getElementById("status-box").innerText = "🔄 Sincronizzazione offline in corso...";
-    for (const timbratura of offlineQueue) {
-       await inviaASupabase(timbratura); // Svuota la coda sequenzialmente
-    }
-    offlineQueue = [];
-    localStorage.setItem('uda_offline_queue', '[]');
   }
 </script>
 </body>
