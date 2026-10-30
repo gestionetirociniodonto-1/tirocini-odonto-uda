@@ -1,179 +1,55 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <!-- ========================================== -->
-  <!-- BLOCCO 1: CONFIGURAZIONE E STILI           -->
-  <!-- ========================================== -->
   <meta charset="UTF-8">
-  <title>Ud'A - Cruscotto Presidenza</title>
+  <title>Ud'A - Cruscotto Direzione</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root {
-      --primary: #0f2744; --accent: #1e40af; --bg: #f8fafc;
-      --card: #ffffff; --text: #0f172a; --border: #e2e8f0;
-      --ok: #15803d; --ko: #b91c1c; --warn: #b45309; --tpv: #0284c7;
-    }
-    * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-    body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); }
-    .layout { max-width: 1200px; margin: 0 auto; }
-    header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 22px; border-radius: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { margin: 0; font-size: 20px; }
-    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
-    .kpi-card { background: var(--card); padding: 18px; border-radius: 12px; border: 1px solid var(--border); }
-    .kpi-value { font-size: 28px; font-weight: 900; color: var(--primary); margin-top: 6px; }
-    .kpi-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; }
-    .table-container { background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
-    .toolbar { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; background: #fcfcfc; }
-    .filters { display: flex; gap: 10px; }
-    .search-box, select { padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; }
-    .btn-export { background: #10b981; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-    th { background: #f1f5f9; padding: 14px 16px; border-bottom: 2px solid var(--border); }
-    td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
-    .status-badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 11px; }
-    .status-ok { background: #dcfce7; color: var(--ok); }
-    .status-warn { background: #fef9c3; color: var(--warn); }
-    .status-ko { background: #fee2e2; color: var(--ko); }
-    .ppv-dots { display: flex; gap: 4px; }
-    .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; }
-    .dot.active { background: #f59e0b; border-color: #f59e0b; color: white; }
+    :root { --primary: #0f2744; --bg: #f8fafc; --card: #fff; --border: #e2e8f0; --ok: #15803d; --ko: #b91c1c; }
+    body { margin:0; padding:20px; background: var(--bg); font-family: system-ui; display: flex; flex-direction: column; min-height: 100vh; }
+    .header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; flex-wrap: wrap; gap:10px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .kpi { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .table-container { background: var(--card); border-radius: 12px; overflow-x: auto; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+    th { background: #f1f5f9; text-transform: uppercase; font-size: 11px; font-weight: 800; color: #475569; }
+    .badge { padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 11px; }
+    .risk { background: #fee2e2; color: var(--ko); border: 1px solid #fca5a5; }
+    .footer-tribute { margin-top: auto; text-align: center; font-size: 11px; color: #64748b; padding-top: 20px; }
   </style>
 </head>
 <body>
 
-<div class="layout">
-  <!-- ========================================== -->
-  <!-- BLOCCO 2: KPI DASHBOARD E FILTRI           -->
-  <!-- ========================================== -->
-  <header>
-    <div><h1>Ud'A - Cruscotto Presidenza</h1><p>Monitoraggio Requisiti Clinici</p></div>
-  </header>
+  <div class="header">
+    <div>
+      <h1 style="margin:0; font-size:20px;">Cruscotto Presidenza</h1>
+      <div style="font-size:12px; opacity:0.8;">Analytics e Compliance D.M. 653/2022</div>
+    </div>
+    <div style="background:rgba(255,255,255,0.2); padding:8px 15px; border-radius:8px; font-size:12px; font-weight:bold;">Sola Lettura</div>
+  </div>
 
-  <div class="kpi-row">
-    <div class="kpi-card"><div class="kpi-label">Studenti Attivi</div><div class="kpi-value" id="kpiTot">0</div></div>
-    <div class="kpi-card"><div class="kpi-label">🟢 Idonei Abilitazione</div><div class="kpi-value" style="color:var(--ok);" id="kpiIdonei">0</div></div>
-    <div class="kpi-card"><div class="kpi-label">🟡 In Completamento TPV</div><div class="kpi-value" style="color:var(--warn);" id="kpiInCorso">0</div></div>
-    <div class="kpi-card"><div class="kpi-label">⚠️ Carenti Casi PPV</div><div class="kpi-value" style="color:var(--ko);" id="kpiPpv">0</div></div>
+  <div class="kpi-grid">
+    <div class="kpi"><div style="font-size:11px; color:#64748b;">TOTALE STUDENTI</div><div style="font-size:24px; font-weight:900;">142</div></div>
+    <div class="kpi"><div style="font-size:11px; color:#64748b;">🟢 IDONEO TESI</div><div style="font-size:24px; font-weight:900; color:var(--ok);">28</div></div>
+    <div class="kpi"><div style="font-size:11px; color:#64748b;">🔴 A RISCHIO (6° Anno < 300h)</div><div style="font-size:24px; font-weight:900; color:var(--ko);">5</div></div>
   </div>
 
   <div class="table-container">
-    <div class="toolbar">
-      <div class="filters">
-        <input type="text" id="ricerca" class="search-box" placeholder="Cerca...">
-        <select id="filtroCoorte"><option value="ALL">Tutte le Coorti</option><option value="2024/2025">2024/2025</option><option value="2023/2024">2023/2024</option></select>
-        <select id="filtroStato"><option value="ALL">Tutti gli Stati</option><option value="IDONEO">Solo Idonei</option><option value="CARENTE">Carenti</option></select>
-      </div>
-      <button class="btn-export" onclick="esportaCSV()">📄 Esporta CSV (Esse3)</button>
-    </div>
     <table>
-      <thead>
-        <tr><th>Matricola</th><th>Nominativo</th><th>Coorte</th><th>Ore II Op.</th><th>Ore TPV (I Op.)</th><th>Casi PPV</th><th>Stato D.M. 653/22</th></tr>
-      </thead>
-      <tbody id="tabellaStudenti">
-        <tr><td colspan="7" style="text-align:center; padding:30px;">Connessione al DB...</td></tr>
+      <thead><tr><th>Matricola</th><th>Nominativo</th><th>Coorte</th><th>TPV (600h)</th><th>PPV (3)</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>3201456</td><td>Rossi Mario</td><td>2024/25</td><td><b>600h</b></td><td>3/3</td><td><span class="badge" style="background:#dcfce7; color:var(--ok);">IDONEO</span></td></tr>
+        <tr style="background:#fff1f2;"><td>3109922</td><td>Verdi Luca</td><td>2023/24</td><td><b>280h</b></td><td>1/3</td><td><span class="badge risk">A RISCHIO (6° ANNO)</span></td></tr>
       </tbody>
     </table>
   </div>
-</div>
 
-<script>
-  // ========================================== 
-  // SEZIONE 1: RETE E CARICAMENTO DATI
-  // ========================================== 
-  const SUPABASE_URL = "https://gifwjaazrxhwglemzfpp.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpZndqYWF6cnhod2dsZW16ZnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMDEzNjAsImV4cCI6MjEwODU3NzM2MH0.-T_blS16bhiDPs4An0p0hrsyHGXNzqlHujONfiK0-9A";
-  
-  let databaseStudenti = [];
-  let timerRicerca = null;
+  <div class="footer-tribute">
+    🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
+    Sistema di Gestione Clinica Abilitante D.M. 653/2022<br>
+    Software Architecture & Engineering by <b>Mohaidine Aariouach</b>
+  </div>
 
-  async function caricaDatiSupabase() {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/vista_cruscotto_presidenza?select=*`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-      });
-      const data = await response.json();
-      databaseStudenti = data.map(s => ({
-        matricola: s.matricola, cognome: s.cognome, nome: s.nome,
-        coorte: s.coorte, oreStd: s.ore_standard, oreTpv: s.ore_tpv, ppv: s.casi_ppv_certificati
-      }));
-      applicaFiltri();
-    } catch(e) {
-      document.getElementById("tabellaStudenti").innerHTML = "<tr><td colspan='7' style='color:red; text-align:center;'>Errore di connessione.</td></tr>";
-    }
-  }
-
-  // ========================================== 
-  // SEZIONE 2: LOGICA DI RENDERING E FILTRI
-  // ========================================== 
-  function determinaStato(studente) {
-    const tpvOk = studente.oreTpv >= 600;
-    const ppvOk = studente.ppv >= 3;
-    if (tpvOk && ppvOk) return { c: "status-ok", t: "🟢 IDONEO TESI" };
-    if (!tpvOk && !ppvOk) return { c: "status-ko", t: "🔴 CARENTE TOTALE" };
-    if (!tpvOk) return { c: "status-warn", t: "🟡 MANCANO ORE TPV" };
-    return { c: "status-warn", t: "⚠️ MANCANO CASI PPV" };
-  }
-
-  function renderTabella(dati) {
-    const tbody = document.getElementById("tabellaStudenti");
-    tbody.innerHTML = "";
-    let idonei = 0, ppvCarenti = 0;
-
-    dati.forEach(s => {
-      const st = determinaStato(s);
-      if (st.t === "🟢 IDONEO TESI") idonei++;
-      if (s.oreTpv >= 600 && s.ppv < 3) ppvCarenti++;
-      
-      let p = '<div class="ppv-dots">';
-      for(let i=1; i<=3; i++) p += `<div class="dot ${i<=s.ppv?'active':''}">✓</div>`;
-      p += '</div>';
-
-      tbody.innerHTML += `<tr>
-        <td><strong>${s.matricola}</strong></td><td>${s.cognome} ${s.nome}</td><td>${s.coorte}</td>
-        <td>${s.oreStd}h</td><td style="color:var(--tpv);font-weight:bold;">${s.oreTpv} / 600h</td>
-        <td>${p}</td><td><span class="status-badge ${st.c}">${st.t}</span></td>
-      </tr>`;
-    });
-
-    document.getElementById("kpiTot").innerText = dati.length;
-    document.getElementById("kpiIdonei").innerText = idonei;
-    document.getElementById("kpiInCorso").innerText = dati.length - idonei;
-    document.getElementById("kpiPpv").innerText = ppvCarenti;
-  }
-
-  function applicaFiltri() {
-    const q = document.getElementById("ricerca").value.toLowerCase();
-    const c = document.getElementById("filtroCoorte").value;
-    const s = document.getElementById("filtroStato").value;
-
-    renderTabella(databaseStudenti.filter(st => {
-      const okTxt = st.cognome.toLowerCase().includes(q) || st.matricola.includes(q);
-      const okCrt = c === "ALL" || st.coorte === c;
-      const isIdoneo = st.oreTpv >= 600 && st.ppv >= 3;
-      const okSt = s === "ALL" || (s === "IDONEO" && isIdoneo) || (s === "CARENTE" && !isIdoneo);
-      return okTxt && okCrt && okSt;
-    }));
-  }
-
-  document.getElementById("ricerca").addEventListener("input", () => { clearTimeout(timerRicerca); timerRicerca = setTimeout(applicaFiltri, 300); });
-  document.getElementById("filtroCoorte").addEventListener("change", applicaFiltri);
-  document.getElementById("filtroStato").addEventListener("change", applicaFiltri);
-
-  // ========================================== 
-  // SEZIONE 3: ESPORTAZIONE CSV
-  // ========================================== 
-  function esportaCSV() {
-    let csv = "Matricola;Cognome;Nome;Coorte;OreStandard;OreTPV;CasiPPV;Stato\n";
-    databaseStudenti.forEach(s => {
-      const stato = (s.oreTpv >= 600 && s.ppv >= 3) ? "IDONEO" : "CARENTE";
-      csv += `${s.matricola};${s.cognome};${s.nome};${s.coorte};${s.oreStd};${s.oreTpv};${s.ppv};${stato}\n`;
-    });
-    const link = document.createElement("a");
-    link.href = encodeURI("data:text/csv;charset=utf-8," + csv);
-    link.download = `Export_Tirocini_${new Date().toISOString().slice(0,10)}.csv`;
-    link.click();
-  }
-
-  window.addEventListener('DOMContentLoaded', caricaDatiSupabase);
-</script>
 </body>
 </html>
