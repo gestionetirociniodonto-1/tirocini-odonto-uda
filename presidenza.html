@@ -7,6 +7,14 @@
   <style>
     :root { --primary: #0f2744; --bg: #f8fafc; --card: #fff; --border: #e2e8f0; --ok: #15803d; --ko: #b91c1c; }
     body { margin:0; padding:20px; background: var(--bg); font-family: system-ui; display: flex; flex-direction: column; min-height: 100vh; }
+    
+    /* MODALE LOGIN PRESIDENZA */
+    #presLogin { position: fixed; inset: 0; background: var(--primary); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .login-box { background: var(--card); padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+    .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
+    .login-box button { width: 100%; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    
+    /* CRUSCOTTO */
     .header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; flex-wrap: wrap; gap:10px; }
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .kpi { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
@@ -20,6 +28,18 @@
   </style>
 </head>
 <body>
+
+  <!-- SCHERMATA DI BLOCCO PRESIDENZA -->
+  <div id="presLogin">
+    <div class="login-box">
+      <h2 style="margin-top:0; color:#0f172a;">Accesso Direzione</h2>
+      <p style="font-size:12px; color:#64748b;">Area Riservata Presidenza Ud'A</p>
+      <input type="email" id="presEmail" placeholder="Email Istituzionale">
+      <input type="password" id="presPass" placeholder="Password">
+      <button onclick="effettuaLoginPresidenza()">Accedi al Cruscotto</button>
+      <div id="loginError" style="color:red; font-size:12px; margin-top:10px; display:none;">Credenziali errate o revocate</div>
+    </div>
+  </div>
 
   <div class="header">
     <div>
@@ -51,5 +71,18 @@
     Software Architecture & Engineering by <b>Mohaidine Aariouach</b>
   </div>
 
+<script>
+  function effettuaLoginPresidenza() {
+    const email = document.getElementById('presEmail').value;
+    const pass = document.getElementById('presPass').value;
+    
+    // Verifica credenziali inserite
+    if(email === "presidenza@unich.it" && pass === "PresidenzaUda123!") {
+      document.getElementById('presLogin').style.display = 'none';
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+</script>
 </body>
 </html>
