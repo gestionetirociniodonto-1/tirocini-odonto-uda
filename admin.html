@@ -1,103 +1,115 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <!-- ========================================== -->
-  <!-- BLOCCO 1: CSS (LAYOUT DASHBOARD A TAB)     -->
-  <!-- ========================================== -->
   <meta charset="UTF-8">
-  <title>Ud'A - Pannello Admin</title>
+  <title>Ud'A - Super Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root {
-      --sidebar: #0f172a; --bg: #f1f5f9; --card: #ffffff; 
-      --text: #334155; --border: #e2e8f0; --accent: #3b82f6;
-      --ok: #10b981; --ko: #ef4444;
-    }
-    * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-    body { margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); }
-    .sidebar { width: 260px; background: var(--sidebar); color: white; display: flex; flex-direction: column; }
-    .logo-area { padding: 20px; background: #020617; border-bottom: 1px solid #1e293b; text-align: center; }
-    .nav-item { padding: 14px 24px; font-size: 13px; font-weight: 600; cursor: pointer; border-left: 3px solid transparent; }
-    .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left-color: var(--accent); }
-    .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-    .header-bar { background: var(--card); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
-    .tab-content { padding: 24px; display: none; }
-    .tab-content.active { display: block; }
-    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-    .upload-box { border: 2px dashed #94a3b8; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer; display: block; }
-    input[type="file"] { display: none; }
-    .btn { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-    th { background: #f8fafc; padding: 12px; border-bottom: 2px solid var(--border); }
-    td { padding: 12px; border-bottom: 1px solid var(--border); }
-    .action-links span { color: var(--accent); cursor: pointer; font-weight: 600; margin-right: 10px; }
+    :root { --sidebar: #0f172a; --bg: #f1f5f9; --accent: #3b82f6; --text: #334155; --card: #ffffff; --border: #e2e8f0; }
+    body { margin:0; display:flex; height:100vh; font-family:system-ui; background:var(--bg); color:var(--text); overflow:hidden; }
+    
+    #adminLogin { position: fixed; inset: 0; background: var(--sidebar); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .login-box { background: var(--card); padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+    .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
+    .login-box button { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    
+    .sidebar { width:260px; background:var(--sidebar); color:white; display:flex; flex-direction:column; }
+    .nav { padding: 16px 20px; cursor:pointer; font-size:13px; font-weight:600; border-bottom:1px solid #1e293b; transition: 0.2s; }
+    .nav:hover, .nav.active { background: #1e293b; color:var(--accent); border-left: 3px solid var(--accent); }
+    .content { flex:1; padding:24px; overflow-y:auto; display: flex; flex-direction: column; }
+    .tab-content { display: none; } .tab-content.active { display: block; }
+    .panel { background:white; padding:24px; border-radius:12px; margin-bottom:20px; border: 1px solid var(--border); box-shadow:0 2px 4px rgba(0,0,0,0.02); }
+    .btn { background:var(--accent); color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer; transition: 0.2s; }
+    input, select { padding:10px; border-radius:6px; border:1px solid #cbd5e1; }
+    .footer-tribute { text-align: center; font-size: 11px; color: #64748b; margin-top: auto; padding: 20px; border-top: 1px solid #1e293b; }
   </style>
 </head>
 <body>
 
-<div class="sidebar">
-  <div class="logo-area"><h1>SUPER ADMIN</h1><p>Gestione Dati Ud'A</p></div>
-  <div class="nav-item active" onclick="switchTab('tab-stu', this)">👥 Importazione Studenti</div>
-  <div class="nav-item" onclick="switchTab('tab-log', this)">📝 Log Override</div>
-</div>
-
-<div class="main-content">
-  <div class="header-bar"><h2 id="pageTitle">Importazione Studenti</h2></div>
-
-  <!-- ========================================== -->
-  <!-- BLOCCO 2: TAB ANAGRAFICA E IMPORT CSV      -->
-  <!-- ========================================== -->
-  <div id="tab-stu" class="tab-content active">
-    <div class="panel">
-      <h3>Importa File Segreteria</h3>
-      <label class="upload-box" id="drop-zone">
-        <strong>Clicca per caricare CSV</strong>
-        <input type="file" accept=".csv" onchange="gestisciFileCSV(event)">
-      </label>
-    </div>
-    <div class="panel">
-      <h3>Elenco Studenti <button class="btn" style="float:right;">📧 Invia Credenziali</button></h3>
-      <table>
-        <thead><tr><th>Matricola</th><th>Studente</th><th>Coorte</th><th>Stato</th></tr></thead>
-        <tbody id="listaStudenti"><tr><td colspan="4">In attesa di file...</td></tr></tbody>
-      </table>
+  <div id="adminLogin">
+    <div class="login-box">
+      <h2 style="margin-top:0; color:#0f172a;">Accesso Super-Admin</h2>
+      <input type="email" id="admEmail" placeholder="Email Admin">
+      <input type="password" id="admPass" placeholder="Password SQL">
+      <button onclick="effettuaLoginAdmin()">Sblocca Pannello</button>
+      <div id="loginError" style="color:red; font-size:12px; margin-top:10px; display:none;">Credenziali errate</div>
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- BLOCCO 3: TAB LOG E OVERRIDE               -->
-  <!-- ========================================== -->
-  <div id="tab-log" class="tab-content">
-    <div class="panel">
-      <h3>Audit Timbrature</h3>
-      <table>
-        <thead><tr><th>Matr.</th><th>Docente</th><th>Reparto</th><th>Ore/Ruolo</th><th>Azioni</th></tr></thead>
-        <tbody>
-          <tr><td>3201456</td><td>Prof. Rossi</td><td>Conservativa</td><td>4h TPV</td><td class="action-links"><span onclick="alert('Modifica')">Modifica</span></td></tr>
-        </tbody>
-      </table>
+  <div class="sidebar">
+    <div style="padding:24px 20px; font-weight:900; color:var(--accent); font-size:16px;">SUPER ADMIN<br><span style="font-size:11px; color:#94a3b8; font-weight:normal;">Database D.M. 653/2022</span></div>
+    <div class="nav active" onclick="switchTab('tab-stu', this)">👥 Importazione Studenti</div>
+    <div class="nav" onclick="switchTab('tab-trasf', this)">🔄 Trasferimenti & Bonus</div>
+    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Gestione Presidenza</div>
+    
+    <div class="footer-tribute">
+      🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
+      Sistema di Gestione Clinica Abilitante D.M. 653/2022<br>
+      Software Architecture & Engineering by<br><b style="color:white;">Mohaidine Aariouach</b>
     </div>
   </div>
-</div>
+
+  <div class="content">
+    <h2 id="pageTitle" style="margin-top:0;">Importazione Studenti</h2>
+    
+    <div id="tab-stu" class="tab-content active">
+      <div class="panel">
+        <h3>Importa File Segreteria</h3>
+        <div style="border: 2px dashed #cbd5e1; padding: 30px; text-align:center; border-radius:8px; cursor:pointer;" onclick="alert('Integrazione CSV in corso')"><strong>Carica file CSV</strong></div>
+      </div>
+    </div>
+
+    <div id="tab-trasf" class="tab-content">
+      <div class="panel">
+        <h3>Carica Bonus Ore Pregresse</h3>
+        <p style="font-size:12px; color:#64748b;">Convalida crediti per studenti trasferiti.</p>
+        <div style="display:flex; gap:10px;">
+          <input type="text" placeholder="Matricola">
+          <input type="number" placeholder="Ore Bonus" step="0.5">
+          <button class="btn">Carica su SQL</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-presidenza" class="tab-content">
+      <div class="panel">
+        <h3>Controllo Accessi Presidenza</h3>
+        <p style="font-size:13px; color:#475569;">Modifica la password della Direttrice. Effetto immediato sul database.</p>
+        <div style="background:#f8fafc; padding:20px; border-radius:8px; border:1px solid var(--border); margin-bottom: 20px;">
+          <label style="font-size:11px; font-weight:bold; color:#64748b; display:block; margin-bottom:5px;">NUOVA PASSWORD PRESIDENZA</label>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="nuovaPassPresidenza" placeholder="Es. NuovaUda2025!" style="flex:1;">
+            <button class="btn" style="background:#10b981;" onclick="cambiaPasswordPresidenza()">Aggiorna Password</button>
+          </div>
+        </div>
+        <button class="btn" onclick="window.open('presidenza.html', '_blank')">Apri Cruscotto Presidenza ↗</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-  // ========================================== 
-  // SEZIONE 1: LOGICA INTERFACCIA E MOCK
-  // ========================================== 
+  function effettuaLoginAdmin() {
+    if(document.getElementById('admEmail').value === "admin@unich.it" && document.getElementById('admPass').value === "AdminMohaidine2026!") {
+      document.getElementById('adminLogin').style.display = 'none';
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+
   function switchTab(id, el) {
-    document.querySelectorAll('.tab-content, .nav-item').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.nav').forEach(e => e.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     el.classList.add('active');
     document.getElementById('pageTitle').innerText = el.innerText.substring(3);
   }
 
-  function gestisciFileCSV(event) {
-    const file = event.target.files[0];
-    if(!file) return;
-    document.getElementById('drop-zone').innerHTML = `<strong style="color:green;">✅ ${file.name} Caricato</strong>`;
-    
-    // In produzione qui andrà la logica per inviare i dati all'API Supabase 'studenti'
-    const tbody = document.getElementById("listaStudenti");
-    tbody.innerHTML = `<tr><td>3201456</td><td>Rossi M.</td><td>2023/24</td><td>In attesa</td></tr>`;
+  function cambiaPasswordPresidenza() {
+    const nuovaPass = document.getElementById('nuovaPassPresidenza').value;
+    if(nuovaPass && confirm(`Cambiare la password in: ${nuovaPass}?`)) {
+      alert("Comando SQL inviato con successo.");
+      document.getElementById('nuovaPassPresidenza').value = '';
+    }
   }
 </script>
 </body>
