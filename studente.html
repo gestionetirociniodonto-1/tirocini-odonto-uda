@@ -1,226 +1,190 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+  <!-- ========================================== -->
+  <!-- BLOCCO 1: CONFIG E LIBRERIA QR LOCALE      -->
+  <!-- ========================================== -->
   <meta charset="UTF-8">
-  <title>Ud'A - Portale Studenti Tirocini</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Ud'A - Tesserino Dinamico Studente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#0f2744">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+  <!-- ========================================== -->
+  <!-- BLOCCO 2: STILI CSS                        -->
+  <!-- ========================================== -->
   <style>
     :root { 
-      --primary: #0f2744; 
-      --accent: #1e40af; 
-      --bg: #f8fafc; 
-      --card: #ffffff; 
-      --text: #0f172a; 
-      --border: #cbd5e1;
+      --primary: #0f2744; --accent: #1e40af; --bg: #f1f5f9; 
+      --card: #ffffff; --text: #0f172a; --border: #cbd5e1;
+      --tpv: #0284c7; --ppv: #f59e0b; --ok: #16a34a;
     }
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; padding: 14px; background: var(--bg); color: var(--text); }
-    .box { max-width: 440px; margin: 0 auto; background: var(--card); border-radius: 16px; box-shadow: 0 4px 18px rgba(15, 39, 68, 0.08); border: 1px solid #e2e8f0; overflow: hidden; }
-    
+    * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+    body { margin: 0; padding: 14px; background: var(--bg); color: var(--text); display: flex; justify-content: center; }
+    .box { width: 100%; max-width: 440px; background: var(--card); border-radius: 16px; box-shadow: 0 8px 24px rgba(15,39,68,0.12); border: 1px solid var(--border); overflow: hidden; }
     header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 18px; text-align: center; }
-    header h1 { margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    header h1 { margin: 0; font-size: 16px; text-transform: uppercase; }
     header p { margin: 4px 0 0; font-size: 12px; opacity: 0.85; }
-
-    .content { padding: 18px; }
-    .field { margin-bottom: 12px; }
-    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 4px; }
-    input { width: 100%; padding: 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; }
-    input:focus { outline: none; border-color: var(--accent); }
+    .content { padding: 20px; }
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px; }
+    input { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 15px; }
+    .btn-primary { width: 100%; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
     
-    .btn-login { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 6px; }
-    #error-msg { display: none; background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 10px; text-align: center; }
-    #loading { display: none; text-align: center; color: #64748b; font-size: 13px; margin: 15px 0; }
-
-    #result { display: none; margin-top: 10px; }
-    .qr-container { text-align: center; margin: 12px 0; }
-    .qr-container img { border: 2px solid var(--accent); border-radius: 12px; padding: 6px; background: #fff; }
+    #dashboard { display: none; }
+    .student-header { text-align: center; margin-bottom: 20px; }
+    .student-header h2 { margin: 0; color: var(--primary); font-size: 22px; font-weight: 800; }
+    .student-header p { margin: 2px 0 0; color: #64748b; font-size: 13px; font-weight: 600; }
+    .qr-wrapper { background: #0f172a; padding: 24px; border-radius: 16px; text-align: center; margin-bottom: 20px; }
+    .qr-box { background: white; padding: 12px; border-radius: 12px; display: inline-block; }
+    canvas { display: block; margin: 0 auto; }
+    .timer-container { background: #334155; height: 6px; border-radius: 4px; overflow: hidden; margin-top: 16px; }
+    .timer-fill { background: #38bdf8; height: 100%; width: 100%; }
+    .lum-warning { color: #fef08a; font-size: 11px; margin-top: 10px; font-weight: bold; }
     
-    /* Contatore visivo QR Dinamico */
-    .timer-bar-wrap { background: #e2e8f0; height: 6px; border-radius: 4px; overflow: hidden; margin: 8px auto; max-width: 180px; }
-    .timer-bar-fill { background: var(--accent); height: 100%; width: 100%; transition: width 1s linear; }
-
-    .progress-bar-bg { background: #e2e8f0; border-radius: 8px; height: 14px; overflow: hidden; margin: 10px 0; }
-    .progress-fill { background: #16a34a; height: 100%; width: 0%; transition: width 0.4s ease; }
-    
-    .stats-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
-    .stats-table td { padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
-    .stats-table td:last-child { text-align: right; font-weight: bold; }
-
-    .badge-status { text-align: center; padding: 8px; border-radius: 6px; font-weight: bold; margin-top: 14px; font-size: 12px; }
-    
-    footer { text-align: center; font-size: 11px; color: #64748b; margin-top: 16px; border-top: 1px solid #f1f5f9; padding-top: 12px; }
-    footer strong { color: var(--primary); }
-    .gdpr-note { font-size: 10px; color: #94a3b8; margin-top: 6px; line-height: 1.3; }
+    .tracker-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .tracker-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+    .tpv-title { color: var(--tpv); }
+    .tpv-bar-bg { background: #e0f2fe; height: 10px; border-radius: 6px; overflow: hidden; }
+    .tpv-bar-fill { background: var(--tpv); height: 100%; transition: width 0.5s ease; }
+    .std-title { color: #475569; }
+    .ppv-title { color: var(--ppv); }
+    .ppv-dots { display: flex; gap: 8px; }
+    .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); background: #f8fafc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; font-weight: bold; }
+    .dot.active { background: var(--ok); border-color: var(--ok); color: white; }
+    .btn-logout { width: 100%; background: none; border: 1px solid var(--border); padding: 10px; border-radius: 8px; color: #64748b; font-weight: bold; margin-top: 10px; cursor: pointer; }
   </style>
 </head>
 <body>
 
 <div class="box">
-  <header>
-    <h1>Università G. d'Annunzio</h1>
-    <p>CdLM in Odontoiatria • Area Riservata Studente</p>
-  </header>
-
+  <header><h1>Università G. d'Annunzio</h1><p>Area Clinica Abilitante</p></header>
   <div class="content">
+    
+    <!-- ========================================== -->
+    <!-- BLOCCO 3: MODULO LOGIN                     -->
+    <!-- ========================================== -->
     <div id="login-form">
-      <div class="field">
-        <label for="matInput">Numero di Matricola:</label>
-        <input type="text" id="matInput" placeholder="Es. 3201456">
-      </div>
-      <div class="field">
-        <label for="pinInput">PIN di Sicurezza (4 cifre):</label>
-        <input type="password" id="pinInput" placeholder="••••" maxlength="6" inputmode="numeric">
-      </div>
-      <button class="btn-login" onclick="autenticaStudente()">Accedi al Registro</button>
-      <div id="error-msg"></div>
+      <div class="field"><label>Numero di Matricola</label><input type="text" id="matInput" placeholder="Es. 3201456"></div>
+      <div class="field"><label>PIN Sicurezza</label><input type="password" id="pinInput" placeholder="••••"></div>
+      <button class="btn-primary" onclick="effettuaLogin()">Accedi al Tesserino</button>
+      <div id="error-msg" style="display:none; color:#dc2626; font-size:12px; text-align:center; font-weight:bold; margin-top:10px;"></div>
     </div>
 
-    <div id="loading">Autenticazione in corso...</div>
-
-    <div id="result">
-      <h3 id="studenteNome" style="margin: 0; color: var(--primary); text-align: center;"></h3>
-      <p id="studenteMatricola" style="margin: 2px 0 6px; font-size: 12px; text-align: center; color: #64748b;"></p>
-
-      <div class="qr-container">
-        <img id="qrImage" src="" width="180" height="180" alt="Tesserino QR Dinamico">
-        <div class="timer-bar-wrap">
-          <div id="timerFill" class="timer-bar-fill"></div>
-        </div>
-        <p style="font-size: 11px; color: #64748b; margin: 4px 0 0;">🔄 Tesserino Dinamico • Aggiornamento automatico ogni 30s</p>
+    <!-- ========================================== -->
+    <!-- BLOCCO 4: DASHBOARD & TRACKER NORMATIVO    -->
+    <!-- ========================================== -->
+    <div id="dashboard">
+      <div class="student-header"><h2 id="stNome">-</h2><p id="stMatr">-</p></div>
+      <div class="qr-wrapper">
+        <div class="qr-box"><canvas id="qr-canvas"></canvas></div>
+        <div class="timer-container"><div id="timerFill" class="timer-fill"></div></div>
+        <div class="lum-warning">☀️ Alza la luminosità dello schermo</div>
       </div>
-
-      <div style="font-size: 12px; font-weight: bold; display:flex; justify-content:space-between; margin-top: 10px;">
-        <span>Monte Ore Cliniche:</span>
-        <span id="totaleOreTxt">0 / 250h</span>
+      
+      <!-- Trackers -->
+      <div class="tracker-card">
+        <div class="tracker-header"><span class="tpv-title">TPV (Primo Operatore)</span><span id="txtTpv">0 / 600h</span></div>
+        <div class="tpv-bar-bg"><div id="barTpv" class="tpv-bar-fill" style="width: 0%;"></div></div>
       </div>
-      <div class="progress-bar-bg">
-        <div id="progressFill" class="progress-fill"></div>
+      <div class="tracker-card">
+        <div class="tracker-header"><span class="std-title">Tirocinio Standard</span><span id="txtStd">0h</span></div>
       </div>
-
-      <table class="stats-table">
-        <tr><td>Conservativa ed Endodonzia</td><td id="hCons">0 h</td></tr>
-        <tr><td>Chirurgia Orale ed Implantologia</td><td id="hChir">0 h</td></tr>
-        <tr><td>Ortognatodonzia e Gnatologia</td><td id="hOrto">0 h</td></tr>
-        <tr><td>Parodontologia</td><td id="hParo">0 h</td></tr>
-        <tr><td>Protesi Dentaria</td><td id="hProt">0 h</td></tr>
-        <tr><td>Odontoiatria Pediatrica</td><td id="hPed">0 h</td></tr>
-      </table>
-
-      <div id="statoBadge" class="badge-status"></div>
-
-      <button onclick="logout()" style="width: 100%; background: none; border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px; font-size: 12px; color: #64748b; margin-top: 14px; cursor: pointer;">Disconnetti</button>
+      <div class="tracker-card">
+        <div class="tracker-header"><span class="ppv-title">Casi Clinici PPV</span></div>
+        <div class="ppv-dots"><div class="dot" id="ppv1">✓</div><div class="dot" id="ppv2">✓</div><div class="dot" id="ppv3">✓</div></div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Disconnetti</button>
     </div>
-
-    <footer>
-      Architettura di sistema e sviluppo: <strong>Mohaidine Aariouach</strong>
-      <div class="gdpr-note">
-        🛡️ Accesso sicuro protetto da crittografia. Trattamento dati conforme GDPR (Reg. UE 2016/679).
-      </div>
-    </footer>
   </div>
 </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbz9qia-iGTNeu_rL0I3XCbYiZ6SmjYd07UlI_YwizSX-WFPnS77lQBQvSc5EJT5G99H/exec";
-  let qrInterval = null;
+  // ========================================== 
+  // SEZIONE 1: CONFIGURAZIONE SUPABASE
+  // ========================================== 
+  const SUPABASE_URL = "https://gifwjaazrxhwglemzfpp.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpZndqYWF6cnhod2dsZW16ZnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMDEzNjAsImV4cCI6MjEwODU3NzM2MH0.-T_blS16bhiDPs4An0p0hrsyHGXNzqlHujONfiK0-9A";
+
+  let qrGenerator = null;
+  let timerInterval = null;
   let currentMatricola = "";
   let currentPin = "";
 
   window.addEventListener('DOMContentLoaded', () => {
-    const p = new URLSearchParams(window.location.search);
-    const m = p.get('matricola');
-    const pin = p.get('pin');
-    if (m && pin) {
-      document.getElementById('matInput').value = m;
-      document.getElementById('pinInput').value = pin;
-      autenticaStudente();
+    qrGenerator = new QRious({ element: document.getElementById('qr-canvas'), size: 200, level: 'H' });
+    if(localStorage.getItem("uda_st_mat")) {
+      currentMatricola = localStorage.getItem("uda_st_mat");
+      currentPin = localStorage.getItem("uda_st_pin");
+      caricaDatiSupabase();
     }
   });
 
-  // Generatore Token Dinamico Anti-Screenshot
-  function rigeneraQRDinamico() {
-    if (!currentMatricola || !currentPin) return;
-    const nowSec = Math.floor(Date.now() / 1000);
-    const token = btoa(`${currentMatricola}:${nowSec}:${currentPin}`);
-    document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(token)}`;
-
-    const fill = document.getElementById("timerFill");
-    fill.style.transition = "none";
-    fill.style.width = "100%";
-    setTimeout(() => {
-      fill.style.transition = "width 30s linear";
-      fill.style.width = "0%";
-    }, 50);
+  function effettuaLogin() {
+    currentMatricola = document.getElementById('matInput').value.trim();
+    currentPin = document.getElementById('pinInput').value.trim();
+    if(!currentMatricola || !currentPin) return document.getElementById('error-msg').style.display = 'block';
+    
+    localStorage.setItem("uda_st_mat", currentMatricola);
+    localStorage.setItem("uda_st_pin", currentPin);
+    caricaDatiSupabase();
   }
 
-  function autenticaStudente() {
-    const mat = document.getElementById('matInput').value.trim();
-    const pin = document.getElementById('pinInput').value.trim();
-    const err = document.getElementById('error-msg');
-
-    if (!mat || !pin) {
-      err.style.display = "block";
-      err.innerText = "Inserisci sia la Matricola che il PIN.";
-      return;
-    }
-
-    err.style.display = "none";
-    document.getElementById('loading').style.display = "block";
-
-    fetch(`${API_URL}?matricola=${encodeURIComponent(mat)}&pin=${encodeURIComponent(pin)}`)
-      .then(r => r.json())
-      .then(d => {
-        document.getElementById('loading').style.display = "none";
-        if (!d.success) {
-          err.style.display = "block";
-          err.innerText = d.message;
-          return;
-        }
-
-        currentMatricola = mat;
-        currentPin = pin;
-
-        document.getElementById('login-form').style.display = "none";
-        document.getElementById('studenteNome').innerText = `${d.cognome} ${d.nome}`;
-        document.getElementById('studenteMatricola').innerText = `Matricola: ${d.matricola}`;
-
-        rigeneraQRDinamico();
-        clearInterval(qrInterval);
-        qrInterval = setInterval(rigeneraQRDinamico, 30000);
-
-        document.getElementById('hCons').innerText = `${d.conservativa} h`;
-        document.getElementById('hChir').innerText = `${d.chirurgia} h`;
-        document.getElementById('hOrto').innerText = `${d.ortodonzia} h`;
-        document.getElementById('hParo').innerText = `${d.parodontologia} h`;
-        document.getElementById('hProt').innerText = `${d.protesi} h`;
-        document.getElementById('hPed').innerText = `${d.pedodonzia} h`;
-
-        const tot = d.totaleOre;
-        document.getElementById('totaleOreTxt').innerText = `${tot} / 250 h`;
-        document.getElementById('progressFill').style.width = `${Math.min(100, Math.round((tot / 250) * 100))}%`;
-
-        const b = document.getElementById('statoBadge');
-        b.innerText = d.stato;
-        b.style.background = tot >= 250 ? "#dcfce7" : "#fef9c3";
-        b.style.color = tot >= 250 ? "#166534" : "#854d0e";
-
-        document.getElementById('result').style.display = "block";
-      })
-      .catch(() => {
-        document.getElementById('loading').style.display = "none";
-        err.style.display = "block";
-        err.innerText = "Errore di connessione al database Google.";
+  // ========================================== 
+  // SEZIONE 2: FETCH DATI (VISTA SQL)
+  // ========================================== 
+  async function caricaDatiSupabase() {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/vista_cruscotto_presidenza?matricola=eq.${currentMatricola}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       });
+      const dati = await response.json();
+      
+      const stat = dati[0] || { ore_tpv: 0, ore_standard: 0, casi_ppv_certificati: 0, cognome: 'Studente', nome: currentMatricola };
+      popolaInterfaccia(stat);
+    } catch(e) {
+      document.getElementById('error-msg').innerText = "Impossibile connettersi al database clinico.";
+      document.getElementById('error-msg').style.display = 'block';
+    }
+  }
+
+  function popolaInterfaccia(stat) {
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('stNome').innerText = `${stat.cognome} ${stat.nome}`;
+    document.getElementById('stMatr').innerText = `Matricola: ${currentMatricola}`;
+    document.getElementById('txtTpv').innerText = `${stat.ore_tpv} / 600h`;
+    document.getElementById('barTpv').style.width = `${Math.min((stat.ore_tpv / 600) * 100, 100)}%`;
+    document.getElementById('txtStd').innerText = `${stat.ore_standard} h`;
+    
+    document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+    for(let i=1; i<=3; i++) { if(i <= stat.casi_ppv_certificati) document.getElementById(`ppv${i}`).classList.add('active'); }
+    
+    avviaMotoreQR();
+  }
+
+  // ========================================== 
+  // SEZIONE 3: MOTORE GENERAZIONE QR
+  // ========================================== 
+  function avviaMotoreQR() {
+    aggiornaToken();
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const secondiPassati = Math.floor(Date.now() / 1000) % 30;
+      document.getElementById('timerFill').style.width = `${((30 - secondiPassati) / 30) * 100}%`;
+      if(secondiPassati === 0) aggiornaToken();
+    }, 1000);
+  }
+
+  function aggiornaToken() {
+    const token = btoa(`${currentMatricola}:${Math.floor(Date.now() / 1000)}:${currentPin}`);
+    qrGenerator.value = token;
   }
 
   function logout() {
-    clearInterval(qrInterval);
-    currentMatricola = "";
-    currentPin = "";
-    document.getElementById('pinInput').value = "";
-    document.getElementById('result').style.display = "none";
-    document.getElementById('login-form').style.display = "block";
+    clearInterval(timerInterval);
+    localStorage.removeItem("uda_st_mat"); localStorage.removeItem("uda_st_pin");
+    location.reload();
   }
 </script>
 </body>
