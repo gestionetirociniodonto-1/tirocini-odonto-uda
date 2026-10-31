@@ -6,70 +6,106 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
-    :root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --text: #f8fafc; --tpv: #0ea5e9; --border: rgba(255,255,255,0.1); }
+    :root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.9); --text: #f8fafc; --tpv: #0ea5e9; --border: rgba(255,255,255,0.1); }
     body { margin:0; padding:12px; background: var(--bg); color: var(--text); font-family: system-ui; display: flex; flex-direction: column; min-height: 100vh; }
-    .glass-panel { background: var(--card); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+    
+    /* MODALE ACCESSO DOCENTE */
+    #docenteLogin { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+    .login-box { background: #1e293b; padding: 30px; border-radius: 16px; width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--border); }
+    .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; background: #0f172a; color: white; box-sizing: border-box; }
+    .login-box button { width: 100%; background: var(--tpv); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+    .glass-panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     header { text-align: center; margin-bottom: 10px; }
-    header h1 { font-size: 16px; margin:0; color: var(--tpv); text-transform: uppercase; }
     label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 4px; }
-    select, input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; margin-bottom: 10px; box-sizing: border-box; }
+    select, input[type="number"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; margin-bottom: 10px; box-sizing: border-box; }
     .btn-group { display: flex; gap: 8px; margin-bottom: 10px; }
-    .btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer; text-align: center; }
+    .btn { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer; text-align: center; }
     .btn.active { background: var(--tpv); color: white; border-color: var(--tpv); }
-    #reader { border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid var(--border); }
+    #reader { border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid var(--border); background: black; }
     .overlay { display: none; position: fixed; inset: 0; background: rgba(22,163,74,0.95); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
-    .overlay h2 { color: white; font-size: 28px; font-weight: 900; margin:0; }
     .footer-tribute { margin-top: auto; text-align: center; font-size: 10px; color: #64748b; padding: 10px; }
   </style>
 </head>
 <body>
 
-  <header><h1>Ud'A Area Clinica</h1><div style="font-size:12px; color:#94a3b8;">Scanner Docente</div></header>
+  <!-- SCHERMATA PRIMO ACCESSO DOCENTE -->
+  <div id="docenteLogin">
+    <div class="login-box">
+      <h2 style="margin-top:0; color:var(--text);">Identificazione Docente</h2>
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:20px;">Inserisci il PIN fornito dalla segreteria. Il dispositivo verrà registrato.</p>
+      <input type="text" id="nomeProf" placeholder="Nome (es. Prof. Rossi)">
+      <input type="password" id="pinProf" placeholder="PIN a 6 cifre" inputmode="numeric">
+      <button onclick="salvaDocente()">Registra Dispositivo</button>
+    </div>
+  </div>
+
+  <header>
+    <h1 style="font-size: 16px; margin:0; color: var(--tpv);">Ud'A Area Clinica</h1>
+    <div id="nomeHeader" style="font-size:12px; color:#94a3b8; font-weight:bold;">Scanner Docente</div>
+  </header>
 
   <div class="glass-panel">
     <label>Reparto / Disciplina</label>
-    <select id="reparto" onchange="salvaStato()"></select>
+    <select id="reparto" onchange="salvaStato()">
+      <option value="1">Chirurgia Orale A</option>
+      <option value="2">Protesi A</option>
+      <option value="3">Ortognatodonzia A</option>
+    </select>
     
     <div class="btn-group">
-      <div class="btn active" id="btnPrimo" onclick="setRuolo('Primo')">1° Operatore (TPV)</div>
+      <div class="btn active" id="btnPrimo" onclick="setRuolo('Primo')">1° Op. (TPV)</div>
       <div class="btn" id="btnSecondo" onclick="setRuolo('Secondo')">2° Operatore</div>
     </div>
     
-    <label style="display:flex; align-items:center; gap:8px; margin-bottom: 10px;">
-      <input type="checkbox" id="chkPpv" style="width:auto; margin:0;" onchange="salvaStato()"> Certifica Caso Clinico PPV
+    <label style="display:flex; align-items:center; gap:8px; margin-bottom: 10px; color: white;">
+      <input type="checkbox" id="chkPpv" style="width:auto; margin:0;" onchange="salvaStato()"> Certifica Caso PPV
     </label>
 
     <div style="display:flex; gap:10px;">
       <div style="flex:1;"><label>Turno</label><select id="turno" onchange="salvaStato()"><option>Mattina</option><option>Pomeriggio</option></select></div>
-      <div style="flex:1;"><label>Ore (Es. 2.5)</label><input type="number" id="ore" step="0.5" min="0.5" max="12" value="4" onchange="salvaStato()"></div>
+      <div style="flex:1;"><label>Ore</label><input type="number" id="ore" step="0.5" min="0.5" max="12" value="4" onchange="salvaStato()"></div>
     </div>
   </div>
 
   <div id="reader"></div>
-
-  <div class="overlay" id="overlayOk"><h2>✅ CONVALIDATO</h2><p id="txtSt" style="color:white; font-size:18px;"></p></div>
+  <div class="overlay" id="overlayOk"><h2 style="color:white; font-size:28px; margin:0;">✅ CONVALIDATO</h2><p id="txtSt" style="color:white; font-size:18px;"></p></div>
 
   <div class="footer-tribute">
-    🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
-    Sistema di Gestione Clinica Abilitante D.M. 653/2022<br>
-    Software Architecture & Engineering by <b>Mohaidine Aariouach</b>
+    🏛️ Università degli Studi "G. d'Annunzio"<br>
+    Sistema di Gestione Clinica D.M. 653/2022<br>
+    Architecture & Engineering by <b>Mohaidine Aariouach</b>
   </div>
 
 <script>
   let ruoloScelto = 'Primo'; let scannerAttivo = true;
 
-  window.onload = async () => {
-    // Mock Caricamento Reparti (In prod usa fetch su Supabase)
-    const repartiMock = [{id: 1, nome: "Chirurgia Orale A"}, {id: 2, nome: "Protesi A"}, {id: 3, nome: "Ortognatodonzia A"}];
-    const sel = document.getElementById('reparto');
-    repartiMock.forEach(r => sel.innerHTML += `<option value="${r.id}">${r.nome}</option>`);
+  window.onload = () => {
+    // Controllo se il docente si è già loggato in passato
+    if(localStorage.getItem('uda_doc_nome') && localStorage.getItem('uda_doc_pin')) {
+      document.getElementById('docenteLogin').style.display = 'none';
+      document.getElementById('nomeHeader').innerText = `👨‍⚕️ ${localStorage.getItem('uda_doc_nome')}`;
+      avviaScanner();
+    }
+  };
 
-    if(localStorage.getItem('uda_last_rep')) sel.value = localStorage.getItem('uda_last_rep');
-    if(localStorage.getItem('uda_last_turno')) document.getElementById('turno').value = localStorage.getItem('uda_last_turno');
-    
+  function salvaDocente() {
+    const nome = document.getElementById('nomeProf').value;
+    const pin = document.getElementById('pinProf').value;
+    if(nome && pin.length >= 4) {
+      localStorage.setItem('uda_doc_nome', nome);
+      localStorage.setItem('uda_doc_pin', pin);
+      document.getElementById('docenteLogin').style.display = 'none';
+      document.getElementById('nomeHeader').innerText = `👨‍⚕️ ${nome}`;
+      avviaScanner();
+    } else { alert("Inserisci Nome e PIN validi."); }
+  }
+
+  function avviaScanner() {
+    if(localStorage.getItem('uda_last_rep')) document.getElementById('reparto').value = localStorage.getItem('uda_last_rep');
     const html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, onScan);
-  };
+  }
 
   function setRuolo(r) {
     ruoloScelto = r;
@@ -80,28 +116,23 @@
     salvaStato();
   }
 
-  function salvaStato() {
-    localStorage.setItem('uda_last_rep', document.getElementById('reparto').value);
-    localStorage.setItem('uda_last_turno', document.getElementById('turno').value);
-  }
+  function salvaStato() { localStorage.setItem('uda_last_rep', document.getElementById('reparto').value); }
 
-  async function onScan(tokenBase64) {
+  function onScan(tokenBase64) {
     if(!scannerAttivo) return;
     scannerAttivo = false;
     if(navigator.vibrate) navigator.vibrate(50);
-    
     try {
-      // Decodifica il Base64 dello studente
-      const decoded = atob(tokenBase64);
-      const [matricola, timestamp] = decoded.split('|');
-      
+      const decoded = atob(tokenBase64); // Legge il QR dello studente
       const ore = document.getElementById('ore').value;
       document.getElementById('txtSt').innerText = `${ruoloScelto} Op. - ${ore}h`;
       document.getElementById('overlayOk').style.display = 'flex';
       
+      // IN PRODUZIONE: fetch() verso Supabase usando localStorage.getItem('uda_doc_pin') come Auth
+      
       setTimeout(() => { document.getElementById('overlayOk').style.display = 'none'; scannerAttivo = true; }, 1500);
     } catch (e) {
-      alert("ERRORE LETTURA: " + e.message);
+      alert("QR Non Valido");
       setTimeout(() => scannerAttivo = true, 2000);
     }
   }
