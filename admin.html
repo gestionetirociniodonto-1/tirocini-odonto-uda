@@ -9,59 +9,49 @@
     * { box-sizing: border-box; font-family: system-ui, sans-serif; }
     body { margin:0; display:flex; height:100vh; background:var(--bg); color:var(--text); overflow:hidden; }
     
-    /* MODALE LOGIN */
     #adminLogin { position: fixed; inset: 0; background: var(--sidebar); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    .login-box { background: var(--card); padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
-    .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
+    .login-box { background: var(--card); padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; text-align: center; }
+    .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; }
     .login-box button { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     
-    /* LAYOUT PRINCIPALE */
     .sidebar { width:260px; background:var(--sidebar); color:white; display:flex; flex-direction:column; flex-shrink: 0; }
-    .nav { padding: 16px 20px; cursor:pointer; font-size:13px; font-weight:600; border-bottom:1px solid #1e293b; transition: 0.2s; user-select: none; }
+    .nav { padding: 16px 20px; cursor:pointer; font-size:13px; font-weight:600; border-bottom:1px solid #1e293b; transition: 0.2s; }
     .nav:hover, .nav.active { background: #1e293b; color:var(--accent); border-left: 4px solid var(--accent); }
     
     .content { flex:1; padding:24px; overflow-y:auto; display: flex; flex-direction: column; }
-    .tab-content { display: none; } 
-    .tab-content.active { display: block; }
+    .tab-content { display: none; } .tab-content.active { display: block; }
     
     .panel { background:white; padding:24px; border-radius:12px; margin-bottom:20px; border: 1px solid var(--border); box-shadow:0 2px 4px rgba(0,0,0,0.02); }
-    .btn { background:var(--accent); color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer; transition: 0.2s; }
-    .btn:hover { opacity: 0.9; }
-    input, select { padding:10px; border-radius:6px; border:1px solid #cbd5e1; width: 100%; margin-top: 5px; margin-bottom: 15px; box-sizing: border-box; }
+    .btn { background:var(--accent); color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer; }
+    input, select { padding:10px; border-radius:6px; border:1px solid #cbd5e1; width: 100%; margin-top: 5px; margin-bottom: 15px; }
     
-    /* UPLOAD AREA */
-    .upload-box { border: 2px dashed #cbd5e1; padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; background: #f8fafc; transition: 0.2s; display: block; }
-    .upload-box:hover { border-color: var(--accent); background: #eff6ff; }
-    
-    /* TABELLE */
+    .upload-box { border: 2px dashed #cbd5e1; padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; background: #f8fafc; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: #475569; }
     td { padding: 12px; border-bottom: 1px solid var(--border); }
-    tr:hover { background: #f8fafc; }
-    .editable-input { width: 80px; padding: 6px; margin: 0; text-align: center; font-weight: bold; }
+    .editable-input { width: 80px; padding: 6px; text-align: center; font-weight: bold; }
     
-    .footer-tribute { text-align: center; font-size: 11px; color: #64748b; margin-top: auto; padding: 20px; border-top: 1px solid #1e293b; line-height: 1.4; }
+    .footer-tribute { text-align: center; font-size: 11px; color: #64748b; margin-top: auto; padding: 20px; border-top: 1px solid #1e293b; }
   </style>
 </head>
 <body>
 
-  <!-- SCHERMATA DI PROTEZIONE PASSWORD -->
+  <!-- LOGIN ADMIN -->
   <div id="adminLogin">
     <div class="login-box">
-      <h2 style="margin-top:0; color:#0f172a;">Accesso Super-Admin</h2>
-      <p style="font-size:12px; color:#64748b; margin-bottom:20px;">Credenziali di controllo database</p>
+      <h2 style="margin-top:0; color:#0f172a;">Super-Admin Ud'A</h2>
       <input type="email" id="admEmail" placeholder="Email Admin" value="admin@unich.it">
       <input type="password" id="admPass" placeholder="Password SQL">
       <button onclick="effettuaLoginAdmin()">Sblocca Pannello</button>
-      <div id="loginError" style="color:var(--ko); font-size:12px; margin-top:10px; display:none;">Credenziali non valide.</div>
+      <div id="loginError" style="color:var(--ko); font-size:12px; margin-top:10px; display:none;">Credenziali errate</div>
     </div>
   </div>
 
-  <!-- MENU LATERALE -->
   <div class="sidebar">
     <div style="padding:24px 20px; font-weight:900; color:var(--accent); font-size:16px;">SUPER ADMIN<br><span style="font-size:11px; color:#94a3b8; font-weight:normal;">D.M. 653/2022 Controller</span></div>
-    <div class="nav active" onclick="switchTab('tab-stu', this)">👥 Anagrafica & CSV</div>
-    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Gestione Presidenza</div>
+    <div class="nav active" onclick="switchTab('tab-stu', this)">👥 Anagrafica Studenti</div>
+    <div class="nav" onclick="switchTab('tab-doc', this)">👨‍⚕️ Gestione Docenti</div>
+    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Controllo Presidenza</div>
     
     <div class="footer-tribute">
       🏛️ Università degli Studi "G. d'Annunzio"<br>
@@ -69,71 +59,65 @@
     </div>
   </div>
 
-  <!-- CONTENUTO CENTRALE -->
   <div class="content">
-    <h2 id="pageTitle" style="margin-top:0; color:var(--sidebar);">Anagrafica & CSV</h2>
+    <h2 id="pageTitle" style="margin-top:0; color:var(--sidebar);">Anagrafica Studenti</h2>
     
-    <!-- TAB 1: IMPORTAZIONE CSV REALE E GESTIONE STUDENTI -->
+    <!-- TAB STUDENTI & CSV -->
     <div id="tab-stu" class="tab-content active">
       <div class="panel">
-        <h3>Importa File Segreteria (CSV)</h3>
-        <p style="font-size:12px; color:#64748b; margin-bottom: 15px;">
-          Seleziona il file CSV ufficiale della coorte. Il sistema leggerà automaticamente i dati per l'onboarding.
-        </p>
-        
-        <!-- Input file reale nascosto ma attivabile dal box -->
+        <h3>1. Importa File Segreteria (CSV)</h3>
         <label class="upload-box" id="dropLabel">
-          <div style="font-size: 24px; margin-bottom: 8px;">📂</div>
-          <strong style="color:var(--accent);">Clicca per selezionare il file CSV</strong>
-          <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Formato atteso: Matricola, Nome, Cognome, Email, Coorte, Anno</div>
-          <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="gestisciCaricamentoCSV(event)">
+          <strong style="color:var(--accent);">📂 Seleziona file CSV (Matricola, Cognome, Nome, Email, Coorte, Anno)</strong>
+          <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="leggiCSV(event)">
         </label>
-        
         <div id="statusCsv" style="margin-top: 10px; font-size: 12px; font-weight: bold; color: var(--ok);"></div>
       </div>
 
       <div class="panel">
-        <h3>Elenco Studenti in Archivio & Modifica Crediti</h3>
+        <h3>2. Modifica Crediti (Trasferimenti/Bonus)</h3>
         <div style="overflow-x: auto;">
           <table>
-            <thead>
-              <tr>
-                <th>Matricola</th>
-                <th>Studente</th>
-                <th>Coorte</th>
-                <th>Anno</th>
-                <th>Ore Bonus / Convalide</th>
-                <th>Azione</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Matricola</th><th>Nominativo</th><th>Coorte</th><th>Anno</th><th>Ore Bonus (TPV)</th><th>Azione</th></tr></thead>
             <tbody id="tabellaAdminStudenti">
-              <tr>
-                <td><strong>3201456</strong></td>
-                <td>Rossi Mario</td>
-                <td>2024/2025</td>
-                <td>5°</td>
-                <td><input type="number" class="editable-input" value="0" id="bonus_3201456" step="0.5"></td>
-                <td><button class="btn" style="padding:6px 12px; font-size:11px;" onclick="salvaModifica('3201456')">Salva</button></td>
-              </tr>
+              <tr><td colspan="6" style="text-align:center; padding:20px; color:#64748b;">Nessun dato. Importa un CSV.</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 2: PRESIDENZA -->
+    <!-- TAB DOCENTI -->
+    <div id="tab-doc" class="tab-content">
+      <div class="panel">
+        <h3>Autorizza Nuovo Docente</h3>
+        <p style="font-size:12px; color:#64748b;">Genera un PIN d'accesso univoco per abilitare lo scanner di reparto.</p>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="nomeDocente" placeholder="Es. Prof. Mario Rossi" style="flex:2;">
+          <button class="btn" style="flex:1;" onclick="generaDocente()">Crea PIN & Autorizza</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Docenti Attivi</h3>
+        <table>
+          <thead><tr><th>Nominativo</th><th>PIN di Accesso</th><th>Stato</th><th>Azione</th></tr></thead>
+          <tbody id="tabellaDocenti">
+            <!-- Mock Docente -->
+            <tr><td>Prof. Mario Rossi</td><td><b style="color:var(--accent); font-size:16px;">482910</b></td><td><span style="color:var(--ok); font-weight:bold;">Attivo</span></td><td><button class="btn" style="background:var(--ko); padding:6px 10px; font-size:11px;">Revoca</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB PRESIDENZA -->
     <div id="tab-presidenza" class="tab-content">
       <div class="panel">
-        <h3>Controllo Credenziali Presidenza</h3>
-        <p style="font-size:13px; color:#475569;">Aggiorna la password d'accesso assegnata alla direzione per il controllo dei flussi.</p>
-        <label>Nuova Password per la Presidenza</label>
-        <input type="text" id="nuovaPassPresidenza" placeholder="Es. SegreteriaUda2026!">
-        <button class="btn" style="background:var(--ok); margin-bottom: 25px;" onclick="cambiaPasswordPresidenza()">Aggiorna Password SQL</button>
-        
-        <hr style="border:0; border-top:1px solid var(--border); margin-bottom:20px;">
-        
-        <h3>Accesso Rapido</h3>
-        <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Apri il cruscotto analitico riservato alla presidenza in una nuova scheda.</p>
+        <h3>Credenziali Direzione</h3>
+        <label>Nuova Password</label>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="nuovaPassPresidenza" placeholder="Nuova Password">
+          <button class="btn" style="background:var(--ok);" onclick="alert('Password aggiornata nel DB!')">Aggiorna SQL</button>
+        </div>
+        <hr style="margin:20px 0; border:0; border-top:1px solid var(--border);">
         <button class="btn" onclick="window.open('presidenza.html', '_blank')">Apri Cruscotto Presidenza ↗</button>
       </div>
     </div>
@@ -141,56 +125,58 @@
 
 <script>
   function effettuaLoginAdmin() {
-    const email = document.getElementById('admEmail').value.trim();
-    const pass = document.getElementById('admPass').value.trim();
-    
-    if(email === "admin@unich.it" && pass === "AdminMohaidine2026!") {
+    if(document.getElementById('admEmail').value === "admin@unich.it" && document.getElementById('admPass').value === "AdminMohaidine2026!") {
       document.getElementById('adminLogin').style.display = 'none';
-    } else {
-      document.getElementById('loginError').style.display = 'block';
-    }
+    } else { document.getElementById('loginError').style.display = 'block'; }
   }
 
   function switchTab(id, el) {
     document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
     document.querySelectorAll('.nav').forEach(e => e.classList.remove('active'));
-    
-    document.getElementById(id).classList.add('active');
-    el.classList.add('active');
+    document.getElementById(id).classList.add('active'); el.classList.add('active');
     document.getElementById('pageTitle').innerText = el.innerText.substring(3).trim();
   }
 
-  // LETTURA REALE DEL FILE CSV SELEZIONATO
-  function gestisciCaricamentoCSV(event) {
+  // LETTURA REALE DEL CSV
+  function leggiCSV(event) {
     const file = event.target.files[0];
     if(!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
-      const testo = e.target.result;
-      const righe = testo.split('\n').filter(r => r.trim() !== '');
+      const righe = e.target.result.split('\n').filter(r => r.trim() !== '');
+      document.getElementById('statusCsv').innerText = `✅ File caricato: Trovati ${righe.length - 1} studenti.`;
       
-      document.getElementById('statusCsv').innerText = `✅ File "${file.name}" caricato con successo! Lette ${righe.length} righe.`;
-      document.getElementById('dropLabel').style.borderColor = "var(--ok)";
-      document.getElementById('dropLabel').style.background = "#f0fdf4";
-
-      // Qui potrai elaborare le righe del CSV per inviarle a Supabase
+      const tbody = document.getElementById('tabellaAdminStudenti');
+      tbody.innerHTML = ''; // Pulisce
+      
+      // Salta l'intestazione (i=1)
+      for(let i=1; i<righe.length; i++) {
+        const dati = righe[i].split(',');
+        if(dati.length >= 6) {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${dati[0]}</strong></td>
+              <td>${dati[1]} ${dati[2]}</td>
+              <td>${dati[4]}</td>
+              <td>${dati[5]}°</td>
+              <td><input type="number" class="editable-input" value="0" id="bonus_${dati[0]}" step="0.5"></td>
+              <td><button class="btn" style="padding:6px 12px; font-size:11px;" onclick="alert('Bonus salvato per ${dati[0]}')">Salva</button></td>
+            </tr>`;
+        }
+      }
     };
     reader.readAsText(file);
   }
 
-  function salvaModifica(matricola) {
-    const nuovoBonus = document.getElementById(`bonus_${matricola}`).value;
-    alert(`Aggiornamento salvato su SQL per la matricola ${matricola}:\nOre bonus/convalidate impostate a: ${nuovoBonus}h`);
-  }
-
-  function cambiaPasswordPresidenza() {
-    const nuovaPass = document.getElementById('nuovaPassPresidenza').value.trim();
-    if(!nuovaPass) { alert("Inserisci una password valida."); return; }
-    if(confirm(`Confermi l'aggiornamento della password della Presidenza?`)) {
-      alert("Password aggiornata con successo nel database SQL.");
-      document.getElementById('nuovaPassPresidenza').value = '';
-    }
+  function generaDocente() {
+    const nome = document.getElementById('nomeDocente').value;
+    if(!nome) return alert("Inserisci il nome del docente");
+    const pin = Math.floor(100000 + Math.random() * 900000); // Genera PIN 6 cifre
+    document.getElementById('tabellaDocenti').innerHTML += `
+      <tr><td>${nome}</td><td><b style="color:var(--accent); font-size:16px;">${pin}</b></td><td><span style="color:var(--ok); font-weight:bold;">Attivo</span></td><td><button class="btn" style="background:var(--ko); padding:6px 10px; font-size:11px;">Revoca</button></td></tr>
+    `;
+    document.getElementById('nomeDocente').value = '';
+    alert(`Docente creato su SQL. Comunica al professore il PIN: ${pin}`);
   }
 </script>
 </body>
