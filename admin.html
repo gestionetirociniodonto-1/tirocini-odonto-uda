@@ -4,29 +4,25 @@
   <meta charset="UTF-8">
   <title>Ud'A - Super Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Libreria universale per Import/Export Excel e CSV -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root { --sidebar: #0f172a; --bg: #f1f5f9; --accent: #3b82f6; --text: #334155; --card: #ffffff; --border: #e2e8f0; --ok: #10b981; --ko: #ef4444; --warn: #f59e0b; --excel: #217346; }
     * { box-sizing: border-box; font-family: system-ui, sans-serif; }
     body { margin:0; display:flex; height:100vh; background:var(--bg); color:var(--text); overflow:hidden; }
     
-    /* MODALE LOGIN */
     #adminLogin { position: fixed; inset: 0; background: var(--sidebar); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .login-box { background: var(--card); padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; text-align: center; }
     .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; }
     .login-box button { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     
-    /* LAYOUT E SIDEBAR */
     .sidebar { width:260px; background:var(--sidebar); color:white; display:flex; flex-direction:column; flex-shrink: 0; }
     .nav { padding: 16px 20px; cursor:pointer; font-size:13px; font-weight:600; border-bottom:1px solid #1e293b; transition: 0.2s; }
     .nav:hover, .nav.active { background: #1e293b; color:var(--accent); border-left: 4px solid var(--accent); }
     .content { flex:1; padding:24px; overflow-y:auto; display: flex; flex-direction: column; }
     .tab-content { display: none; } .tab-content.active { display: block; }
     
-    /* PANNELLI, BOTTONI E INPUT */
     .panel { background:white; padding:24px; border-radius:12px; margin-bottom:20px; border: 1px solid var(--border); box-shadow:0 2px 4px rgba(0,0,0,0.02); }
-    .btn { background:var(--accent); color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer; }
+    .btn { background:var(--accent); color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer; transition: 0.2s; }
     .btn-small { padding: 6px 10px; font-size: 11px; border-radius: 4px; }
     input, select { padding:10px; border-radius:6px; border:1px solid #cbd5e1; width: 100%; box-sizing: border-box; }
     .search-bar { padding: 12px; font-size: 14px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border); margin-bottom: 15px; }
@@ -34,15 +30,13 @@
     .upload-box { border: 2px dashed #cbd5e1; padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; background: #f8fafc; display: block; margin-bottom: 10px; }
     .upload-box:hover { border-color: var(--accent); }
     
-    /* TABELLE */
     table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
     th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: #475569; position: sticky; top: 0; }
-    td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; transition: background 0.3s; }
     .pwd-input { width: 120px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-family: monospace; }
     
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;}
-    
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
   </style>
 </head>
@@ -58,7 +52,6 @@
     </div>
   </div>
 
-  <!-- MENU LATERALE COMPLETO -->
   <div class="sidebar">
     <div style="padding:24px 20px; font-weight:900; color:var(--accent); font-size:16px;">SUPER ADMIN<br><span style="font-size:11px; color:#94a3b8; font-weight:normal;">D.M. 653/2022 Controller</span></div>
     <div class="nav active" onclick="switchTab('tab-stu', this)">👥 Anagrafica Studenti</div>
@@ -71,18 +64,16 @@
   <div class="content">
     <h2 id="pageTitle" style="margin-top:0; color:var(--sidebar);">Anagrafica Studenti</h2>
     
-    <!-- 1. STUDENTI (Import, Export, Ricerca, Lifecycle) -->
+    <!-- 1. STUDENTI -->
     <div id="tab-stu" class="tab-content active">
       <div class="panel">
         <div class="grid-2">
           <label class="upload-box" id="dropLabel">
             <strong style="color:var(--accent);">📥 Importa CSV/Excel Segreteria</strong>
-            <div style="font-size:11px; color:#64748b; margin-top:5px;">Aggiunge nuovi studenti in bulk</div>
             <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" style="display:none;" onchange="leggiFile(event)">
           </label>
           <div class="upload-box" style="border-color:var(--excel); background:#f0fdf4;" onclick="esportaExcel()">
             <strong style="color:var(--excel);">📤 Esporta Dati per ESSE3</strong>
-            <div style="font-size:11px; color:#64748b; margin-top:5px;">Scarica il foglio presenze ufficiale (.xlsx)</div>
           </div>
         </div>
         <div id="statusFile" style="font-size: 12px; font-weight: bold; color: var(--ok);"></div>
@@ -90,10 +81,9 @@
 
       <div class="panel">
         <div class="toolbar">
-          <input type="text" class="search-bar" placeholder="🔍 Cerca per Matricola o Nome..." style="flex:2; margin:0;">
+          <input type="text" id="cercaStu" class="search-bar" placeholder="🔍 Cerca per Matricola o Nome..." onkeyup="filtraTabella('cercaStu', 'tabellaStudenti')" style="flex:2; margin:0;">
           <button class="btn" style="flex:1; background:var(--sidebar);" onclick="promuoviMassa()">🎓 Promuovi 5° ➔ 6° Anno</button>
         </div>
-        
         <div style="overflow-x: auto; max-height: 400px;">
           <table>
             <thead><tr><th>Matricola</th><th>Nominativo</th><th>Anno</th><th>Password</th><th>Ore Bonus</th><th>Azioni (Database)</th></tr></thead>
@@ -103,9 +93,9 @@
                 <td><input type="text" class="pwd-input" value="Uda3201456"></td>
                 <td><input type="number" class="pwd-input" value="0" style="width:60px;"></td>
                 <td>
-                  <button class="btn btn-small" onclick="alert('Salvataggio SQL')">Salva</button>
-                  <button class="btn btn-small" style="background:var(--warn); color:black;" title="Archivia senza eliminare">Archivia</button>
-                  <button class="btn btn-small" style="background:var(--ko);" onclick="if(confirm('Eliminare definitivamente lo studente dal server?')) alert('Studente eliminato.');">Elimina</button>
+                  <button class="btn btn-small" onclick="salvaRiga(this, 'Studente')">Salva</button>
+                  <button class="btn btn-small" style="background:var(--warn); color:black;" onclick="archiviaRiga(this)">Archivia</button>
+                  <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaRiga(this, 'Studente')">Elimina</button>
                 </td>
               </tr>
             </tbody>
@@ -125,12 +115,17 @@
         </div>
       </div>
       <div class="panel">
-        <input type="text" class="search-bar" placeholder="🔍 Cerca Docente o Tutor...">
+        <input type="text" id="cercaDoc" class="search-bar" placeholder="🔍 Cerca Docente o Tutor..." onkeyup="filtraTabella('cercaDoc', 'tabellaStaff')">
         <table>
           <thead><tr><th>Ruolo</th><th>Nominativo</th><th>PIN Accesso</th><th>Stato</th><th>Azioni</th></tr></thead>
           <tbody id="tabellaStaff">
-            <tr><td>Docente</td><td>Prof. Verdi</td><td><input type="text" class="pwd-input" value="482910"></td><td><span style="color:var(--ok);">Attivo</span></td>
-            <td><button class="btn btn-small">Salva</button> <button class="btn btn-small" style="background:var(--ko);">Sospendi</button></td></tr>
+            <tr>
+              <td>Docente</td><td>Prof. Verdi</td><td><input type="text" class="pwd-input" value="482910"></td><td><span style="color:var(--ok);">Attivo</span></td>
+              <td>
+                <button class="btn btn-small" onclick="salvaRiga(this, 'Docente')">Salva</button> 
+                <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaRiga(this, 'Docente')">Rimuovi</button>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -141,32 +136,28 @@
       <div class="panel" style="border-left: 4px solid var(--warn);">
         <h3 style="color:var(--warn); margin-top:0;">Forza Inserimento Manuale (Override)</h3>
         <div class="grid-3">
-          <div><input type="text" placeholder="Matricola Studente"></div>
-          <div><input type="text" placeholder="Nome Docente"></div>
-          <div><select><option>Protesi A</option><option>Chirurgia Orale A</option></select></div>
+          <div><input type="text" id="ovMat" placeholder="Matricola Studente"></div>
+          <div><input type="text" id="ovDoc" placeholder="Nome Docente"></div>
+          <div><select id="ovRep"><option>Protesi A</option><option>Chirurgia Orale A</option></select></div>
         </div>
         <div class="grid-3">
-          <div><input type="date"></div>
-          <div><input type="number" step="0.5" placeholder="Ore (es. 4)"></div>
-          <div><button class="btn" style="width:100%; background:var(--warn); color:black;">Forza Registrazione SQL</button></div>
+          <div><input type="date" id="ovData"></div>
+          <div><input type="number" id="ovOre" step="0.5" placeholder="Ore (es. 4)"></div>
+          <div><button class="btn" style="width:100%; background:var(--warn); color:black;" onclick="forzaTimbratura()">Forza Registrazione SQL</button></div>
         </div>
       </div>
 
       <div class="panel">
         <h3>Archivio Timbrature</h3>
-        <div class="toolbar">
-          <input type="text" class="search-bar" placeholder="🔍 Cerca per matricola..." style="margin:0;">
-          <input type="date" class="search-bar" style="margin:0;">
-        </div>
         <table>
           <thead><tr><th>Data</th><th>Matricola</th><th>Docente</th><th>Reparto</th><th>Ore</th><th>Azioni</th></tr></thead>
-          <tbody>
+          <tbody id="listaTimbrature">
             <tr>
-              <td>24/10/2026</td><td>3201456</td><td>Prof. Verdi</td><td>Protesi A</td>
+              <td>2026-10-24</td><td>3201456</td><td>Prof. Verdi</td><td>Protesi A</td>
               <td><input type="number" value="4" style="width:50px; padding:4px;"></td>
               <td>
-                <button class="btn btn-small">Modifica</button>
-                <button class="btn btn-small" style="background:var(--ko);" onclick="confirm('Cancellare questa timbratura?')">Elimina</button>
+                <button class="btn btn-small" onclick="salvaRiga(this, 'Timbratura')">Modifica</button>
+                <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaRiga(this, 'Timbratura')">Elimina</button>
               </td>
             </tr>
           </tbody>
@@ -178,13 +169,11 @@
     <div id="tab-reparti" class="tab-content">
       <div class="panel">
         <h3>Configurazione Obiettivi Clinici (D.M. 653/2022)</h3>
-        <p style="font-size:12px; color:#64748b;">Modifica i limiti orari per reparto. Queste modifiche influiscono in tempo reale sui blocchi dell'app docente.</p>
         <table>
           <thead><tr><th>ID SQL</th><th>Nome Reparto / Clinica</th><th>Target Ore (1° Operatore)</th><th>Azioni</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td>Chirurgia Orale A</td><td><input type="number" value="60" class="pwd-input" style="width:80px;"> h</td><td><button class="btn btn-small">Aggiorna Limite</button></td></tr>
-            <tr><td>2</td><td>Protesi A</td><td><input type="number" value="120" class="pwd-input" style="width:80px;"> h</td><td><button class="btn btn-small">Aggiorna Limite</button></td></tr>
-            <tr><td>3</td><td>Ortognatodonzia A</td><td><input type="number" value="120" class="pwd-input" style="width:80px;"> h</td><td><button class="btn btn-small">Aggiorna Limite</button></td></tr>
+            <tr><td>1</td><td>Chirurgia Orale A</td><td><input type="number" value="60" class="pwd-input" style="width:80px;"> h</td><td><button class="btn btn-small" onclick="salvaRiga(this, 'Reparto')">Aggiorna Limite</button></td></tr>
+            <tr><td>2</td><td>Protesi A</td><td><input type="number" value="120" class="pwd-input" style="width:80px;"> h</td><td><button class="btn btn-small" onclick="salvaRiga(this, 'Reparto')">Aggiorna Limite</button></td></tr>
           </tbody>
         </table>
       </div>
@@ -196,23 +185,19 @@
         <h3>Credenziali Cruscotto Direzionale</h3>
         <div style="display:flex; gap:10px;">
           <input type="text" class="pwd-input" style="width:100%; font-size:14px;" value="PresidenzaUda123!">
-          <button class="btn" style="background:var(--ok);">Salva Modifica SQL</button>
+          <button class="btn" style="background:var(--ok);" onclick="salvaRiga(this, 'Password Presidenza')">Salva Modifica SQL</button>
         </div>
-        <hr style="margin:20px 0; border:0; border-top:1px solid var(--border);">
-        <button class="btn" onclick="window.open('presidenza.html', '_blank')">Vai al Cruscotto Presidenza ↗</button>
       </div>
     </div>
   </div>
 
 <script>
-  // 1. LOGIN
   function effettuaLoginAdmin() {
     if(document.getElementById('admEmail').value === "admin@unich.it" && document.getElementById('admPass').value === "AdminMohaidine2026!") {
       document.getElementById('adminLogin').style.display = 'none';
     } else { document.getElementById('loginError').style.display = 'block'; }
   }
 
-  // 2. CAMBIO TAB
   function switchTab(id, el) {
     document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
     document.querySelectorAll('.nav').forEach(e => e.classList.remove('active'));
@@ -220,7 +205,76 @@
     document.getElementById('pageTitle').innerText = el.innerText.substring(3).trim();
   }
 
-  // 3. LETTURA FILE IMPORT (SheetJS)
+  // --- MOTORE DI MANIPOLAZIONE DOM (ELIMINA, SALVA, ARCHIVIA) ---
+  function eliminaRiga(btn, tipo) {
+    if(confirm(`Sei sicuro di voler eliminare questo ${tipo}? L'azione è irreversibile dal database.`)) {
+      const row = btn.closest('tr');
+      row.style.background = '#fee2e2'; // Effetto rosso
+      setTimeout(() => row.remove(), 300); // Rimuove fisicamente la riga
+    }
+  }
+
+  function salvaRiga(btn, tipo) {
+    const originalText = btn.innerText;
+    const originalBg = btn.style.background;
+    btn.innerText = "✓ Salvato";
+    btn.style.background = "var(--ok)";
+    
+    // In produzione qui va la fetch() a Supabase per fare l'UPDATE
+    
+    setTimeout(() => {
+      btn.innerText = originalText;
+      btn.style.background = originalBg;
+    }, 1500);
+  }
+
+  function archiviaRiga(btn) {
+    if(confirm(`Sei sicuro di voler archiviare questo studente? Verrà rimosso dalle statistiche attive.`)) {
+      const row = btn.closest('tr');
+      row.style.opacity = '0.4';
+      row.style.background = '#f1f5f9';
+      btn.innerText = "Archiviato";
+      btn.disabled = true;
+    }
+  }
+
+  // --- OVERRIDE TIMBRATURE ---
+  function forzaTimbratura() {
+    const mat = document.getElementById('ovMat').value;
+    const doc = document.getElementById('ovDoc').value;
+    const rep = document.getElementById('ovRep').value;
+    const data = document.getElementById('ovData').value;
+    const ore = document.getElementById('ovOre').value;
+
+    if(!mat || !doc || !data || !ore) return alert("Compila tutti i campi obbligatori per forzare la timbratura.");
+
+    const tbody = document.getElementById('listaTimbrature');
+    const nuovaRiga = document.createElement('tr');
+    nuovaRiga.innerHTML = `
+      <td>${data}</td><td>${mat}</td><td>${doc}</td><td>${rep}</td>
+      <td><input type="number" value="${ore}" style="width:50px; padding:4px;"></td>
+      <td>
+        <button class="btn btn-small" onclick="salvaRiga(this, 'Timbratura')">Modifica</button>
+        <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaRiga(this, 'Timbratura')">Elimina</button>
+      </td>
+    `;
+    nuovaRiga.style.background = '#dcfce7'; // Evidenzia in verde la nuova aggiunta
+    tbody.insertBefore(nuovaRiga, tbody.firstChild); // Inserisce in cima
+    setTimeout(() => nuovaRiga.style.background = 'transparent', 1000);
+  }
+
+  // --- MOTORE DI RICERCA TABELLE ---
+  function filtraTabella(inputId, tableId) {
+    const filter = document.getElementById(inputId).value.toUpperCase();
+    const tr = document.getElementById(tableId).getElementsByTagName("tr");
+    for (let i = 0; i < tr.length; i++) {
+      const tdText = tr[i].innerText.toUpperCase();
+      if (tdText.indexOf(filter) > -1) tr[i].style.display = "";
+      else tr[i].style.display = "none";
+    }
+  }
+
+  // --- ALTRE FUNZIONI (EXCEL E STAFF) ---
   function leggiFile(event) {
     const file = event.target.files[0];
     if(!file) return;
@@ -231,7 +285,6 @@
       document.getElementById('statusFile').innerText = `✅ Trovati ${righe.length - 1} studenti nel file.`;
       
       const tbody = document.getElementById('tabellaStudenti');
-      tbody.innerHTML = ''; 
       for(let i=1; i<righe.length; i++) {
         if(righe[i].length > 0 && righe[i][0]) {
           tbody.innerHTML += `
@@ -240,7 +293,11 @@
               <td><select style="width:60px; padding:4px;"><option selected>5</option><option>6</option></select></td>
               <td><input type="text" class="pwd-input" value="Uda${righe[i][0]}!"></td>
               <td><input type="number" class="pwd-input" value="0" style="width:60px;"></td>
-              <td><button class="btn btn-small">Salva</button> <button class="btn btn-small" style="background:var(--ko);">Elimina</button></td>
+              <td>
+                <button class="btn btn-small" onclick="salvaRiga(this, 'Studente')">Salva</button>
+                <button class="btn btn-small" style="background:var(--warn); color:black;" onclick="archiviaRiga(this)">Archivia</button>
+                <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaRiga(this, 'Studente')">Elimina</button>
+              </td>
             </tr>`;
         }
       }
@@ -248,37 +305,25 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // 4. ESPORTAZIONE EXCEL (Esse3)
-  function esportaExcel() {
-    // Crea un foglio di lavoro virtuale e lo scarica
-    const datiDemo = [
-      ["Matricola", "Cognome e Nome", "Coorte", "Ore TPV Svolte", "Casi PPV", "Stato"],
-      ["3201456", "Rossi Mario", "2024/25", 600, "3/3", "Idoneo ESSE3"],
-      ["3109922", "Verdi Luca", "2023/24", 280, "1/3", "Non Idoneo"]
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(datiDemo);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Esportazione Segreteria");
-    XLSX.writeFile(wb, "Export_Tirocini_UdA.xlsx");
-  }
-
-  // 5. LIFECYCLE E STAFF
-  function promuoviMassa() {
-    if(confirm("Promuovere tutti gli studenti del 5° Anno al 6° Anno? L'azione sbloccherà il limite delle 180 ore.")) {
-      alert("Comando SQL UPDATE inviato. Tutti gli studenti del 5° sono ora al 6°.");
-    }
-  }
+  function esportaExcel() { alert("Simulazione: Esportazione ESSE3 .xlsx completata."); }
+  function promuoviMassa() { if(confirm("Promuovere tutti gli studenti del 5° Anno al 6° Anno?")) alert("Studenti promossi su SQL."); }
 
   function creaStaff() {
     const ruolo = document.getElementById('ruoloStaff').value;
     const nome = document.getElementById('nomeStaff').value;
-    if(!nome) return alert("Inserisci il nominativo.");
+    if(!nome) return;
     const pin = Math.floor(100000 + Math.random() * 900000);
-    document.getElementById('tabellaStaff').innerHTML += `
-      <tr><td>${ruolo}</td><td>${nome}</td><td><input type="text" class="pwd-input" value="${pin}"></td>
+    const tbody = document.getElementById('tabellaStaff');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${ruolo}</td><td>${nome}</td><td><input type="text" class="pwd-input" value="${pin}"></td>
       <td><span style="color:var(--ok);">Attivo</span></td>
-      <td><button class="btn btn-small">Salva</button> <button class="btn btn-small" style="background:var(--ko);">Sospendi</button></td></tr>
+      <td>
+        <button class="btn btn-small" onclick="salvaRiga(this, 'Staff')">Salva</button> 
+        <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaRiga(this, 'Staff')">Rimuovi</button>
+      </td>
     `;
+    tbody.insertBefore(tr, tbody.firstChild);
     document.getElementById('nomeStaff').value = '';
   }
 </script>
