@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <title>Ud'A - Super Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Libreria per leggere i file Excel (.xlsx, .xls) -->
+  <!-- Libreria universale per Import/Export Excel e CSV -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    :root { --sidebar: #0f172a; --bg: #f1f5f9; --accent: #3b82f6; --text: #334155; --card: #ffffff; --border: #e2e8f0; --ok: #10b981; --ko: #ef4444; --warn: #f59e0b; }
+    :root { --sidebar: #0f172a; --bg: #f1f5f9; --accent: #3b82f6; --text: #334155; --card: #ffffff; --border: #e2e8f0; --ok: #10b981; --ko: #ef4444; --warn: #f59e0b; --excel: #217346; }
     * { box-sizing: border-box; font-family: system-ui, sans-serif; }
     body { margin:0; display:flex; height:100vh; background:var(--bg); color:var(--text); overflow:hidden; }
     
@@ -17,33 +17,37 @@
     .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; }
     .login-box button { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     
-    /* LAYOUT */
+    /* LAYOUT E SIDEBAR */
     .sidebar { width:260px; background:var(--sidebar); color:white; display:flex; flex-direction:column; flex-shrink: 0; }
     .nav { padding: 16px 20px; cursor:pointer; font-size:13px; font-weight:600; border-bottom:1px solid #1e293b; transition: 0.2s; }
     .nav:hover, .nav.active { background: #1e293b; color:var(--accent); border-left: 4px solid var(--accent); }
     .content { flex:1; padding:24px; overflow-y:auto; display: flex; flex-direction: column; }
     .tab-content { display: none; } .tab-content.active { display: block; }
     
-    /* PANNELLI E TABELLE */
+    /* PANNELLI, BOTTONI E INPUT */
     .panel { background:white; padding:24px; border-radius:12px; margin-bottom:20px; border: 1px solid var(--border); box-shadow:0 2px 4px rgba(0,0,0,0.02); }
     .btn { background:var(--accent); color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer; }
     .btn-small { padding: 6px 10px; font-size: 11px; border-radius: 4px; }
-    input, select { padding:10px; border-radius:6px; border:1px solid #cbd5e1; width: 100%; margin-top: 5px; margin-bottom: 15px; }
+    input, select { padding:10px; border-radius:6px; border:1px solid #cbd5e1; width: 100%; box-sizing: border-box; }
+    .search-bar { padding: 12px; font-size: 14px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border); margin-bottom: 15px; }
     
-    .upload-box { border: 2px dashed #cbd5e1; padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; background: #f8fafc; display: block; }
+    .upload-box { border: 2px dashed #cbd5e1; padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; background: #f8fafc; display: block; margin-bottom: 10px; }
     .upload-box:hover { border-color: var(--accent); }
     
+    /* TABELLE */
     table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-    th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: #475569; }
+    th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: #475569; position: sticky; top: 0; }
     td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .pwd-input { width: 120px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-family: monospace; }
     
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;}
+    
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN ADMIN -->
   <div id="adminLogin">
     <div class="login-box">
       <h2 style="margin-top:0; color:#0f172a;">Super-Admin Ud'A</h2>
@@ -54,40 +58,55 @@
     </div>
   </div>
 
-  <!-- MENU -->
+  <!-- MENU LATERALE COMPLETO -->
   <div class="sidebar">
     <div style="padding:24px 20px; font-weight:900; color:var(--accent); font-size:16px;">SUPER ADMIN<br><span style="font-size:11px; color:#94a3b8; font-weight:normal;">D.M. 653/2022 Controller</span></div>
-    <div class="nav active" onclick="switchTab('tab-stu', this)">👥 Studenti (Excel/CSV)</div>
+    <div class="nav active" onclick="switchTab('tab-stu', this)">👥 Anagrafica Studenti</div>
     <div class="nav" onclick="switchTab('tab-doc', this)">👨‍⚕️ Docenti & Tutor</div>
     <div class="nav" onclick="switchTab('tab-timbrature', this)">🕒 Override Timbrature</div>
-    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Controllo Presidenza</div>
+    <div class="nav" onclick="switchTab('tab-reparti', this)">🏥 Gestione Reparti (CFU)</div>
+    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Configura Presidenza</div>
   </div>
 
   <div class="content">
-    <h2 id="pageTitle" style="margin-top:0; color:var(--sidebar);">Studenti (Excel/CSV)</h2>
+    <h2 id="pageTitle" style="margin-top:0; color:var(--sidebar);">Anagrafica Studenti</h2>
     
-    <!-- 1. STUDENTI -->
+    <!-- 1. STUDENTI (Import, Export, Ricerca, Lifecycle) -->
     <div id="tab-stu" class="tab-content active">
       <div class="panel">
-        <h3>Importa Anagrafiche (Supporta .xlsx, .xls, .csv)</h3>
-        <label class="upload-box" id="dropLabel">
-          <strong style="color:var(--accent);">📂 Seleziona file Excel o CSV (Matricola, Cognome, Nome, Email, Coorte, Anno)</strong>
-          <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" style="display:none;" onchange="leggiFile(event)">
-        </label>
-        <div id="statusFile" style="margin-top: 10px; font-size: 12px; font-weight: bold; color: var(--ok);"></div>
+        <div class="grid-2">
+          <label class="upload-box" id="dropLabel">
+            <strong style="color:var(--accent);">📥 Importa CSV/Excel Segreteria</strong>
+            <div style="font-size:11px; color:#64748b; margin-top:5px;">Aggiunge nuovi studenti in bulk</div>
+            <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" style="display:none;" onchange="leggiFile(event)">
+          </label>
+          <div class="upload-box" style="border-color:var(--excel); background:#f0fdf4;" onclick="esportaExcel()">
+            <strong style="color:var(--excel);">📤 Esporta Dati per ESSE3</strong>
+            <div style="font-size:11px; color:#64748b; margin-top:5px;">Scarica il foglio presenze ufficiale (.xlsx)</div>
+          </div>
+        </div>
+        <div id="statusFile" style="font-size: 12px; font-weight: bold; color: var(--ok);"></div>
       </div>
 
       <div class="panel">
-        <h3>Gestione Studenti (Password in chiaro e Bonus)</h3>
-        <div style="overflow-x: auto;">
+        <div class="toolbar">
+          <input type="text" class="search-bar" placeholder="🔍 Cerca per Matricola o Nome..." style="flex:2; margin:0;">
+          <button class="btn" style="flex:1; background:var(--sidebar);" onclick="promuoviMassa()">🎓 Promuovi 5° ➔ 6° Anno</button>
+        </div>
+        
+        <div style="overflow-x: auto; max-height: 400px;">
           <table>
-            <thead><tr><th>Matricola</th><th>Nominativo</th><th>Email</th><th>Password/PIN</th><th>Ore Bonus</th><th>Azioni</th></tr></thead>
+            <thead><tr><th>Matricola</th><th>Nominativo</th><th>Anno</th><th>Password</th><th>Ore Bonus</th><th>Azioni (Database)</th></tr></thead>
             <tbody id="tabellaStudenti">
               <tr>
-                <td><strong>3201456</strong></td><td>Rossi Mario</td><td>m.rossi@studenti.unich.it</td>
+                <td><strong>3201456</strong></td><td>Rossi Mario</td><td><select style="width:60px; padding:4px;"><option>5</option><option selected>6</option></select></td>
                 <td><input type="text" class="pwd-input" value="Uda3201456"></td>
-                <td><input type="number" class="pwd-input" value="0" style="width:70px;"></td>
-                <td><button class="btn btn-small" onclick="alert('Salvataggio SQL e invio Email effettuato.')">Salva & Invia Email</button></td>
+                <td><input type="number" class="pwd-input" value="0" style="width:60px;"></td>
+                <td>
+                  <button class="btn btn-small" onclick="alert('Salvataggio SQL')">Salva</button>
+                  <button class="btn btn-small" style="background:var(--warn); color:black;" title="Archivia senza eliminare">Archivia</button>
+                  <button class="btn btn-small" style="background:var(--ko);" onclick="if(confirm('Eliminare definitivamente lo studente dal server?')) alert('Studente eliminato.');">Elimina</button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -98,53 +117,56 @@
     <!-- 2. DOCENTI E TUTOR -->
     <div id="tab-doc" class="tab-content">
       <div class="panel">
-        <h3>Aggiungi Docente o Tutor</h3>
-        <div class="grid-2">
-          <div><label style="font-size:11px; font-weight:bold;">Ruolo</label><select id="ruoloStaff"><option value="docente">Docente Universitario</option><option value="tutor">Tutor Clinico</option></select></div>
-          <div><label style="font-size:11px; font-weight:bold;">Nominativo</label><input type="text" id="nomeStaff" placeholder="Es. Prof. Mario Rossi"></div>
+        <h3>Aggiungi Nuovo Staff</h3>
+        <div class="grid-3">
+          <div><label>Ruolo</label><select id="ruoloStaff"><option value="Docente">Docente</option><option value="Tutor">Tutor</option></select></div>
+          <div><label>Nominativo</label><input type="text" id="nomeStaff" placeholder="Es. Prof. Verdi"></div>
+          <div><label> </label><button class="btn" style="width:100%;" onclick="creaStaff()">Crea PIN & Attiva</button></div>
         </div>
-        <button class="btn" onclick="creaStaff()">Genera Credenziali & Autorizza</button>
       </div>
       <div class="panel">
-        <h3>Staff Autorizzato (Password in chiaro)</h3>
+        <input type="text" class="search-bar" placeholder="🔍 Cerca Docente o Tutor...">
         <table>
           <thead><tr><th>Ruolo</th><th>Nominativo</th><th>PIN Accesso</th><th>Stato</th><th>Azioni</th></tr></thead>
           <tbody id="tabellaStaff">
             <tr><td>Docente</td><td>Prof. Verdi</td><td><input type="text" class="pwd-input" value="482910"></td><td><span style="color:var(--ok);">Attivo</span></td>
-            <td><button class="btn btn-small" style="background:var(--accent);">Salva PIN</button> <button class="btn btn-small" style="background:var(--ko);">Revoca</button></td></tr>
+            <td><button class="btn btn-small">Salva</button> <button class="btn btn-small" style="background:var(--ko);">Sospendi</button></td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- 3. GESTIONE TIMBRATURE (OVERRIDE) -->
+    <!-- 3. OVERRIDE TIMBRATURE -->
     <div id="tab-timbrature" class="tab-content">
       <div class="panel" style="border-left: 4px solid var(--warn);">
-        <h3 style="color:var(--warn); margin-top:0;">Inserimento Manuale / Recupero</h3>
-        <p style="font-size:12px; color:#64748b;">Forza l'inserimento di una presenza (bypassando il QR Code). Utile per recuperi o errori di scansione.</p>
-        <div class="grid-2">
-          <div><label>Matricola Studente</label><input type="text" placeholder="Es. 3201456"></div>
-          <div><label>Docente Validatore</label><input type="text" placeholder="Es. Prof. Verdi"></div>
-          <div><label>Reparto</label><select><option>Chirurgia Orale A</option><option>Protesi A</option></select></div>
-          <div style="display:flex; gap:10px;">
-            <div style="flex:1;"><label>Ore</label><input type="number" step="0.5" value="4"></div>
-            <div style="flex:1;"><label>Ruolo</label><select><option>Primo</option><option>Secondo</option></select></div>
-          </div>
+        <h3 style="color:var(--warn); margin-top:0;">Forza Inserimento Manuale (Override)</h3>
+        <div class="grid-3">
+          <div><input type="text" placeholder="Matricola Studente"></div>
+          <div><input type="text" placeholder="Nome Docente"></div>
+          <div><select><option>Protesi A</option><option>Chirurgia Orale A</option></select></div>
         </div>
-        <button class="btn" style="background:var(--warn); color:black;" onclick="alert('Timbratura forzata registrata su SQL.')">Registra Presenza Override</button>
+        <div class="grid-3">
+          <div><input type="date"></div>
+          <div><input type="number" step="0.5" placeholder="Ore (es. 4)"></div>
+          <div><button class="btn" style="width:100%; background:var(--warn); color:black;">Forza Registrazione SQL</button></div>
+        </div>
       </div>
 
       <div class="panel">
-        <h3>Ultime Registrazioni (Modifica / Elimina)</h3>
+        <h3>Archivio Timbrature</h3>
+        <div class="toolbar">
+          <input type="text" class="search-bar" placeholder="🔍 Cerca per matricola..." style="margin:0;">
+          <input type="date" class="search-bar" style="margin:0;">
+        </div>
         <table>
-          <thead><tr><th>Data</th><th>Studente</th><th>Docente</th><th>Reparto</th><th>Ore / Ruolo</th><th>Azioni (SQL)</th></tr></thead>
+          <thead><tr><th>Data</th><th>Matricola</th><th>Docente</th><th>Reparto</th><th>Ore</th><th>Azioni</th></tr></thead>
           <tbody>
             <tr>
-              <td>Oggi, 09:15</td><td>3201456 (Rossi)</td><td>Prof. Verdi</td><td>Protesi A</td>
-              <td><input type="number" value="4" style="width:50px; padding:4px;">h (Primo)</td>
+              <td>24/10/2026</td><td>3201456</td><td>Prof. Verdi</td><td>Protesi A</td>
+              <td><input type="number" value="4" style="width:50px; padding:4px;"></td>
               <td>
-                <button class="btn btn-small">Aggiorna</button>
-                <button class="btn btn-small" style="background:var(--ko);" onclick="confirm('Cancellare definitivamente questa timbratura dal database?')">Elimina</button>
+                <button class="btn btn-small">Modifica</button>
+                <button class="btn btn-small" style="background:var(--ko);" onclick="confirm('Cancellare questa timbratura?')">Elimina</button>
               </td>
             </tr>
           </tbody>
@@ -152,13 +174,29 @@
       </div>
     </div>
 
-    <!-- 4. PRESIDENZA -->
+    <!-- 4. GESTIONE REPARTI E LIMITI CFU -->
+    <div id="tab-reparti" class="tab-content">
+      <div class="panel">
+        <h3>Configurazione Obiettivi Clinici (D.M. 653/2022)</h3>
+        <p style="font-size:12px; color:#64748b;">Modifica i limiti orari per reparto. Queste modifiche influiscono in tempo reale sui blocchi dell'app docente.</p>
+        <table>
+          <thead><tr><th>ID SQL</th><th>Nome Reparto / Clinica</th><th>Target Ore (1° Operatore)</th><th>Azioni</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Chirurgia Orale A</td><td><input type="number" value="60" class="pwd-input" style="width:80px;"> h</td><td><button class="btn btn-small">Aggiorna Limite</button></td></tr>
+            <tr><td>2</td><td>Protesi A</td><td><input type="number" value="120" class="pwd-input" style="width:80px;"> h</td><td><button class="btn btn-small">Aggiorna Limite</button></td></tr>
+            <tr><td>3</td><td>Ortognatodonzia A</td><td><input type="number" value="120" class="pwd-input" style="width:80px;"> h</td><td><button class="btn btn-small">Aggiorna Limite</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. PRESIDENZA -->
     <div id="tab-presidenza" class="tab-content">
       <div class="panel">
-        <h3>Credenziali Direzione</h3>
+        <h3>Credenziali Cruscotto Direzionale</h3>
         <div style="display:flex; gap:10px;">
-          <input type="text" class="pwd-input" style="width:100%; font-size:14px;" value="PresidenzaUda123!" id="passPresidenza">
-          <button class="btn" style="background:var(--ok);" onclick="alert('Password Presidenza aggiornata!')">Salva Modifica</button>
+          <input type="text" class="pwd-input" style="width:100%; font-size:14px;" value="PresidenzaUda123!">
+          <button class="btn" style="background:var(--ok);">Salva Modifica SQL</button>
         </div>
         <hr style="margin:20px 0; border:0; border-top:1px solid var(--border);">
         <button class="btn" onclick="window.open('presidenza.html', '_blank')">Vai al Cruscotto Presidenza ↗</button>
@@ -182,46 +220,27 @@
     document.getElementById('pageTitle').innerText = el.innerText.substring(3).trim();
   }
 
-  // 3. LETTURA UNIVERSALE (EXCEL / CSV) TRAMITE SHEET.JS
+  // 3. LETTURA FILE IMPORT (SheetJS)
   function leggiFile(event) {
     const file = event.target.files[0];
     if(!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type: 'array'});
-      
-      // Prende il primo foglio di lavoro
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      
-      // Converte in array JSON (header: 1 crea un array di array)
-      const righe = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-      
-      document.getElementById('statusFile').innerText = `✅ File "${file.name}" letto con successo. Trovati ${righe.length - 1} studenti.`;
+      const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+      const righe = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+      document.getElementById('statusFile').innerText = `✅ Trovati ${righe.length - 1} studenti nel file.`;
       
       const tbody = document.getElementById('tabellaStudenti');
       tbody.innerHTML = ''; 
-      
-      // Salta la riga di intestazione (i=1)
       for(let i=1; i<righe.length; i++) {
-        const row = righe[i];
-        if(row.length > 0 && row[0]) { // Se la matricola esiste
-          const matricola = row[0];
-          const cognome = row[1] || '';
-          const nome = row[2] || '';
-          const email = row[3] || `${matricola}@studenti.unich.it`;
-          const passwordGenerata = `Uda${matricola}!`; // Password di default in chiaro
-          
+        if(righe[i].length > 0 && righe[i][0]) {
           tbody.innerHTML += `
             <tr>
-              <td><strong>${matricola}</strong></td>
-              <td>${cognome} ${nome}</td>
-              <td>${email}</td>
-              <td><input type="text" class="pwd-input" value="${passwordGenerata}"></td>
-              <td><input type="number" class="pwd-input" value="0" style="width:70px;"></td>
-              <td><button class="btn btn-small" onclick="alert('Credenziali aggiornate e inviate a ${email}')">Salva & Invia Email</button></td>
+              <td><strong>${righe[i][0]}</strong></td><td>${righe[i][1] || ''} ${righe[i][2] || ''}</td>
+              <td><select style="width:60px; padding:4px;"><option selected>5</option><option>6</option></select></td>
+              <td><input type="text" class="pwd-input" value="Uda${righe[i][0]}!"></td>
+              <td><input type="number" class="pwd-input" value="0" style="width:60px;"></td>
+              <td><button class="btn btn-small">Salva</button> <button class="btn btn-small" style="background:var(--ko);">Elimina</button></td>
             </tr>`;
         }
       }
@@ -229,24 +248,38 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // 4. CREAZIONE STAFF (DOCENTI E TUTOR)
+  // 4. ESPORTAZIONE EXCEL (Esse3)
+  function esportaExcel() {
+    // Crea un foglio di lavoro virtuale e lo scarica
+    const datiDemo = [
+      ["Matricola", "Cognome e Nome", "Coorte", "Ore TPV Svolte", "Casi PPV", "Stato"],
+      ["3201456", "Rossi Mario", "2024/25", 600, "3/3", "Idoneo ESSE3"],
+      ["3109922", "Verdi Luca", "2023/24", 280, "1/3", "Non Idoneo"]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(datiDemo);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Esportazione Segreteria");
+    XLSX.writeFile(wb, "Export_Tirocini_UdA.xlsx");
+  }
+
+  // 5. LIFECYCLE E STAFF
+  function promuoviMassa() {
+    if(confirm("Promuovere tutti gli studenti del 5° Anno al 6° Anno? L'azione sbloccherà il limite delle 180 ore.")) {
+      alert("Comando SQL UPDATE inviato. Tutti gli studenti del 5° sono ora al 6°.");
+    }
+  }
+
   function creaStaff() {
-    const ruolo = document.getElementById('ruoloStaff').options[document.getElementById('ruoloStaff').selectedIndex].text;
+    const ruolo = document.getElementById('ruoloStaff').value;
     const nome = document.getElementById('nomeStaff').value;
     if(!nome) return alert("Inserisci il nominativo.");
-    
-    const pin = Math.floor(100000 + Math.random() * 900000); // Genera PIN 6 cifre in chiaro
-    
+    const pin = Math.floor(100000 + Math.random() * 900000);
     document.getElementById('tabellaStaff').innerHTML += `
-      <tr>
-        <td>${ruolo}</td><td>${nome}</td>
-        <td><input type="text" class="pwd-input" value="${pin}"></td>
-        <td><span style="color:var(--ok);">Attivo</span></td>
-        <td><button class="btn btn-small" style="background:var(--accent);">Salva PIN</button> <button class="btn btn-small" style="background:var(--ko);">Revoca</button></td>
-      </tr>
+      <tr><td>${ruolo}</td><td>${nome}</td><td><input type="text" class="pwd-input" value="${pin}"></td>
+      <td><span style="color:var(--ok);">Attivo</span></td>
+      <td><button class="btn btn-small">Salva</button> <button class="btn btn-small" style="background:var(--ko);">Sospendi</button></td></tr>
     `;
     document.getElementById('nomeStaff').value = '';
-    alert(`${ruolo} creato su SQL con successo.\nPIN generato: ${pin}`);
   }
 </script>
 </body>
