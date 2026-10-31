@@ -8,33 +8,31 @@
     :root { --primary: #0f2744; --bg: #f8fafc; --card: #fff; --border: #e2e8f0; --ok: #15803d; --ko: #b91c1c; }
     body { margin:0; padding:20px; background: var(--bg); font-family: system-ui; display: flex; flex-direction: column; min-height: 100vh; }
     
-    /* MODALE LOGIN PRESIDENZA */
     #presLogin { position: fixed; inset: 0; background: var(--primary); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .login-box { background: var(--card); padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
     .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
     .login-box button { width: 100%; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     
-    /* CRUSCOTTO */
     .header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; flex-wrap: wrap; gap:10px; }
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .kpi { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .table-container { background: var(--card); border-radius: 12px; overflow-x: auto; border: 1px solid var(--border); }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+    th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
     th { background: #f1f5f9; text-transform: uppercase; font-size: 11px; font-weight: 800; color: #475569; }
-    .badge { padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 11px; }
+    .badge { padding: 6px 10px; border-radius: 8px; font-weight: bold; font-size: 11px; }
     .risk { background: #fee2e2; color: var(--ko); border: 1px solid #fca5a5; }
     .footer-tribute { margin-top: auto; text-align: center; font-size: 11px; color: #64748b; padding-top: 20px; }
   </style>
 </head>
 <body>
 
-  <!-- SCHERMATA DI BLOCCO PRESIDENZA -->
+  <!-- LOGIN PRESIDENZA -->
   <div id="presLogin">
     <div class="login-box">
       <h2 style="margin-top:0; color:#0f172a;">Accesso Direzione</h2>
-      <p style="font-size:12px; color:#64748b;">Area Riservata Presidenza Ud'A</p>
-      <input type="email" id="presEmail" placeholder="Email Istituzionale">
+      <p style="font-size:12px; color:#64748b; margin-bottom:20px;">Area Riservata Presidenza Ud'A</p>
+      <input type="email" id="presEmail" placeholder="Email Istituzionale" value="presidenza@unich.it">
       <input type="password" id="presPass" placeholder="Password">
       <button onclick="effettuaLoginPresidenza()">Accedi al Cruscotto</button>
       <div id="loginError" style="color:red; font-size:12px; margin-top:10px; display:none;">Credenziali errate o revocate</div>
@@ -43,24 +41,24 @@
 
   <div class="header">
     <div>
-      <h1 style="margin:0; font-size:20px;">Cruscotto Presidenza</h1>
-      <div style="font-size:12px; opacity:0.8;">Analytics e Compliance D.M. 653/2022</div>
+      <h1 style="margin:0; font-size:22px;">Cruscotto Presidenza</h1>
+      <div style="font-size:13px; opacity:0.8; margin-top:4px;">Monitoraggio Requisiti D.M. 653/2022</div>
     </div>
-    <div style="background:rgba(255,255,255,0.2); padding:8px 15px; border-radius:8px; font-size:12px; font-weight:bold;">Sola Lettura</div>
+    <div style="background:rgba(255,255,255,0.2); padding:8px 15px; border-radius:8px; font-size:12px; font-weight:bold;">Vista Sola Lettura</div>
   </div>
 
   <div class="kpi-grid">
-    <div class="kpi"><div style="font-size:11px; color:#64748b;">TOTALE STUDENTI</div><div style="font-size:24px; font-weight:900;">142</div></div>
-    <div class="kpi"><div style="font-size:11px; color:#64748b;">🟢 IDONEO TESI</div><div style="font-size:24px; font-weight:900; color:var(--ok);">28</div></div>
-    <div class="kpi"><div style="font-size:11px; color:#64748b;">🔴 A RISCHIO (6° Anno < 300h)</div><div style="font-size:24px; font-weight:900; color:var(--ko);">5</div></div>
+    <div class="kpi"><div style="font-size:11px; color:#64748b; font-weight:bold;">TOTALE STUDENTI</div><div style="font-size:28px; font-weight:900; color:var(--primary);">142</div></div>
+    <div class="kpi"><div style="font-size:11px; color:#64748b; font-weight:bold;">🟢 IDONEO TESI</div><div style="font-size:28px; font-weight:900; color:var(--ok);">28</div></div>
+    <div class="kpi"><div style="font-size:11px; color:#64748b; font-weight:bold;">🔴 A RISCHIO (6° Anno < 300h)</div><div style="font-size:28px; font-weight:900; color:var(--ko);">5</div></div>
   </div>
 
   <div class="table-container">
     <table>
-      <thead><tr><th>Matricola</th><th>Nominativo</th><th>Coorte</th><th>TPV (600h)</th><th>PPV (3)</th><th>Status</th></tr></thead>
+      <thead><tr><th>Matricola</th><th>Nominativo</th><th>Coorte</th><th>Anno</th><th>TPV (600h)</th><th>PPV (3)</th><th>Stato</th></tr></thead>
       <tbody>
-        <tr><td>3201456</td><td>Rossi Mario</td><td>2024/25</td><td><b>600h</b></td><td>3/3</td><td><span class="badge" style="background:#dcfce7; color:var(--ok);">IDONEO</span></td></tr>
-        <tr style="background:#fff1f2;"><td>3109922</td><td>Verdi Luca</td><td>2023/24</td><td><b>280h</b></td><td>1/3</td><td><span class="badge risk">A RISCHIO (6° ANNO)</span></td></tr>
+        <tr><td>3201456</td><td><strong>Rossi Mario</strong></td><td>2024/25</td><td>6°</td><td style="color:var(--ok); font-weight:bold;">600h</td><td>3/3</td><td><span class="badge" style="background:#dcfce7; color:var(--ok);">IDONEO</span></td></tr>
+        <tr style="background:#fff1f2;"><td>3109922</td><td><strong>Verdi Luca</strong></td><td>2023/24</td><td>6°</td><td style="color:var(--ko); font-weight:bold;">280h</td><td>1/3</td><td><span class="badge risk">A RISCHIO CRITICO</span></td></tr>
       </tbody>
     </table>
   </div>
@@ -68,15 +66,14 @@
   <div class="footer-tribute">
     🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
     Sistema di Gestione Clinica Abilitante D.M. 653/2022<br>
-    Software Architecture & Engineering by <b>Mohaidine Aariouach</b>
+    Software Architecture & Engineering by <b style="color:var(--primary);">Mohaidine Aariouach</b>
   </div>
 
 <script>
   function effettuaLoginPresidenza() {
-    const email = document.getElementById('presEmail').value;
-    const pass = document.getElementById('presPass').value;
+    const email = document.getElementById('presEmail').value.trim();
+    const pass = document.getElementById('presPass').value.trim();
     
-    // Verifica credenziali inserite
     if(email === "presidenza@unich.it" && pass === "PresidenzaUda123!") {
       document.getElementById('presLogin').style.display = 'none';
     } else {
