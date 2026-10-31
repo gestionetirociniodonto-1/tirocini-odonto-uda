@@ -17,18 +17,19 @@
     .sub-discipline { font-size: 11px; display: flex; justify-content: space-between; margin-top: 8px; color: #475569; border-top: 1px dashed var(--border); padding-top: 8px;}
     
     #modalPrivacy { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; padding: 20px; }
-    .privacy-box { background: white; padding: 20px; border-radius: 16px; max-width: 400px; }
-    .btn { background: var(--tpv); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .privacy-box { background: white; padding: 20px; border-radius: 16px; max-width: 400px; text-align: center; }
+    .btn { background: var(--tpv); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
     
     .footer-tribute { margin-top: auto; text-align: center; font-size: 10px; color: #64748b; padding: 10px; }
   </style>
 </head>
 <body>
 
+  <!-- ACCETTAZIONE PRIVACY E FRODI -->
   <div id="modalPrivacy">
     <div class="privacy-box">
-      <h2>Privacy GDPR & D.M. 653/2022</h2>
-      <p style="font-size:12px; color:#475569;">Acconsenti al trattamento dei dati clinici. Frodi accertate (es. screenshot del QR) costituiscono reato accademico.</p>
+      <h2 style="margin-top:0;">Privacy GDPR & Normativa D.M. 653/2022</h2>
+      <p style="font-size:13px; color:#475569; margin-bottom:20px;">Acconsenti al trattamento dei dati clinici per il monitoraggio accademico. Le frodi (es. screenshot del QR) costituiscono reato accademico punibile con l'esclusione.</p>
       <button class="btn" onclick="accettaPrivacy()">Accetto e Continuo</button>
     </div>
   </div>
@@ -36,18 +37,18 @@
   <div class="box" style="text-align:center;">
     <h2 id="nomeSt">Mario Rossi - 3201456</h2>
     <div class="qr-container"><canvas id="qr"></canvas></div>
-    <div style="font-size:11px; margin-top:10px; color:#64748b;">⏳ Validità Token: <b id="timer">60</b>s</div>
+    <div style="font-size:12px; margin-top:10px; color:#64748b; font-weight:bold;">⏳ Token rigenerato in: <span id="timer" style="color:var(--text);">60</span>s</div>
   </div>
 
   <div class="box">
     <h2>Requisiti TPV (1° Operatore)</h2>
-    <div style="font-size:13px; font-weight:bold; color:var(--tpv);">Totale Globale: <span id="totTpv">120</span> / 600h</div>
-    <div class="progress-bg"><div class="progress-fill" id="barTpv" style="width:20%"></div></div>
+    <div style="font-size:13px; font-weight:bold; color:var(--tpv);">Totale Globale: <span id="totTpv">140</span> / 600h</div>
+    <div class="progress-bg"><div class="progress-fill" id="barTpv" style="width:23.3%"></div></div>
     
-    <div id="listaReparti" style="margin-top:15px;">
-      <div class="sub-discipline"><span>Chirurgia Orale A (Max 60h)</span><b>20 / 60h</b></div>
-      <div class="sub-discipline"><span>Protesi A (Max 120h)</span><b>60 / 120h</b></div>
-      <div class="sub-discipline"><span>Ortognatodonzia A (Max 120h)</span><b>40 / 120h</b></div>
+    <div id="listaReparti" style="margin-top:20px;">
+      <div class="sub-discipline"><span>Chirurgia Orale A (Max 60h)</span><b style="color:var(--text);">20 / 60h</b></div>
+      <div class="sub-discipline"><span>Protesi A (Max 120h)</span><b style="color:var(--text);">80 / 120h</b></div>
+      <div class="sub-discipline"><span>Ortognatodonzia A (Max 120h)</span><b style="color:var(--text);">40 / 120h</b></div>
     </div>
   </div>
 
@@ -58,12 +59,13 @@
   </div>
 
 <script>
-  let qr; const MATRICOLA = "3201456";
+  let qr; const MATRICOLA = "3201456"; // Da estrarre tramite JWT
 
   window.onload = () => {
     if(!localStorage.getItem('uda_privacy')) document.getElementById('modalPrivacy').style.display = 'flex';
-    qr = new QRious({ element: document.getElementById('qr'), size: 200, level: 'M' });
+    qr = new QRious({ element: document.getElementById('qr'), size: 220, level: 'M' });
     setInterval(generaToken, 1000);
+    generaToken(); // Esecuzione immediata
   };
 
   function accettaPrivacy() {
@@ -73,7 +75,7 @@
 
   function generaToken() {
     const epoch = Math.floor(Date.now() / 1000);
-    const rimanenti = 60 - (epoch % 60);
+    const rimanenti = 60 - (epoch % 60); // Rigenera esattamente ogni minuto
     document.getElementById('timer').innerText = rimanenti;
     if (rimanenti === 60 || qr.value === "") {
       qr.value = btoa(`${MATRICOLA}|${epoch}`);
