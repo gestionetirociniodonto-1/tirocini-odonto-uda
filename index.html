@@ -2,18 +2,18 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Ud'A - Validazione Docenti & Tutor</title>
+  <title>Ud'A - Terminale Docenti & Tutor Clinici</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
-    :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --tpv: #0ea5e9; --teo: #a855f7; --border: rgba(255,255,255,0.12); }
-    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    :root { --bg: #0b192c; --card: #1e293b; --text: #f8fafc; --tpv: #0284c7; --teo: #7c3aed; --border: rgba(255,255,255,0.12); }
+    * { box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
     body { margin:0; padding:14px; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
     
     #docenteLogin { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-    .login-box { background: var(--card); padding: 28px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center; border: 1px solid var(--border); }
-    .login-box select, .login-box input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; background: #0f172a; color: white; }
-    .login-box button { width: 100%; background: var(--tpv); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    .login-box { background: var(--card); padding: 30px; border-radius: 16px; width: 100%; max-width: 370px; text-align: center; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .login-box select, .login-box input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; background: #0f172a; color: white; font-size: 14px; }
+    .login-box button { width: 100%; background: var(--tpv); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; }
 
     .glass-panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; max-width: 540px; width: 100%; margin-left: auto; margin-right: auto; }
     header { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; max-width: 540px; width: 100%; margin-left: auto; margin-right: auto; }
@@ -25,36 +25,37 @@
     .btn.active-teo { background: var(--teo); color: white; border-color: var(--teo); }
     #reader { border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 2px solid var(--border); background: black; max-width: 540px; width: 100%; margin-left: auto; margin-right: auto; }
     .overlay { display: none; position: fixed; inset: 0; z-index: 100; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center; }
-    .footer-tribute { margin-top: auto; text-align: center; font-size: 10px; color: #64748b; padding: 10px; }
+    .footer-tribute { margin-top: auto; text-align: center; font-size: 10.5px; color: #64748b; padding: 12px; }
   </style>
 </head>
 <body>
 
-  <!-- ACCESSO DOCENTE -->
+  <!-- AUTENTICAZIONE CORPO DOCENTE E TUTOR CLINICI (Senza PIN suggeriti) -->
   <div id="docenteLogin">
     <div class="login-box">
-      <h2 style="margin-top:0;">Identificazione Staff</h2>
-      <p style="font-size:12px; color:#94a3b8; margin-bottom:16px;">Seleziona il tuo profilo e inserisci il PIN (Default: 482910)</p>
+      <div style="font-size:28px; margin-bottom:6px;">👨‍⚕️</div>
+      <h2 style="margin-top:0; font-size:18px;">Accesso Corpo Docente & Tutor</h2>
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:16px;">Selezionare il proprio nominativo e inserire il codice PIN personale</p>
       <select id="selProf"></select>
-      <input type="password" id="pinProf" placeholder="PIN a 6 cifre" value="482910" inputmode="numeric">
-      <button onclick="autenticaDocente()">Sblocca Scanner</button>
-      <div id="errDoc" style="color:#ef4444; font-size:12px; margin-top:10px; display:none;">PIN errato.</div>
+      <input type="password" id="pinProf" placeholder="Codice PIN Personale" inputmode="numeric" autocomplete="off">
+      <button onclick="autenticaDocente()">Abilita Terminale di Convalida</button>
+      <div id="errDoc" style="color:#ef4444; font-size:12px; margin-top:10px; display:none;">Codice PIN non associato al profilo selezionato.</div>
     </div>
   </div>
 
   <header>
     <div>
-      <h1 style="font-size: 16px; margin:0; color: var(--tpv);">UD'A VALIDAZIONE CLINICA & TEORICA</h1>
-      <div id="nomeHeader" style="font-size:12px; color:#cbd5e1; font-weight:bold;">Scanner Docente</div>
+      <h1 style="font-size: 15px; margin:0; color: #38bdf8;">UD'A CONVALIDA ATTIVITÀ CLINICHE E TEORICHE</h1>
+      <div id="nomeHeader" style="font-size:12px; color:#cbd5e1; font-weight:bold;">Terminale Docente</div>
     </div>
-    <button onclick="logoutDocente()" style="background:#334155; color:white; border:none; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer;">Esci</button>
+    <button onclick="logoutDocente()" style="background:#334155; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer;">Disconnetti</button>
   </header>
 
   <div class="glass-panel">
-    <label>Reparto Clinico o Modulo Teorico Frontale</label>
+    <label>Reparto Clinico / Modulo Didattico</label>
     <select id="reparto" onchange="salvaStato()"></select>
     
-    <label>Tipologia Attività</label>
+    <label>Modalità di Frequenza</label>
     <div class="btn-group">
       <div class="btn active" id="btnPrimo" onclick="setRuolo('Primo')">🦷 1° Op (TPV)</div>
       <div class="btn" id="btnSecondo" onclick="setRuolo('Secondo')">👁️ 2° Operatore</div>
@@ -62,11 +63,11 @@
     </div>
     
     <label style="display:flex; align-items:center; gap:8px; margin-bottom: 12px; color: white; cursor:pointer;">
-      <input type="checkbox" id="chkPpv" style="width:18px; height:18px; margin:0;"> Certifica Caso Clinico PPV Superato (Solo 1° Op)
+      <input type="checkbox" id="chkPpv" style="width:18px; height:18px; margin:0;"> Certifica superamento Prova Pratica Valutativa (PPV)
     </label>
 
-    <label style="color:#38bdf8;">📝 Nota Clinica / Prestazione / Argomento Lezione (Obbligatoria)</label>
-    <input type="text" id="notaClinica" placeholder="Es. Otturazione elemento 36  oppure  Seminario radioprotezione">
+    <label style="color:#38bdf8;">📝 Prestazione Clinica Eseguita / Argomento della Lezione (Obbligatorio)</label>
+    <input type="text" id="notaClinica" placeholder="Specificare la prestazione clinica o l'argomento trattato">
 
     <div style="display:flex; gap:10px;">
       <div style="flex:1;"><label>Turno</label><select id="turno"><option>Mattina</option><option>Pomeriggio</option></select></div>
@@ -76,12 +77,11 @@
 
   <div id="reader"></div>
 
-  <!-- CONVALIDA SINGOLA O MASSIVA D'AULA (Per Lezioni Teoriche Frontali) -->
   <div class="glass-panel" style="padding:14px;">
-    <label>Convalida Singola o Massiva d'Aula (Più matricole separate da virgola)</label>
+    <label>Convalida Singola o Massiva d'Aula (Matricole separate da virgola)</label>
     <div style="display:flex; gap:8px;">
-      <input type="text" id="manualMat" placeholder="Es. 3201456  oppure  3201456, 3204411, 3203300" style="margin:0;">
-      <button onclick="convalidaManualeOMassiva()" style="background:var(--tpv); color:white; border:none; padding:0 16px; border-radius:8px; font-weight:bold; cursor:pointer; white-space:nowrap;">Convalida</button>
+      <input type="text" id="manualMat" placeholder="Inserire una o più matricole separate da virgola" style="margin:0;">
+      <button onclick="convalidaManualeOMassiva()" style="background:var(--tpv); color:white; border:none; padding:0 16px; border-radius:8px; font-weight:bold; cursor:pointer; white-space:nowrap;">Certifica</button>
     </div>
   </div>
 
@@ -92,27 +92,18 @@
 
   <div class="footer-tribute">
     🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
-    Sistema di Gestione Clinica D.M. 653/2022 — Architecture by <b>Mohaidine Aariouach</b>
+    Sistema Abilitante D.M. 653/2022 — Architecture by <b>Mohaidine Aariouach</b>
   </div>
 
 <script>
-  const DB_KEY = 'UDA_CLINICAL_DB_V4';
+  const DB_KEY = 'UDA_CLINICAL_DB_V5';
   let ruoloScelto = 'Primo';
   let scannerAttivo = true;
 
   function getDB() { return JSON.parse(localStorage.getItem(DB_KEY)); }
 
   window.onload = () => {
-    const db = getDB();
-    if(db && db.staff) {
-      document.getElementById('selProf').innerHTML = db.staff.filter(s => s.attivo).map(s => `<option value="${s.nome}|${s.pin}">${s.nome} (${s.ruolo})</option>`).join('');
-      const repSet = new Set();
-      Object.values(db.coorti).forEach(c => {
-        if(c.anni) Object.values(c.anni).forEach(arr => arr.forEach(r => repSet.add(r.nome)));
-      });
-      document.getElementById('reparto').innerHTML = Array.from(repSet).map(r => `<option value="${r}">${r}</option>`).join('');
-    }
-
+    popolaDatiIniziali();
     if(localStorage.getItem('uda_doc_nome')) {
       document.getElementById('docenteLogin').style.display = 'none';
       document.getElementById('nomeHeader').innerText = `👨‍⚕️ ${localStorage.getItem('uda_doc_nome')}`;
@@ -120,8 +111,24 @@
     }
   };
 
+  window.addEventListener('storage', (e) => { if(e.key === DB_KEY) popolaDatiIniziali(); });
+
+  function popolaDatiIniziali() {
+    const db = getDB();
+    if(db && db.docenti) {
+      document.getElementById('selProf').innerHTML = db.docenti.filter(s => s.attivo).map(s => `<option value="${s.nome}|${s.pin}">${s.nome} (${s.ruolo})</option>`).join('');
+      const repSet = new Set();
+      Object.values(db.coorti).forEach(c => {
+        if(c.anni) Object.values(c.anni).forEach(arr => arr.forEach(r => repSet.add(r.nome)));
+      });
+      document.getElementById('reparto').innerHTML = Array.from(repSet).map(r => `<option value="${r}">${r}</option>`).join('');
+    }
+  }
+
   function autenticaDocente() {
-    const [nome, pinCorretto] = document.getElementById('selProf').value.split('|');
+    const val = document.getElementById('selProf').value;
+    if(!val) return;
+    const [nome, pinCorretto] = val.split('|');
     if(document.getElementById('pinProf').value.trim() === pinCorretto) {
       localStorage.setItem('uda_doc_nome', nome);
       document.getElementById('docenteLogin').style.display = 'none';
@@ -167,7 +174,7 @@
 
   function mostraOverlay(ok, titolo, msg) {
     const ov = document.getElementById('overlayEsito');
-    ov.style.background = ok ? 'rgba(22,163,74,0.96)' : 'rgba(220,38,38,0.96)';
+    ov.style.background = ok ? 'rgba(5,150,105,0.96)' : 'rgba(220,38,38,0.96)';
     document.getElementById('titoloEsito').innerText = titolo;
     document.getElementById('msgEsito').innerText = msg;
     ov.style.display = 'flex';
@@ -181,18 +188,18 @@
 
     const nota = document.getElementById('notaClinica').value.trim();
     if(!nota || nota.length < 3) {
-      return mostraOverlay(false, "⚠️ NOTA OBBLIGATORIA", "Inserisci prima la nota clinica della prestazione o l'argomento della lezione svolta.");
+      return mostraOverlay(false, "⚠️ NOTA MANCANTE", "Inserire obbligatoriamente la prestazione eseguita o l'argomento svolto prima della scansione.");
     }
 
     try {
       const decoded = atob(tokenBase64);
       const [matricola, timestamp] = decoded.split('|');
       const delta = Math.abs(Math.floor(Date.now()/1000) - parseInt(timestamp));
-      if(delta > 60) return mostraOverlay(false, "⛔ QR SCADUTO", "Token oltre i 60 secondi di validità.");
+      if(delta > 60) return mostraOverlay(false, "⛔ QR SCADUTO", "Il codice ha superato i 60 secondi di validità.");
 
       const db = getDB();
       const st = db.studenti.find(s => s.matricola === matricola && !s.archiviato);
-      if(!st) return mostraOverlay(false, "⛔ NON TROVATO", `Matricola ${matricola} non presente in archivio.`);
+      if(!st) return mostraOverlay(false, "⛔ NON ABILITATO", `Matricola ${matricola} non presente o archiviata.`);
 
       const reparto = document.getElementById('reparto').value;
       const turno = document.getElementById('turno').value;
@@ -200,10 +207,20 @@
       const ppv = document.getElementById('chkPpv').checked;
       const cfgCoorte = db.coorti[st.coorte];
 
-      if(ruoloScelto === 'Primo' && st.anno === '5' && cfgCoorte) {
-        const orePrimoAttuali = db.timbrature.filter(t => t.matricola === matricola && t.ruolo === 'Primo').reduce((s,t) => s + parseFloat(t.ore), 0) + parseFloat(st.bonus || 0);
-        if((orePrimoAttuali + ore) > cfgCoorte.limite_quinto_anno) {
-          return mostraOverlay(false, "⛔ BLOCCO 5° ANNO", `${st.nome} supererebbe il tetto di ${cfgCoorte.limite_quinto_anno}h previsto per il 5° anno.`);
+      // Verifica rispetto del tetto previsto dal Piano di Studi per il reparto
+      let maxReparto = 0;
+      if(cfgCoorte && cfgCoorte.anni) {
+        Object.values(cfgCoorte.anni).forEach(arr => arr.forEach(r => {
+          if(r.nome === reparto) {
+            maxReparto += parseFloat(ruoloScelto === 'Primo' ? r.tpv : (ruoloScelto === 'Secondo' ? r.secondo : r.teorico)) || 0;
+          }
+        }));
+      }
+
+      if(maxReparto > 0) {
+        const oreRepAttuali = db.timbrature.filter(t => t.matricola === matricola && t.ruolo === ruoloScelto && t.reparto === reparto).reduce((s,t) => s + parseFloat(t.ore), 0);
+        if((oreRepAttuali + ore) > maxReparto) {
+          return mostraOverlay(false, "⛔ TETTO RAGGIUNTO", `Superato il monte ore previsto dal Piano di Studi (${maxReparto}h) per ${reparto}.`);
         }
       }
 
@@ -216,9 +233,9 @@
         anno_rif: st.anno
       });
       localStorage.setItem(DB_KEY, JSON.stringify(db));
-      mostraOverlay(true, "✅ CONVALIDATO", `${st.nome} (${st.anno}° Anno)\n+${ore}h in ${reparto}\nNota: "${nota}"`);
+      mostraOverlay(true, "✅ CERTIFICATO", `${st.nome} (${st.anno}° Anno)\n+${ore}h in ${reparto}\n"${nota}"`);
     } catch (e) {
-      mostraOverlay(false, "⛔ QR NON VALIDO", "Impossibile leggere il codice.");
+      mostraOverlay(false, "⛔ CODICE NON VALIDO", "Impossibile decodificare il QR Code.");
     }
   }
 </script>
