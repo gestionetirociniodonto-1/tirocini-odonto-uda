@@ -2,141 +2,140 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Ud'A - Super Admin Dashboard</title>
+  <title>Ud'A - Direzione Sistema Tirocini</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    :root { --sidebar: #0f172a; --bg: #f1f5f9; --accent: #2563eb; --text: #1e293b; --card: #ffffff; --border: #e2e8f0; --ok: #10b981; --ko: #ef4444; --warn: #f59e0b; --purple: #7c3aed; --excel: #15803d; }
+    :root { --sidebar: #0b192c; --bg: #f4f6f9; --accent: #1d4ed8; --text: #0f172a; --card: #ffffff; --border: #e2e8f0; --ok: #059669; --ko: #dc2626; --warn: #d97706; --purple: #6d28d9; --excel: #15803d; }
     * { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     body { margin:0; display:flex; height:100vh; background:var(--bg); color:var(--text); overflow:hidden; }
     
-    #adminLogin { position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-    .login-box { background: var(--card); padding: 36px; border-radius: 16px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-    .login-box input { width: 100%; padding: 12px 14px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
-    .login-box button { width: 100%; background: var(--accent); color: white; border: none; padding: 13px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 14px; }
+    #adminLogin { position: fixed; inset: 0; background: radial-gradient(circle at center, #1e293b 0%, #0b192c 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+    .login-box { background: var(--card); padding: 38px 34px; border-radius: 16px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid var(--border); }
+    .login-box input { width: 100%; padding: 12px 14px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; }
+    .login-box button { width: 100%; background: var(--accent); color: white; border: none; padding: 13px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 12px; font-size: 14px; transition: 0.2s; }
+    .login-box button:hover { background: #1e40af; }
     
-    .sidebar { width: 270px; background: var(--sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
-    .brand { padding: 22px 20px; border-bottom: 1px solid #1e293b; }
-    .brand-title { font-weight: 900; color: #38bdf8; font-size: 17px; letter-spacing: 0.5px; }
+    .sidebar { width: 275px; background: var(--sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
+    .brand { padding: 24px 22px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .brand-title { font-weight: 800; color: #f8fafc; font-size: 15.5px; letter-spacing: 0.4px; }
     .brand-sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
-    .nav { padding: 15px 20px; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 1px solid #1e293b; transition: 0.2s; display: flex; align-items: center; gap: 10px; color: #cbd5e1; }
-    .nav:hover, .nav.active { background: #1e293b; color: white; border-left: 4px solid #38bdf8; }
+    .nav { padding: 15px 22px; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.15s; display: flex; align-items: center; gap: 10px; color: #cbd5e1; }
+    .nav:hover, .nav.active { background: rgba(255,255,255,0.07); color: #ffffff; border-left: 4px solid #38bdf8; }
     
-    .content { flex: 1; padding: 26px; overflow-y: auto; display: flex; flex-direction: column; }
-    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .content { flex: 1; padding: 26px 30px; overflow-y: auto; display: flex; flex-direction: column; }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
     .tab-content { display: none; } .tab-content.active { display: block; }
     
-    .panel { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 18px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
-    .panel h3 { margin-top: 0; margin-bottom: 14px; font-size: 15px; color: #0f172a; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-    label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5px; }
-    input, select { padding: 9px 11px; border-radius: 6px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; background: white; }
-    input:focus, select:focus { outline: none; border-color: var(--accent); }
+    .panel { background: var(--card); padding: 22px; border-radius: 12px; margin-bottom: 18px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    .panel h3 { margin-top: 0; margin-bottom: 14px; font-size: 14.5px; color: #0f172a; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 5px; letter-spacing: 0.3px; }
+    input, select { padding: 9px 11px; border-radius: 6px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; background: white; color: var(--text); }
+    input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(29,78,216,0.12); }
     
-    .btn { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12.5px; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12.5px; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .btn:hover { filter: brightness(1.08); }
     .btn-small { padding: 6px 10px; font-size: 11px; border-radius: 5px; }
     
     .year-pills { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
-    .year-pill { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: #f8fafc; font-weight: 700; font-size: 12.5px; cursor: pointer; color: #475569; transition: 0.15s; }
-    .year-pill.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 3px 10px rgba(37,99,235,0.25); }
+    .year-pill { padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border); background: #f8fafc; font-weight: 700; font-size: 12.5px; cursor: pointer; color: #475569; transition: 0.15s; }
+    .year-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
     
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
     .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
     
-    .upload-box { border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 10px; cursor: pointer; background: #f8fafc; transition: 0.2s; display: block; }
+    .upload-box { border: 2px dashed #cbd5e1; padding: 18px; text-align: center; border-radius: 10px; cursor: pointer; background: #f8fafc; transition: 0.2s; display: block; }
     .upload-box:hover { border-color: var(--accent); background: #eff6ff; }
     
-    .table-wrap { overflow-x: auto; max-height: 460px; border: 1px solid var(--border); border-radius: 8px; }
+    .table-wrap { overflow-x: auto; max-height: 470px; border: 1px solid var(--border); border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th { background: #f8fafc; padding: 10px 12px; text-align: left; border-bottom: 2px solid var(--border); color: #475569; position: sticky; top: 0; z-index: 10; font-size: 10.5px; text-transform: uppercase; }
+    th { background: #f8fafc; padding: 11px 12px; text-align: left; border-bottom: 2px solid var(--border); color: #475569; position: sticky; top: 0; z-index: 10; font-size: 10.5px; text-transform: uppercase; }
     td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:hover { background: #f8fafc; }
-    .pwd-input { width: 115px; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 5px; font-family: monospace; font-weight: 600; color: #0f172a; background: #fffbeb; }
-    .num-input { width: 68px; padding: 5px; text-align: center; font-weight: 700; }
+    .pwd-input { width: 120px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-family: monospace; font-weight: 600; color: #0f172a; background: #fefce8; }
+    .num-input { width: 66px; padding: 5px; text-align: center; font-weight: 700; }
     
     .badge { padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 10.5px; display: inline-block; }
-    .footer-tribute { text-align: center; font-size: 11px; color: #64748b; margin-top: auto; padding: 16px; border-top: 1px solid #1e293b; line-height: 1.5; }
+    .footer-tribute { text-align: center; font-size: 11px; color: #94a3b8; margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); line-height: 1.5; }
 
-    /* MODALE CERTIFICATO DI LAUREA STAMPABILE */
     #modalCertificato { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.85); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-    .cert-box { background: white; width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 32px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
+    .cert-box { background: white; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 34px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN SUPER-ADMIN -->
+  <!-- AUTENTICAZIONE AMMINISTRATORE (Senza credenziali in chiaro o suggerite) -->
   <div id="adminLogin">
     <div class="login-box">
-      <div style="font-size:32px; margin-bottom:8px;">🏛️</div>
-      <h2 style="margin:0 0 6px; color:#0f172a;">Super-Admin Ud'A</h2>
-      <p style="font-size:12px; color:#64748b; margin-bottom:20px;">Controllo Centrale 1°-6° Anno • D.M. 653/2022</p>
-      <input type="email" id="admEmail" placeholder="Email Admin" value="admin@unich.it">
-      <input type="password" id="admPass" placeholder="Password SQL (AdminMohaidine2026!)">
-      <button onclick="effettuaLoginAdmin()">Accedi alla Plancia</button>
-      <div id="loginError" style="color:var(--ko); font-size:12px; margin-top:12px; display:none; font-weight:600;">Credenziali amministratore errate.</div>
+      <div style="font-size:30px; margin-bottom:8px;">🏛️</div>
+      <h2 style="margin:0 0 4px; color:#0f172a; font-size:19px;">Direzione Sistema Tirocini</h2>
+      <p style="font-size:12px; color:#64748b; margin-bottom:22px;">Università degli Studi "G. d'Annunzio" Chieti-Pescara</p>
+      <input type="email" id="admEmail" placeholder="Email Istituzionale Amministratore" autocomplete="off">
+      <input type="password" id="admPass" placeholder="Password di Sistema" autocomplete="off">
+      <button onclick="effettuaLoginAdmin()">Autenticazione</button>
+      <div id="loginError" style="color:var(--ko); font-size:12px; margin-top:12px; display:none; font-weight:600;">Credenziali di accesso non valide.</div>
     </div>
   </div>
 
-  <!-- MODALE CERTIFICATO STUDENTE -->
+  <!-- MODALE FASCICOLO UFFICIALE DI LAUREA -->
   <div id="modalCertificato">
     <div class="cert-box" id="certContent"></div>
   </div>
 
-  <!-- SIDEBAR -->
+  <!-- MENU DI NAVIGAZIONE ISTITUZIONALE -->
   <div class="sidebar">
     <div class="brand">
-      <div class="brand-title">SUPER ADMIN</div>
-      <div class="brand-sub">Odontoiatria 1° - 6° Anno (D.M. 653/22)</div>
+      <div class="brand-title">DIREZIONE SISTEMA</div>
+      <div class="brand-sub">CdS Odontoiatria e Protesi Dentaria</div>
     </div>
-    <div class="nav active" onclick="switchTab('tab-stu', this)">👥 Anagrafica Studenti (1°-6°)</div>
-    <div class="nav" onclick="switchTab('tab-piani', this)">📚 Piani Studio & Reparti per Anno</div>
-    <div class="nav" onclick="switchTab('tab-doc', this)">👨‍⚕️ Docenti & Tutor</div>
-    <div class="nav" onclick="switchTab('tab-timbrature', this)">🕒 Registro & Inserimento Presenze</div>
-    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Controllo Presidenza</div>
+    <div class="nav active" onclick="switchTab('tab-stu', this)">🎓 Anagrafica Studenti (1°-6°)</div>
+    <div class="nav" onclick="switchTab('tab-piani', this)">📚 Ordinamento & Reparti per Anno</div>
+    <div class="nav" onclick="switchTab('tab-doc', this)">👨‍⚕️ Corpo Docente & Tutor Clinici</div>
+    <div class="nav" onclick="switchTab('tab-timbrature', this)">📋 Registro & Convalida Presenze</div>
+    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Configurazione Accessi</div>
     
     <div class="footer-tribute">
       Università "G. d'Annunzio" Chieti-Pescara<br>
-      Software Architecture & Engineering by<br><b style="color:#f8fafc;">Mohaidine Aariouach</b>
+      Sistema Abilitante D.M. 653/2022<br>
+      Architecture by <b style="color:#f8fafc;">Mohaidine Aariouach</b>
     </div>
   </div>
 
-  <!-- CONTENUTO PRINCIPALE -->
   <div class="content">
     <div class="header-bar">
-      <h2 id="pageTitle" style="margin:0; color:#0f172a;">Anagrafica Studenti (1°-6° Anno)</h2>
+      <h2 id="pageTitle" style="margin:0; color:#0f172a; font-size:20px;">Anagrafica Studenti (1°-6° Anno)</h2>
       <div style="display:flex; gap:8px;">
-        <button class="btn btn-small" style="background:#475569;" onclick="window.open('studente.html', '_blank')">📱 App Studente</button>
-        <button class="btn btn-small" style="background:#0284c7;" onclick="window.open('index.html', '_blank')">📷 Scanner Docente</button>
-        <button class="btn btn-small" style="background:#0f2744;" onclick="window.open('presidenza.html', '_blank')">🏛️ Cruscotto Presidenza</button>
+        <button class="btn btn-small" style="background:#334155;" onclick="window.open('studente.html', '_blank')">📱 Portale Studente</button>
+        <button class="btn btn-small" style="background:#0369a1;" onclick="window.open('index.html', '_blank')">📷 Terminale Docenti</button>
+        <button class="btn btn-small" style="background:#0b192c;" onclick="window.open('presidenza.html', '_blank')">🏛️ Cruscotto Presidenza</button>
       </div>
     </div>
     
     <!-- ================================================================= -->
-    <!-- TAB 1: ANAGRAFICA STUDENTI (1° - 6° ANNO + FC)                    -->
+    <!-- TAB 1: ANAGRAFICA STUDENTI (1° - 6° ANNO + FUORI CORSO)           -->
     <!-- ================================================================= -->
     <div id="tab-stu" class="tab-content active">
       <div class="grid-2" style="margin-bottom:18px;">
         <label class="upload-box" style="margin:0;">
-          <strong style="color:var(--accent); font-size:13.5px;">📥 Importa File Excel / CSV Segreteria (Upsert 1°-6° Anno)</strong>
-          <div style="font-size:11px; color:#64748b; margin-top:4px;">Colonne: Matricola, Cognome, Nome, Email, Coorte, Anno (1..6 o FC), Password</div>
+          <strong style="color:var(--accent); font-size:13.5px;">📥 Importa Flusso Segreteria Excel / CSV (Upsert Automatico)</strong>
+          <div style="font-size:11px; color:#64748b; margin-top:4px;">Aggiorna l'anno di corso degli iscritti o inserisce le nuove matricole mantenendo lo storico</div>
           <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" style="display:none;" onchange="leggiFile(event)">
         </label>
         <div class="upload-box" style="border-color:var(--excel); background:#f0fdf4; margin:0;" onclick="esportaExcelReale()">
-          <strong style="color:var(--excel); font-size:13.5px;">📤 Esporta Tracciato Completo ESSE3 (.xlsx)</strong>
-          <div style="font-size:11px; color:#64748b; margin-top:4px;">Scarica foglio ufficiale con Ore 1° Op (TPV), 2° Op, Teoriche, PPV e Stato</div>
+          <strong style="color:var(--excel); font-size:13.5px;">📤 Esporta Tracciato Ufficiale ESSE3 (.xlsx)</strong>
+          <div style="font-size:11px; color:#64748b; margin-top:4px;">Genera prospetto completo con Ore 1° Op (TPV), 2° Op, Teoriche, PPV e Idoneità</div>
         </div>
       </div>
       <div id="statusFile" style="font-size:12px; font-weight:700; color:var(--ok); margin-bottom:12px;"></div>
 
       <div class="panel">
-        <h3>➕ Aggiungi / Autorizza Studente Manualmente</h3>
+        <h3>➕ Iscrizione / Abilitazione Singolo Studente</h3>
         <div class="grid-6">
-          <div><label>Matricola</label><input type="text" id="newStuMat" placeholder="Es. 3209988"></div>
-          <div><label>Cognome e Nome</label><input type="text" id="newStuNome" placeholder="Es. Bianchi Sara"></div>
-          <div><label>Email</label><input type="email" id="newStuEmail" placeholder="s.bianchi@studenti.unich.it"></div>
+          <div><label>Matricola</label><input type="text" id="newStuMat" placeholder="Matricola"></div>
+          <div><label>Cognome e Nome</label><input type="text" id="newStuNome" placeholder="Cognome Nome"></div>
+          <div><label>Email Istituzionale</label><input type="email" id="newStuEmail" placeholder="nome@studenti.unich.it"></div>
           <div><label>Coorte (A.A.)</label><select id="newStuCoorte" class="coorte-select"></select></div>
           <div><label>Anno di Corso</label>
             <select id="newStuAnno">
@@ -147,21 +146,21 @@
           </div>
           <div><label>Password</label><input type="text" id="newStuPass" placeholder="Auto se vuoto"></div>
         </div>
-        <button class="btn" style="margin-top:12px;" onclick="aggiungiStudenteManuale()">Autorizza Studente & Genera Accesso</button>
+        <button class="btn" style="margin-top:12px;" onclick="aggiungiStudenteManuale()">Registra Studente in Anagrafica</button>
       </div>
 
       <div class="panel">
-        <h3>Elenco Studenti & Avanzamento Multi-Canale (<span id="countStudenti">0</span>)</h3>
+        <h3>Studenti Iscritti & Monitoraggio Carriera (<span id="countStudenti">0</span>)</h3>
         <div class="grid-3" style="margin-bottom:14px;">
-          <input type="text" id="cercaStu" placeholder="🔍 Cerca Matricola, Nome o Email..." oninput="renderStudenti()">
+          <input type="text" id="cercaStu" placeholder="🔍 Filtra per Matricola, Cognome, Nome o Email..." oninput="renderStudenti()">
           <select id="filtroCoorteStu" onchange="renderStudenti()">
             <option value="">Tutte le Coorti (Anni Accademici)</option>
           </select>
           <select id="filtroAnnoStu" onchange="renderStudenti()">
             <option value="">Tutti gli Anni (1° - 6°, FC, Archiviati)</option>
-            <option value="1">Solo 1° Anno</option><option value="2">Solo 2° Anno</option><option value="3">Solo 3° Anno</option>
-            <option value="4">Solo 4° Anno</option><option value="5">Solo 5° Anno</option><option value="6">Solo 6° Anno</option>
-            <option value="FC">Solo Fuori Corso (FC)</option><option value="ARCH">Solo Archiviati</option>
+            <option value="1">1° Anno</option><option value="2">2° Anno</option><option value="3">3° Anno</option>
+            <option value="4">4° Anno</option><option value="5">5° Anno</option><option value="6">6° Anno</option>
+            <option value="FC">Fuori Corso (FC)</option><option value="ARCH">Archiviati</option>
           </select>
         </div>
         <div class="table-wrap">
@@ -179,35 +178,28 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAB 2: PIANI DI STUDIO & REPARTI PER ANNO DI CORSO (1° - 6°)      -->
+    <!-- TAB 2: ORDINAMENTO & REPARTI PER ANNO DI CORSO (1° - 6°)          -->
     <!-- ================================================================= -->
     <div id="tab-piani" class="tab-content">
       <div class="panel" style="border-left: 4px solid var(--accent);">
-        <h3>⚙️ Configuratore Piani di Studio e Normativa per Coorte & Anno (1° - 6°)</h3>
+        <h3>📚 Gestione Coorti d'Immatricolazione (Ordinamento Didattico)</h3>
         <p style="font-size:12px; color:#64748b; margin-top:0;">
-          Seleziona la Coorte e poi clicca sull'Anno di Corso (dal 1° al 6°) per stabilire quali tirocini clinici o lezioni teoriche frontali gli studenti di quell'anno devono frequentare. Appena salvi, il piano compare automaticamente nell'app degli studenti di quell'anno.
+          Tutti i limiti orari (1° Operatore, 2° Operatore, Tirocinio Teorico Frontale e Prove PPV) sono calcolati automaticamente dalla somma dei reparti assegnati a ciascun anno (dal 1° al 6°).
         </p>
         <div class="grid-4" style="align-items:end; background:#f8fafc; padding:14px; border-radius:8px; border:1px solid var(--border);">
-          <div><label>Coorte (A.A.) da Configurare</label><select id="selCoorteAttiva" class="coorte-select" onchange="caricaConfigCoorte()"></select></div>
+          <div><label>Coorte Attiva da Configurare</label><select id="selCoorteAttiva" class="coorte-select" onchange="caricaConfigCoorte()"></select></div>
           <div><label>Nuova Coorte (A.A.)</label><input type="text" id="nuovaCoorteInput" placeholder="Es. 2026/2027"></div>
-          <div><button class="btn" style="width:100%; background:#0f172a;" onclick="creaNuovaCoorte()">➕ Crea Coorte</button></div>
+          <div><button class="btn" style="width:100%; background:#0b192c;" onclick="creaNuovaCoorte()">➕ Crea Nuova Coorte</button></div>
           <div><button class="btn" style="width:100%; background:var(--ko);" onclick="eliminaCoorteSelezionata()">🗑️ Elimina Coorte</button></div>
-        </div>
-
-        <div class="grid-3" style="margin-top:15px;">
-          <div><label>Tetto Massimo Ore 1° Op al 5° Anno</label><input type="number" id="cfgLim5" value="180" step="10"></div>
-          <div><label>Numero Casi Clinici PPV Richiesti per Laurea</label><input type="number" id="cfgPpv" value="3" step="1"></div>
-          <div style="display:flex; align-items:end;"><button class="btn" style="width:100%; background:var(--ok);" onclick="salvaParametriGeneraliCoorte()">💾 Salva Regole Generali Coorte</button></div>
         </div>
       </div>
 
       <div class="panel">
         <h3>
-          <span>📅 Seleziona l'Anno di Corso da Programmare per la Coorte <b id="lblCoorteReparti" style="color:var(--accent);"></b></span>
-          <span id="sommaOrePiano" style="font-size:11.5px; padding:5px 10px; border-radius:6px; background:#eff6ff; color:var(--accent);"></span>
+          <span>📅 Piano dei Reparti e Moduli Teorici — Coorte <b id="lblCoorteReparti" style="color:var(--accent);"></b></span>
+          <span id="sommaOrePiano" style="font-size:11.5px; padding:6px 12px; border-radius:6px; background:#eff6ff; color:var(--accent);"></span>
         </h3>
 
-        <!-- SELETTORE ANNO 1° - 6° -->
         <div class="year-pills" id="yearPillsContainer">
           <div class="year-pill" onclick="selezionaAnnoPiano('1', this)">1° Anno</div>
           <div class="year-pill" onclick="selezionaAnnoPiano('2', this)">2° Anno</div>
@@ -217,20 +209,21 @@
           <div class="year-pill" onclick="selezionaAnnoPiano('6', this)">6° Anno</div>
         </div>
 
-        <div class="grid-5" style="margin-bottom:15px; align-items:end; background:#f8fafc; padding:14px; border-radius:8px; border:1px solid var(--border);">
-          <div style="grid-column: span 2;"><label>Nome Reparto Clinico o Tirocinio Teorico Frontale</label><input type="text" id="nuovoRepartoNome" placeholder="Es. Protesi A  oppure  Seminario Radiologia (Teorico)"></div>
+        <div class="grid-6" style="margin-bottom:15px; align-items:end; background:#f8fafc; padding:14px; border-radius:8px; border:1px solid var(--border);">
+          <div style="grid-column: span 2;"><label>Denominazione Reparto Clinico o Modulo Teorico</label><input type="text" id="nuovoRepartoNome" placeholder="Es. Chirurgia Orale A  /  Seminario Radioprotezione"></div>
           <div><label>Ore 1° Op (TPV)</label><input type="number" id="nuovoRepTpV" value="40" step="5" min="0"></div>
-          <div><label>Ore 2° Op (Assist.)</label><input type="number" id="nuovoRepSec" value="20" step="5" min="0"></div>
-          <div><label>Ore Lezione Teorica</label><input type="number" id="nuovoRepTeo" value="0" step="2" min="0"></div>
+          <div><label>Ore 2° Operatore</label><input type="number" id="nuovoRepSec" value="20" step="5" min="0"></div>
+          <div><label>Ore Teorico Front.</label><input type="number" id="nuovoRepTeo" value="0" step="2" min="0"></div>
+          <div><label>PPV Richiesti</label><input type="number" id="nuovoRepPpv" value="0" step="1" min="0"></div>
         </div>
-        <button class="btn" style="margin-bottom:15px;" onclick="aggiungiRepartoACoorteAnno()">➕ Aggiungi Attività al <span id="btnLblAnno">5</span>° Anno</button>
+        <button class="btn" style="margin-bottom:15px;" onclick="aggiungiRepartoACoorteAnno()">➕ Inserisci nel Piano del <span id="btnLblAnno">5</span>° Anno</button>
 
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Anno</th><th>Disciplina / Reparto / Modulo Teorico</th>
-                <th>Target 1° Op (TPV)</th><th>Target 2° Operatore</th><th>Target Lezione Teorica</th><th>Totale Ore & CFU</th><th>Azioni</th>
+                <th>Anno</th><th>Reparto Clinico / Insegnamento Teorico</th>
+                <th>Ore 1° Op (TPV)</th><th>Ore 2° Operatore</th><th>Ore Teorico Frontale</th><th>PPV Richiesti</th><th>Totale & CFU</th><th>Azioni</th>
               </tr>
             </thead>
             <tbody id="tabellaPianiStudio"></tbody>
@@ -240,26 +233,26 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAB 3: DOCENTI E TUTOR                                            -->
+    <!-- TAB 3: CORPO DOCENTE E TUTOR CLINICI                              -->
     <!-- ================================================================= -->
     <div id="tab-doc" class="tab-content">
       <div class="panel">
-        <h3>➕ Autorizza Nuovo Docente o Tutor</h3>
+        <h3>➕ Abilitazione Nuovo Docente o Tutor Clinico</h3>
         <div class="grid-4" style="align-items:end;">
-          <div><label>Ruolo</label><select id="ruoloStaff"><option value="Docente">Docente Universitario</option><option value="Tutor">Tutor Clinico</option></select></div>
-          <div><label>Nominativo</label><input type="text" id="nomeStaff" placeholder="Es. Prof. Mario Rossi"></div>
-          <div><label>Email Istituzionale</label><input type="email" id="emailStaff" placeholder="m.rossi@unich.it"></div>
-          <div><label>PIN (Auto se vuoto)</label><input type="text" id="pinStaff" placeholder="6 cifre"></div>
+          <div><label>Qualifica Accademica</label><select id="ruoloStaff"><option value="Docente">Docente Universitario</option><option value="Tutor">Tutor Clinico</option></select></div>
+          <div><label>Cognome e Nome</label><input type="text" id="nomeStaff" placeholder="Es. Prof. Cognome Nome"></div>
+          <div><label>Email Istituzionale</label><input type="email" id="emailStaff" placeholder="cognome@unich.it"></div>
+          <div><label>Codice PIN (Auto se vuoto)</label><input type="text" id="pinStaff" placeholder="6 cifre"></div>
         </div>
-        <button class="btn" style="margin-top:12px;" onclick="creaStaff()">Genera PIN & Autorizza</button>
+        <button class="btn" style="margin-top:12px;" onclick="creaDocente()">Abilita Validatore & Genera PIN</button>
       </div>
 
       <div class="panel">
-        <h3>Staff Validatore Autorizzato (PIN in chiaro)</h3>
-        <input type="text" id="cercaDoc" placeholder="🔍 Cerca Docente o Tutor..." oninput="renderStaff()" style="margin-bottom:12px;">
+        <h3>Elenco Corpo Docente & Tutor Clinici Abilitati</h3>
+        <input type="text" id="cercaDoc" placeholder="🔍 Cerca per Nominativo o Email..." oninput="renderDocenti()" style="margin-bottom:12px;">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Ruolo</th><th>Nominativo</th><th>Email</th><th>PIN Scanner</th><th>Stato</th><th>Azioni</th></tr></thead>
+            <thead><tr><th>Qualifica</th><th>Nominativo</th><th>Email Istituzionale</th><th>PIN Terminale</th><th>Stato</th><th>Azioni</th></tr></thead>
             <tbody id="tabellaStaff"></tbody>
           </table>
         </div>
@@ -267,24 +260,24 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAB 4: REGISTRO PRESENZE & INSERIMENTO (Stessa logica del QR)     -->
+    <!-- TAB 4: REGISTRO & CONVALIDA PRESENZE                              -->
     <!-- ================================================================= -->
     <div id="tab-timbrature" class="tab-content">
       <div class="panel" style="border-left: 4px solid var(--accent);">
-        <h3>✍️ Registra Presenza Clinica o Lezione Teorica Frontale (Logica Identica al QR)</h3>
+        <h3>✍️ Registrazione Presenza Clinica o Teorica Frontale</h3>
         <div class="grid-6" style="margin-bottom:10px;">
           <div><label>Studente</label><select id="ovMat"></select></div>
-          <div><label>Docente / Tutor</label><select id="ovDoc"></select></div>
+          <div><label>Docente / Tutor Certificatore</label><select id="ovDoc"></select></div>
           <div><label>Reparto / Modulo</label><select id="ovRep"></select></div>
-          <div><label>Data</label><input type="date" id="ovData"></div>
-          <div><label>Modalità & Turno</label>
+          <div><label>Data Attività</label><input type="date" id="ovData"></div>
+          <div><label>Tipologia & Turno</label>
             <select id="ovRuolo">
               <option value="Primo|Mattina|false">1° Operatore (TPV) - Mattina</option>
               <option value="Primo|Pomeriggio|false">1° Operatore (TPV) - Pomeriggio</option>
               <option value="Primo|Mattina|true">1° Operatore + Caso PPV - Mattina</option>
               <option value="Primo|Pomeriggio|true">1° Operatore + Caso PPV - Pomeriggio</option>
-              <option value="Secondo|Mattina|false">2° Operatore (Standard) - Mattina</option>
-              <option value="Secondo|Pomeriggio|false">2° Operatore (Standard) - Pomeriggio</option>
+              <option value="Secondo|Mattina|false">2° Operatore - Mattina</option>
+              <option value="Secondo|Pomeriggio|false">2° Operatore - Pomeriggio</option>
               <option value="Teorico|Mattina|false">📚 Tirocinio Teorico Frontale - Mattina</option>
               <option value="Teorico|Pomeriggio|false">📚 Tirocinio Teorico Frontale - Pomeriggio</option>
             </select>
@@ -293,31 +286,31 @@
         </div>
         <div class="grid-2" style="align-items:end;">
           <div>
-            <label>📝 Nota Clinica / Prestazione Eseguita / Argomento Lezione (Obbligatoria)</label>
-            <input type="text" id="ovNota" placeholder="Es. Preparazione protesica elem. 24  oppure  Lezione frontale ergonomia e radioprotezione">
+            <label>📝 Prestazione Clinica Eseguita / Argomento Lezione (Obbligatorio)</label>
+            <input type="text" id="ovNota" placeholder="Descrivere dettagliatamente la prestazione o l'argomento trattato">
           </div>
           <div>
-            <button class="btn" style="width:100%;" onclick="registraTimbraturaDaAdmin()">✅ Convalida e Registra Presenza</button>
+            <button class="btn" style="width:100%;" onclick="registraTimbraturaDaAdmin()">✅ Certifica e Registra Presenza</button>
           </div>
         </div>
       </div>
 
       <div class="panel">
-        <h3>Storico Globale Timbrature & Note Cliniche</h3>
+        <h3>Registro Generale delle Presenze Certificate</h3>
         <div class="grid-4" style="margin-bottom:12px;">
-          <input type="text" id="cercaTimb" placeholder="🔍 Cerca Matricola, Studente, Docente, Reparto o Nota..." oninput="renderTimbrature()">
+          <input type="text" id="cercaTimb" placeholder="🔍 Cerca Matricola, Studente, Docente, Reparto o Prestazione..." oninput="renderTimbrature()">
           <select id="filtroTipoTimb" onchange="renderTimbrature()">
-            <option value=""> tutte le Modalità (1° Op, 2° Op, Teorico)</option>
+            <option value="">Tutte le Tipologie (1° Op, 2° Op, Teorico)</option>
             <option value="Primo">Solo 1° Operatore (TPV)</option>
             <option value="Secondo">Solo 2° Operatore</option>
             <option value="Teorico">Solo Tirocinio Teorico Frontale</option>
           </select>
           <input type="date" id="filtroDataTimb" onchange="renderTimbrature()">
-          <button class="btn" style="background:#64748b;" onclick="document.getElementById('cercaTimb').value=''; document.getElementById('filtroTipoTimb').value=''; document.getElementById('filtroDataTimb').value=''; renderTimbrature();">Azzera Filtri</button>
+          <button class="btn" style="background:#64748b;" onclick="document.getElementById('cercaTimb').value=''; document.getElementById('filtroTipoTimb').value=''; document.getElementById('filtroDataTimb').value=''; renderTimbrature();">Reimposta Filtri</button>
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Data & Turno</th><th>Studente (Anno)</th><th>Docente</th><th>Reparto / Modulo</th><th>Modalità</th><th>Nota Clinica / Argomento (Modificabile)</th><th>Ore</th><th>Azioni</th></tr></thead>
+            <thead><tr><th>Data & Turno</th><th>Studente (Anno)</th><th>Docente / Tutor</th><th>Reparto / Modulo</th><th>Tipologia</th><th>Prestazione / Argomento (Modificabile)</th><th>Ore</th><th>Azioni</th></tr></thead>
             <tbody id="listaTimbrature"></tbody>
           </table>
         </div>
@@ -325,31 +318,31 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAB 5: CONTROLLO PRESIDENZA & CREDENZIALI ADMIN                   -->
+    <!-- TAB 5: CONFIGURAZIONE ACCESSI DIREZIONALI                         -->
     <!-- ================================================================= -->
     <div id="tab-presidenza" class="tab-content">
       <div class="grid-2">
         <div class="panel">
-          <h3>🏛️ Gestione Accesso Presidenza</h3>
+          <h3>🏛️ Credenziali Cruscotto Presidenza CdS</h3>
           <label>Email Istituzionale Presidenza</label>
           <input type="email" id="cfgPresEmail" style="margin-bottom:12px;">
-          <label>Password Presidenza (In Chiaro)</label>
-          <input type="text" id="cfgPresPass" class="pwd-input" style="width:100%; font-size:15px; margin-bottom:15px;">
+          <label>Password Presidenza</label>
+          <input type="text" id="cfgPresPass" class="pwd-input" style="width:100%; font-size:14px; margin-bottom:15px;">
           <div style="display:flex; gap:10px;">
-            <button class="btn" style="background:var(--ok); flex:1;" onclick="salvaCredenzialiPresidenza()">💾 Salva Password</button>
-            <button class="btn" style="background:#0f2744; flex:1;" onclick="window.open('presidenza.html', '_blank')">Apri Cruscotto ↗</button>
+            <button class="btn" style="background:var(--ok); flex:1;" onclick="salvaCredenzialiPresidenza()">💾 Aggiorna Accesso Presidenza</button>
+            <button class="btn" style="background:#0b192c; flex:1;" onclick="window.open('presidenza.html', '_blank')">Apri Cruscotto ↗</button>
           </div>
         </div>
 
         <div class="panel">
-          <h3>🔐 Credenziali Super-Admin & Reset</h3>
-          <label>Email Super-Admin</label>
+          <h3>🔐 Credenziali Direzione Sistema (Amministratore)</h3>
+          <label>Email Amministratore</label>
           <input type="email" id="cfgAdmEmail" style="margin-bottom:12px;">
-          <label>Password Super-Admin (In Chiaro)</label>
-          <input type="text" id="cfgAdmPass" class="pwd-input" style="width:100%; font-size:15px; margin-bottom:15px;">
+          <label>Password Amministratore</label>
+          <input type="text" id="cfgAdmPass" class="pwd-input" style="width:100%; font-size:14px; margin-bottom:15px;">
           <div style="display:flex; gap:10px;">
-            <button class="btn" style="flex:1;" onclick="salvaCredenzialiAdmin()">💾 Aggiorna Admin</button>
-            <button class="btn" style="background:var(--ko); flex:1;" onclick="resetDatabaseLocale()">🔄 Ripristina Default</button>
+            <button class="btn" style="flex:1;" onclick="salvaCredenzialiAdmin()">💾 Aggiorna Credenziali Admin</button>
+            <button class="btn" style="background:var(--ko); flex:1;" onclick="resetDatabaseLocale()">🔄 Ripristina Dati Iniziali</button>
           </div>
         </div>
       </div>
@@ -358,7 +351,7 @@
   </div>
 
 <script>
-  const DB_KEY = 'UDA_CLINICAL_DB_V4';
+  const DB_KEY = 'UDA_CLINICAL_DB_V5';
   let annoPianoSelezionato = '5';
 
   const defaultDB = {
@@ -370,54 +363,51 @@
     },
     coorti: {
       '2024/2025': {
-        limite_quinto_anno: 180,
-        casi_ppv_richiesti: 3,
         anni: {
           '1': [
-            { id: 101, nome: 'Ergonomia e Igiene Ospedaliera (Teorico)', tpv: 0, secondo: 10, teorico: 20 }
+            { id: 101, nome: 'Ergonomia e Prevenzione Infezioni Ospedaliere', tpv: 0, secondo: 10, teorico: 20, ppv: 0 }
           ],
           '2': [
-            { id: 201, nome: 'Materiali Dentali e Simulazione Preclinica', tpv: 0, secondo: 20, teorico: 20 }
+            { id: 201, nome: 'Materiali Dentali e Manichino Preclinico', tpv: 0, secondo: 20, teorico: 20, ppv: 0 }
           ],
           '3': [
-            { id: 301, nome: 'Semeiotica e Radiologia Odontoiatrica', tpv: 0, secondo: 30, teorico: 20 },
-            { id: 302, nome: 'Parodontologia Base', tpv: 20, secondo: 20, teorico: 10 }
+            { id: 301, nome: 'Semeiotica Odontostomatologica e Radiologia', tpv: 0, secondo: 30, teorico: 20, ppv: 0 },
+            { id: 302, nome: 'Parodontologia Clinica Base', tpv: 20, secondo: 20, teorico: 10, ppv: 0 }
           ],
           '4': [
-            { id: 401, nome: 'Odontoiatria Restaurativa A', tpv: 30, secondo: 20, teorico: 10 },
-            { id: 402, nome: 'Endodonzia A', tpv: 20, secondo: 20, teorico: 10 },
-            { id: 403, nome: 'Chirurgia Orale Base', tpv: 20, secondo: 20, teorico: 10 }
+            { id: 401, nome: 'Odontoiatria Restaurativa A', tpv: 40, secondo: 20, teorico: 10, ppv: 0 },
+            { id: 402, nome: 'Endodonzia Clinica A', tpv: 20, secondo: 20, teorico: 10, ppv: 0 },
+            { id: 403, nome: 'Chirurgia Orale Base', tpv: 20, secondo: 20, teorico: 10, ppv: 0 }
           ],
           '5': [
-            { id: 501, nome: 'Chirurgia Orale A', tpv: 40, secondo: 20, teorico: 10 },
-            { id: 502, nome: 'Protesi A', tpv: 60, secondo: 20, teorico: 10 },
-            { id: 503, nome: 'Ortognatodonzia A', tpv: 60, secondo: 20, teorico: 10 },
-            { id: 504, nome: 'Parodontologia A', tpv: 40, secondo: 10, teorico: 0 }
+            { id: 501, nome: 'Chirurgia Orale A', tpv: 40, secondo: 20, teorico: 10, ppv: 1 },
+            { id: 502, nome: 'Protesi Dentaria A', tpv: 60, secondo: 20, teorico: 10, ppv: 1 },
+            { id: 503, nome: 'Ortognatodonzia A', tpv: 60, secondo: 20, teorico: 10, ppv: 0 },
+            { id: 504, nome: 'Parodontologia A', tpv: 40, secondo: 10, teorico: 0, ppv: 0 }
           ],
           '6': [
-            { id: 601, nome: 'Protesi Avanzata', tpv: 60, secondo: 10, teorico: 0 },
-            { id: 602, nome: 'Ortognatodonzia Avanzata', tpv: 60, secondo: 10, teorico: 0 },
-            { id: 603, nome: 'Odontoiatria Pediatrica A', tpv: 40, secondo: 10, teorico: 10 },
-            { id: 604, nome: 'Implantologia A', tpv: 20, secondo: 10, teorico: 10 },
-            { id: 605, nome: 'Patologia e Medicina Orale A', tpv: 60, secondo: 10, teorico: 10 }
+            { id: 601, nome: 'Protesi Avanzata e Riabilitazione', tpv: 80, secondo: 10, teorico: 0, ppv: 1 },
+            { id: 602, nome: 'Ortognatodonzia Avanzata', tpv: 80, secondo: 10, teorico: 0, ppv: 0 },
+            { id: 603, nome: 'Odontoiatria Pediatrica A', tpv: 40, secondo: 10, teorico: 10, ppv: 0 },
+            { id: 604, nome: 'Implantologia e Rigenerazione', tpv: 40, secondo: 10, teorico: 10, ppv: 0 },
+            { id: 605, nome: 'Patologia e Medicina Orale A', tpv: 60, secondo: 10, teorico: 10, ppv: 0 },
+            { id: 606, nome: 'Odontoiatria Speciale A', tpv: 20, secondo: 10, teorico: 0, ppv: 0 }
           ]
         }
       },
       '2023/2024': {
-        limite_quinto_anno: 180,
-        casi_ppv_richiesti: 3,
         anni: {
-          '1': [{ id: 101, nome: 'Ergonomia e Igiene Ospedaliera (Teorico)', tpv: 0, secondo: 10, teorico: 20 }],
-          '2': [{ id: 201, nome: 'Materiali Dentali e Simulazione Preclinica', tpv: 0, secondo: 20, teorico: 20 }],
-          '3': [{ id: 301, nome: 'Semeiotica e Radiologia Odontoiatrica', tpv: 0, secondo: 30, teorico: 20 }],
-          '4': [{ id: 401, nome: 'Odontoiatria Restaurativa A', tpv: 40, secondo: 20, teorico: 10 }],
+          '1': [{ id: 101, nome: 'Ergonomia e Prevenzione Infezioni Ospedaliere', tpv: 0, secondo: 10, teorico: 20, ppv: 0 }],
+          '2': [{ id: 201, nome: 'Materiali Dentali e Manichino Preclinico', tpv: 0, secondo: 20, teorico: 20, ppv: 0 }],
+          '3': [{ id: 301, nome: 'Semeiotica Odontostomatologica e Radiologia', tpv: 0, secondo: 30, teorico: 20, ppv: 0 }],
+          '4': [{ id: 401, nome: 'Odontoiatria Restaurativa A', tpv: 60, secondo: 20, teorico: 10, ppv: 0 }],
           '5': [
-            { id: 501, nome: 'Chirurgia Orale A', tpv: 60, secondo: 20, teorico: 10 },
-            { id: 502, nome: 'Protesi A', tpv: 120, secondo: 20, teorico: 10 }
+            { id: 501, nome: 'Chirurgia Orale A', tpv: 80, secondo: 20, teorico: 10, ppv: 1 },
+            { id: 502, nome: 'Protesi Dentaria A', tpv: 140, secondo: 20, teorico: 10, ppv: 1 }
           ],
           '6': [
-            { id: 601, nome: 'Ortognatodonzia A', tpv: 120, secondo: 20, teorico: 10 },
-            { id: 602, nome: 'Patologia e Medicina Orale A', tpv: 60, secondo: 10, teorico: 10 }
+            { id: 601, nome: 'Ortognatodonzia A', tpv: 180, secondo: 20, teorico: 10, ppv: 1 },
+            { id: 602, nome: 'Patologia e Medicina Orale A', tpv: 140, secondo: 10, teorico: 10, ppv: 0 }
           ]
         }
       }
@@ -429,21 +419,25 @@
       { matricola: '3109922', nome: 'Verdi Luca', email: 'l.verdi@studenti.unich.it', coorte: '2023/2024', anno: '6', pass: 'Uda3109922!', bonus: 0, archiviato: false },
       { matricola: '3108811', nome: 'Gialli Elena', email: 'e.gialli@studenti.unich.it', coorte: '2023/2024', anno: '6', pass: 'Uda3108811!', bonus: 500, archiviato: false }
     ],
-    staff: [
-      { id: 'S1', ruolo: 'Docente', nome: 'Prof. Giuseppe Verdi', email: 'g.verdi@unich.it', pin: '482910', attivo: true },
-      { id: 'S2', ruolo: 'Tutor', nome: 'Dott. Marco Neri', email: 'm.neri@unich.it', pin: '112233', attivo: true }
+    docenti: [
+      { id: 'D1', ruolo: 'Docente', nome: 'Prof. Giuseppe Verdi', email: 'g.verdi@unich.it', pin: '482910', attivo: true },
+      { id: 'D2', ruolo: 'Tutor', nome: 'Dott. Marco Neri', email: 'm.neri@unich.it', pin: '112233', attivo: true }
     ],
     timbrature: [
-      { id: 'T1', data: '2026-10-24', turno: 'Mattina', matricola: '3201456', docente: 'Prof. Giuseppe Verdi', reparto: 'Protesi A', ruolo: 'Primo', ore: 40, ppv: true, nota: 'Preparazione protesica corona elemento 24 e impronta', anno_rif: '5' },
-      { id: 'T2', data: '2026-10-25', turno: 'Pomeriggio', matricola: '3201456', docente: 'Dott. Marco Neri', reparto: 'Chirurgia Orale A', ruolo: 'Secondo', ore: 15, ppv: false, nota: 'Assistenza avulsione chirurgica terzo molare incluso 38', anno_rif: '5' },
-      { id: 'T3', data: '2026-10-26', turno: 'Mattina', matricola: '3201456', docente: 'Prof. Giuseppe Verdi', reparto: 'Protesi A', ruolo: 'Teorico', ore: 10, ppv: false, nota: 'Seminario teorico frontale su articolatori e arco facciale', anno_rif: '5' },
+      { id: 'T1', data: '2026-10-24', turno: 'Mattina', matricola: '3201456', docente: 'Prof. Giuseppe Verdi', reparto: 'Protesi Dentaria A', ruolo: 'Primo', ore: 40, ppv: true, nota: 'Preparazione protesica corona elemento 24 e impronta di precisione', anno_rif: '5' },
+      { id: 'T2', data: '2026-10-25', turno: 'Pomeriggio', matricola: '3201456', docente: 'Dott. Marco Neri', reparto: 'Chirurgia Orale A', ruolo: 'Secondo', ore: 15, ppv: false, nota: 'Assistenza avulsione chirurgica terzo molare inferiore 38', anno_rif: '5' },
+      { id: 'T3', data: '2026-10-26', turno: 'Mattina', matricola: '3201456', docente: 'Prof. Giuseppe Verdi', reparto: 'Protesi Dentaria A', ruolo: 'Teorico', ore: 10, ppv: false, nota: 'Lezione frontale su registrazione occlusale e arco facciale', anno_rif: '5' },
       { id: 'T4', data: '2026-10-27', turno: 'Mattina', matricola: '3204411', docente: 'Prof. Giuseppe Verdi', reparto: 'Odontoiatria Restaurativa A', ruolo: 'Primo', ore: 20, ppv: false, nota: 'Restauro diretto in composito II classe elemento 46', anno_rif: '4' },
-      { id: 'T5', data: '2026-10-28', turno: 'Mattina', matricola: '3108811', docente: 'Prof. Giuseppe Verdi', reparto: 'Ortognatodonzia A', ruolo: 'Primo', ore: 100, ppv: true, nota: 'Tracciato cefalometrico e consegna apparecchio funzionale', anno_rif: '6' }
+      { id: 'T5', data: '2026-10-28', turno: 'Mattina', matricola: '3108811', docente: 'Prof. Giuseppe Verdi', reparto: 'Ortognatodonzia A', ruolo: 'Primo', ore: 100, ppv: true, nota: 'Studio del caso cefalometrico e consegna apparecchio funzionale', anno_rif: '6' }
     ]
   };
 
   let db = JSON.parse(localStorage.getItem(DB_KEY)) || defaultDB;
   function salvaDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+  window.addEventListener('storage', (e) => {
+    if(e.key === DB_KEY) { db = JSON.parse(localStorage.getItem(DB_KEY)); aggiornaTuttoUI(); }
+  });
 
   window.onload = () => {
     salvaDB();
@@ -457,7 +451,7 @@
     popolaSelectCoorti();
     caricaConfigCoorte();
     renderStudenti();
-    renderStaff();
+    renderDocenti();
     popolaSelectOverride();
     renderTimbrature();
     document.getElementById('cfgPresEmail').value = db.auth.presEmail;
@@ -484,20 +478,21 @@
     document.getElementById('pageTitle').innerText = el.innerText.substring(3).trim();
   }
 
-  // CALCOLA TARGET GLOBALI O DI ANNO PER UNA COORTE
+  // CALCOLO DINAMICO TARGET DALLA MATRICE REPARTI (Nessun parametro statico ridondante)
   function calcolaTargetCoorte(coorteKey, annoSpecifico = null) {
     const c = db.coorti[coorteKey];
-    if(!c || !c.anni) return { tpv: 600, secondo: 150, teorico: 100, ppv: 3, lim5: 180 };
-    let tpv = 0, secondo = 0, teorico = 0;
+    if(!c || !c.anni) return { tpv: 0, secondo: 0, teorico: 0, ppv: 0 };
+    let tpv = 0, secondo = 0, teorico = 0, ppv = 0;
     const anniDaSommare = (annoSpecifico && annoSpecifico !== 'FC' && c.anni[annoSpecifico]) ? [c.anni[annoSpecifico]] : Object.values(c.anni);
     anniDaSommare.forEach(listaRep => {
       listaRep.forEach(r => {
         tpv += parseFloat(r.tpv || 0);
         secondo += parseFloat(r.secondo || 0);
         teorico += parseFloat(r.teorico || 0);
+        ppv += parseInt(r.ppv || 0);
       });
     });
-    return { tpv, secondo, teorico, ppv: c.casi_ppv_richiesti || 3, lim5: c.limite_quinto_anno || 180 };
+    return { tpv, secondo, teorico, ppv };
   }
 
   function calcolaMetricheStudente(st) {
@@ -507,11 +502,11 @@
     const oreTeo = timb.filter(t => t.ruolo === 'Teorico').reduce((s, t) => s + parseFloat(t.ore), 0);
     const ppv = timb.filter(t => t.ppv).length;
     const totTarget = calcolaTargetCoorte(st.coorte);
-    return { oreTpv, oreSec, oreTeo, ppv, targetTpv: totTarget.tpv || 600, targetSec: totTarget.secondo, targetTeo: totTarget.teorico, targetPpv: totTarget.ppv };
+    return { oreTpv, oreSec, oreTeo, ppv, targetTpv: totTarget.tpv, targetSec: totTarget.secondo, targetTeo: totTarget.teorico, targetPpv: totTarget.ppv };
   }
 
   // ============================================================================
-  // SEZIONE 1: STUDENTI (1°-6° ANNO + FC + CERTIFICATO PDF)
+  // SEZIONE 1: ANAGRAFICA STUDENTI
   // ============================================================================
   function renderStudenti() {
     const q = document.getElementById('cercaStu').value.toUpperCase();
@@ -548,14 +543,14 @@
         <td><select id="anno_${s.matricola}" style="width:95px; padding:4px;">${opzioniAnno}</select></td>
         <td><input type="text" class="pwd-input" id="pass_${s.matricola}" value="${s.pass}"></td>
         <td><input type="number" class="num-input" id="bonus_${s.matricola}" value="${s.bonus}" step="0.5"></td>
-        <td><b style="color:${m.oreTpv >= m.targetTpv ? 'var(--ok)' : 'var(--accent)'};">${m.oreTpv}</b>/${m.targetTpv}h</td>
+        <td><b style="color:${m.oreTpv >= m.targetTpv && m.targetTpv > 0 ? 'var(--ok)' : 'var(--accent)'};">${m.oreTpv}</b>/${m.targetTpv}h</td>
         <td><b>${m.oreSec}</b>/${m.targetSec}h</td>
         <td><b style="color:var(--purple);">${m.oreTeo}</b>/${m.targetTeo}h</td>
         <td><b>${m.ppv}</b>/${m.targetPpv}</td>
         <td style="white-space:nowrap;">
           <button class="btn btn-small" onclick="salvaStudente('${s.matricola}', this)">💾</button>
-          <button class="btn btn-small" style="background:#0f2744;" title="Fascicolo Ufficiale Stampabile" onclick="apriCertificato('${s.matricola}')">📄 PDF</button>
-          <button class="btn btn-small" style="background:var(--warn); color:#0f172a;" onclick="toggleArchiviaStudente('${s.matricola}')">${s.archiviato ? 'Riattiva' : 'Archivia'}</button>
+          <button class="btn btn-small" style="background:#0b192c;" title="Fascicolo Ufficiale Stampabile" onclick="apriCertificato('${s.matricola}')">📄 PDF</button>
+          <button class="btn btn-small" style="background:var(--warn); color:white;" onclick="toggleArchiviaStudente('${s.matricola}')">${s.archiviato ? 'Riattiva' : 'Archivia'}</button>
           <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaStudente('${s.matricola}')">✕</button>
         </td>
       `;
@@ -571,8 +566,8 @@
     const anno = document.getElementById('newStuAnno').value;
     const pass = document.getElementById('newStuPass').value.trim() || `Uda${mat}!`;
 
-    if(!mat || !nome) return alert("Inserisci almeno Matricola e Nominativo.");
-    if(db.studenti.some(s => s.matricola === mat)) return alert("Matricola già registrata.");
+    if(!mat || !nome) return alert("Compilare Matricola e Nominativo dello studente.");
+    if(db.studenti.some(s => s.matricola === mat)) return alert("Matricola già presente in anagrafica.");
 
     db.studenti.unshift({ matricola: mat, nome, email, coorte, anno, pass, bonus: 0, archiviato: false });
     salvaDB();
@@ -594,7 +589,7 @@
     st.bonus = parseFloat(document.getElementById(`bonus_${mat}`).value) || 0;
     salvaDB();
     feedbackBottone(btn, "✓");
-    setTimeout(renderStudenti, 500);
+    setTimeout(renderStudenti, 450);
   }
 
   function toggleArchiviaStudente(mat) {
@@ -606,7 +601,7 @@
   }
 
   function eliminaStudente(mat) {
-    if(!confirm(`Eliminare definitivamente la matricola ${mat} e il suo storico?`)) return;
+    if(!confirm(`Confermare la rimozione definitiva della matricola ${mat} e del relativo storico?`)) return;
     db.studenti = db.studenti.filter(s => s.matricola !== mat);
     db.timbrature = db.timbrature.filter(t => t.matricola !== mat);
     salvaDB();
@@ -630,18 +625,18 @@
     `).join('');
 
     document.getElementById('certContent').innerHTML = `
-      <div style="text-align:center; border-bottom:2px solid #0f172a; padding-bottom:14px; margin-bottom:18px;">
-        <h2 style="margin:0; color:#0f172a;">UNIVERSITÀ DEGLI STUDI "G. D'ANNUNZIO" CHIETI-PESCARA</h2>
+      <div style="text-align:center; border-bottom:2px solid #0b192c; padding-bottom:14px; margin-bottom:18px;">
+        <h2 style="margin:0; color:#0b192c;">UNIVERSITÀ DEGLI STUDI "G. D'ANNUNZIO" CHIETI-PESCARA</h2>
         <div style="font-size:13px; color:#475569; margin-top:4px;">Corso di Laurea Magistrale Abilitante in Odontoiatria e Protesi Dentaria (D.M. 653/2022)</div>
-        <h3 style="margin:10px 0 0; color:#2563eb;">CERTIFICATO UFFICIALE DI TIROCINIO CLINICO E TEORICO</h3>
+        <h3 style="margin:10px 0 0; color:#1d4ed8;">CERTIFICAZIONE UFFICIALE DELLE ATTIVITÀ DI TIROCINIO</h3>
       </div>
-      <div class="grid-3" style="margin-bottom:16px; font-size:13px; background:#f8fafc; padding:12px; border-radius:8px;">
+      <div class="grid-3" style="margin-bottom:16px; font-size:13px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
         <div><b>Candidato:</b> ${st.nome}</div>
         <div><b>Matricola:</b> ${st.matricola}</div>
         <div><b>Coorte / Anno:</b> ${st.coorte} (${st.anno === 'FC' ? 'Fuori Corso' : st.anno + '° Anno'})</div>
         <div><b>Ore 1° Op (TPV):</b> ${m.oreTpv} / ${m.targetTpv}h</div>
         <div><b>Ore 2° Op / Teoriche:</b> ${m.oreSec}h / ${m.oreTeo}h</div>
-        <div><b>Casi PPV Superati:</b> ${m.ppv} / ${m.targetPpv}</div>
+        <div><b>Prove Pratiche Valutative (PPV):</b> ${m.ppv} / ${m.targetPpv}</div>
       </div>
       <table style="width:100%; border-collapse:collapse; font-size:11.5px; margin-bottom:20px;">
         <thead>
@@ -649,7 +644,7 @@
             <th style="padding:8px; border:1px solid #cbd5e1;">Data</th>
             <th style="padding:8px; border:1px solid #cbd5e1;">Reparto / Modulo</th>
             <th style="padding:8px; border:1px solid #cbd5e1;">Tipologia</th>
-            <th style="padding:8px; border:1px solid #cbd5e1;">Prestazione / Argomento Svolto</th>
+            <th style="padding:8px; border:1px solid #cbd5e1;">Prestazione Clinica / Argomento Svolto</th>
             <th style="padding:8px; border:1px solid #cbd5e1;">Docente Certificatore</th>
             <th style="padding:8px; border:1px solid #cbd5e1;">Ore</th>
           </tr>
@@ -658,17 +653,16 @@
       </table>
       <div style="display:flex; justify-content:space-between; margin-top:30px; font-size:12px;">
         <div>Data emissione: ${new Date().toLocaleDateString('it-IT')}</div>
-        <div>Firma La Presidenza del CdS: ___________________________</div>
+        <div>La Presidenza del Corso di Studio: ___________________________</div>
       </div>
       <div style="display:flex; gap:10px; margin-top:24px;">
-        <button class="btn" onclick="window.print()" style="flex:1;">🖨️ Stampa / Salva PDF Ufficiale</button>
+        <button class="btn" onclick="window.print()" style="flex:1;">🖨️ Stampa / Esporta PDF</button>
         <button class="btn" style="background:#64748b; flex:1;" onclick="document.getElementById('modalCertificato').style.display='none'">Chiudi</button>
       </div>
     `;
     document.getElementById('modalCertificato').style.display = 'flex';
   }
 
-  // IMPORT EXCEL/CSV (Supporta tutti gli anni 1..6 + FC)
   function leggiFile(event) {
     const file = event.target.files[0];
     if(!file) return;
@@ -704,26 +698,26 @@
       }
       salvaDB();
       aggiornaTuttoUI();
-      document.getElementById('statusFile').innerText = `✅ Importazione completata: ${inseriti} nuovi studenti aggiunti, ${aggiornati} profili aggiornati.`;
+      document.getElementById('statusFile').innerText = `✅ Flusso elaborato: ${inseriti} nuovi iscritti, ${aggiornati} carriere aggiornate (storico preservato).`;
     };
     reader.readAsArrayBuffer(file);
   }
 
   function esportaExcelReale() {
-    const rows = [["Matricola", "Nominativo", "Email", "Coorte", "Anno Corso", "Password", "Ore Bonus", "Ore 1° Op (TPV)", "Ore 2° Operatore", "Ore Teorico Frontale", "Casi PPV", "Stato Idoneità"]];
+    const rows = [["Matricola", "Nominativo", "Email", "Coorte", "Anno Corso", "Password", "Ore Bonus", "Ore 1° Op (TPV)", "Target TPV", "Ore 2° Operatore", "Ore Teorico Frontale", "Prove PPV", "Esito Regolamento"]];
     db.studenti.forEach(s => {
       const m = calcolaMetricheStudente(s);
-      const stato = (m.oreTpv >= m.targetTpv && m.ppv >= m.targetPpv) ? "IDONEO LAUREA" : "IN CORSO";
-      rows.push([s.matricola, s.nome, s.email, s.coorte, s.anno, s.pass, s.bonus, m.oreTpv, m.oreSec, m.oreTeo, `${m.ppv}/${m.targetPpv}`, stato]);
+      const stato = (m.oreTpv >= m.targetTpv && m.ppv >= m.targetPpv && m.targetTpv > 0) ? "IDONEO LAUREA" : "IN CORSO";
+      rows.push([s.matricola, s.nome, s.email, s.coorte, s.anno, s.pass, s.bonus, m.oreTpv, m.targetTpv, m.oreSec, m.oreTeo, `${m.ppv}/${m.targetPpv}`, stato]);
     });
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Tracciato_ESSE3_UdA");
-    XLSX.writeFile(wb, `Export_ESSE3_UdA_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(wb, `Tracciato_ESSE3_UdA_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
 
   // ============================================================================
-  // SEZIONE 2: PIANI DI STUDIO PER COORTE & PER SINGOLO ANNO (1° - 6°)
+  // SEZIONE 2: ORDINAMENTO & REPARTI PER ANNO (1° - 6°)
   // ============================================================================
   function popolaSelectCoorti() {
     const coorti = Object.keys(db.coorti);
@@ -752,20 +746,19 @@
     const cfg = db.coorti[c];
     if(!cfg.anni) cfg.anni = { '1':[], '2':[], '3':[], '4':[], '5':[], '6':[] };
 
-    document.getElementById('cfgLim5').value = cfg.limite_quinto_anno || 180;
-    document.getElementById('cfgPpv').value = cfg.casi_ppv_richiesti || 3;
     document.getElementById('lblCoorteReparti').innerText = `${c} (${annoPianoSelezionato}° Anno)`;
 
     const listaAnno = cfg.anni[annoPianoSelezionato] || [];
     const tbody = document.getElementById('tabellaPianiStudio');
     tbody.innerHTML = '';
 
-    let totAnnoTpv = 0, totAnnoSec = 0, totAnnoTeo = 0;
+    let totAnnoTpv = 0, totAnnoSec = 0, totAnnoTeo = 0, totAnnoPpv = 0;
 
     listaAnno.forEach((r, idx) => {
       totAnnoTpv += parseFloat(r.tpv || 0);
       totAnnoSec += parseFloat(r.secondo || 0);
       totAnnoTeo += parseFloat(r.teorico || 0);
+      totAnnoPpv += parseInt(r.ppv || 0);
       const totRiga = parseFloat(r.tpv || 0) + parseFloat(r.secondo || 0) + parseFloat(r.teorico || 0);
       const cfu = (totRiga / 20).toFixed(1);
 
@@ -773,9 +766,10 @@
         <tr>
           <td><span class="badge" style="background:#dbeafe; color:#1e40af;">${annoPianoSelezionato}° Anno</span></td>
           <td><input type="text" id="repnome_${idx}" value="${r.nome}" style="font-weight:600;"></td>
-          <td><input type="number" id="reptpv_${idx}" class="num-input" value="${r.tpv}" step="5"> h</td>
-          <td><input type="number" id="repsec_${idx}" class="num-input" value="${r.secondo}" step="5"> h</td>
-          <td><input type="number" id="repteo_${idx}" class="num-input" value="${r.teorico}" step="2"> h</td>
+          <td><input type="number" id="reptpv_${idx}" class="num-input" value="${r.tpv}" step="5" min="0"> h</td>
+          <td><input type="number" id="repsec_${idx}" class="num-input" value="${r.secondo}" step="5" min="0"> h</td>
+          <td><input type="number" id="repteo_${idx}" class="num-input" value="${r.teorico}" step="2" min="0"> h</td>
+          <td><input type="number" id="repppv_${idx}" class="num-input" value="${r.ppv || 0}" step="1" min="0"></td>
           <td><b>${totRiga}h</b> <span class="badge" style="background:#e0f2fe; color:#0369a1;">${cfu} CFU</span></td>
           <td>
             <button class="btn btn-small" onclick="salvaRepartoCoorteAnno(${idx}, this)">💾 Salva</button>
@@ -787,7 +781,7 @@
 
     const globali = calcolaTargetCoorte(c);
     document.getElementById('sommaOrePiano').innerText = 
-      `Totale ${annoPianoSelezionato}° Anno: ${totAnnoTpv}h TPV | ${totAnnoSec}h 2°Op | ${totAnnoTeo}h Teorico  —  [Intero Ciclo 1°-6°: ${globali.tpv}h TPV / ${globali.secondo}h 2°Op / ${globali.teorico}h Teorico]`;
+      `${annoPianoSelezionato}° Anno: ${totAnnoTpv}h TPV | ${totAnnoSec}h 2°Op | ${totAnnoTeo}h Teorico | ${totAnnoPpv} PPV  —  [Totale Coorte 1°-6°: ${globali.tpv}h TPV | ${globali.secondo}h 2°Op | ${globali.teorico}h Teo | ${globali.ppv} PPV]`;
   }
 
   function aggiungiRepartoACoorteAnno() {
@@ -796,10 +790,11 @@
     const tpv = parseFloat(document.getElementById('nuovoRepTpV').value) || 0;
     const secondo = parseFloat(document.getElementById('nuovoRepSec').value) || 0;
     const teorico = parseFloat(document.getElementById('nuovoRepTeo').value) || 0;
-    if(!nome) return alert("Inserisci il nome del reparto o del modulo teorico.");
+    const ppv = parseInt(document.getElementById('nuovoRepPpv').value) || 0;
+    if(!nome) return alert("Specificare la denominazione del reparto o dell'insegnamento teorico.");
 
     if(!db.coorti[c].anni[annoPianoSelezionato]) db.coorti[c].anni[annoPianoSelezionato] = [];
-    db.coorti[c].anni[annoPianoSelezionato].push({ id: Date.now(), nome, tpv, secondo, teorico });
+    db.coorti[c].anni[annoPianoSelezionato].push({ id: Date.now(), nome, tpv, secondo, teorico, ppv });
     salvaDB();
     document.getElementById('nuovoRepartoNome').value = '';
     caricaConfigCoorte();
@@ -814,6 +809,7 @@
     item.tpv = parseFloat(document.getElementById(`reptpv_${idx}`).value) || 0;
     item.secondo = parseFloat(document.getElementById(`repsec_${idx}`).value) || 0;
     item.teorico = parseFloat(document.getElementById(`repteo_${idx}`).value) || 0;
+    item.ppv = parseInt(document.getElementById(`repppv_${idx}`).value) || 0;
     salvaDB();
     feedbackBottone(btn, "✓ Salvato");
     setTimeout(() => { caricaConfigCoorte(); popolaSelectOverride(); renderStudenti(); }, 400);
@@ -821,7 +817,7 @@
 
   function rimuoviRepartoCoorteAnno(idx) {
     const c = document.getElementById('selCoorteAttiva').value;
-    if(!confirm("Rimuovere questa attività dal piano di studi di questo anno?")) return;
+    if(!confirm("Rimuovere questa disciplina dal piano del corrente anno di corso?")) return;
     db.coorti[c].anni[annoPianoSelezionato].splice(idx, 1);
     salvaDB();
     caricaConfigCoorte();
@@ -831,8 +827,8 @@
 
   function creaNuovaCoorte() {
     const nuova = document.getElementById('nuovaCoorteInput').value.trim();
-    if(!nuova) return alert("Inserisci il nome della Coorte (es. 2026/2027).");
-    if(db.coorti[nuova]) return alert("Questa Coorte esiste già.");
+    if(!nuova) return alert("Inserire l'Anno Accademico della Coorte (es. 2026/2027).");
+    if(db.coorti[nuova]) return alert("Coorte già esistente.");
     const base = Object.keys(db.coorti)[0];
     db.coorti[nuova] = JSON.parse(JSON.stringify(db.coorti[base]));
     salvaDB();
@@ -844,63 +840,54 @@
 
   function eliminaCoorteSelezionata() {
     const c = document.getElementById('selCoorteAttiva').value;
-    if(Object.keys(db.coorti).length <= 1) return alert("Deve rimanere almeno una coorte attiva.");
-    if(!confirm(`Eliminare la coorte ${c}?`)) return;
+    if(Object.keys(db.coorti).length <= 1) return alert("Deve rimanere almeno una coorte attiva a sistema.");
+    if(!confirm(`Confermare l'eliminazione della coorte ${c}?`)) return;
     delete db.coorti[c];
     salvaDB();
     aggiornaTuttoUI();
   }
 
-  function salvaParametriGeneraliCoorte() {
-    const c = document.getElementById('selCoorteAttiva').value;
-    db.coorti[c].limite_quinto_anno = parseInt(document.getElementById('cfgLim5').value) || 180;
-    db.coorti[c].casi_ppv_richiesti = parseInt(document.getElementById('cfgPpv').value) || 3;
-    salvaDB();
-    renderStudenti();
-    alert(`Regole generali della coorte ${c} salvate.`);
-  }
-
   // ============================================================================
-  // SEZIONE 3: DOCENTI E TUTOR
+  // SEZIONE 3: CORPO DOCENTE E TUTOR CLINICI
   // ============================================================================
-  function renderStaff() {
+  function renderDocenti() {
     const q = document.getElementById('cercaDoc').value.toUpperCase();
     const tbody = document.getElementById('tabellaStaff');
     tbody.innerHTML = '';
-    db.staff.filter(d => d.nome.toUpperCase().includes(q) || d.email.toUpperCase().includes(q)).forEach(d => {
+    db.docenti.filter(d => d.nome.toUpperCase().includes(q) || d.email.toUpperCase().includes(q)).forEach(d => {
       tbody.innerHTML += `
         <tr>
           <td><span class="badge" style="background:${d.ruolo === 'Docente' ? '#dbeafe' : '#f3e8ff'}; color:#1e3a8a;">${d.ruolo}</span></td>
           <td><input type="text" id="stfnome_${d.id}" value="${d.nome}" style="font-weight:600;"></td>
           <td><input type="email" id="stfmail_${d.id}" value="${d.email}"></td>
           <td><input type="text" class="pwd-input" id="stfpin_${d.id}" value="${d.pin}"></td>
-          <td><b style="color:var(--ok);">Autorizzato</b></td>
+          <td><b style="color:var(--ok);">Abilitato</b></td>
           <td>
-            <button class="btn btn-small" onclick="salvaStaff('${d.id}', this)">💾 Salva</button>
-            <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaStaff('${d.id}')">Rimuovi</button>
+            <button class="btn btn-small" onclick="salvaDocente('${d.id}', this)">💾 Salva</button>
+            <button class="btn btn-small" style="background:var(--ko);" onclick="eliminaDocente('${d.id}')">Revoca</button>
           </td>
         </tr>
       `;
     });
   }
 
-  function creaStaff() {
+  function creaDocente() {
     const ruolo = document.getElementById('ruoloStaff').value;
     const nome = document.getElementById('nomeStaff').value.trim();
     const email = document.getElementById('emailStaff').value.trim() || 'docente@unich.it';
     const pin = document.getElementById('pinStaff').value.trim() || String(Math.floor(100000 + Math.random() * 900000));
-    if(!nome) return alert("Inserisci il nominativo.");
-    db.staff.unshift({ id: 'STF' + Date.now(), ruolo, nome, email, pin, attivo: true });
+    if(!nome) return alert("Inserire il nominativo del Docente o Tutor Clinico.");
+    db.docenti.unshift({ id: 'DOC' + Date.now(), ruolo, nome, email, pin, attivo: true });
     salvaDB();
     document.getElementById('nomeStaff').value = '';
     document.getElementById('emailStaff').value = '';
     document.getElementById('pinStaff').value = '';
-    renderStaff();
+    renderDocenti();
     popolaSelectOverride();
   }
 
-  function salvaStaff(id, btn) {
-    const d = db.staff.find(x => x.id === id);
+  function salvaDocente(id, btn) {
+    const d = db.docenti.find(x => x.id === id);
     if(!d) return;
     d.nome = document.getElementById(`stfnome_${id}`).value.trim();
     d.email = document.getElementById(`stfmail_${id}`).value.trim();
@@ -910,26 +897,42 @@
     popolaSelectOverride();
   }
 
-  function eliminaStaff(id) {
-    if(!confirm("Revocare questo membro dello staff?")) return;
-    db.staff = db.staff.filter(x => x.id !== id);
+  function eliminaDocente(id) {
+    if(!confirm("Revocare l'abilitazione per questo Docente/Tutor?")) return;
+    db.docenti = db.docenti.filter(x => x.id !== id);
     salvaDB();
-    renderStaff();
+    renderDocenti();
     popolaSelectOverride();
   }
 
   // ============================================================================
-  // SEZIONE 4: REGISTRO PRESENZE (Stessa logica QR + Nota Obbligatoria)
+  // SEZIONE 4: REGISTRO E CONVALIDA PRESENZE (Verifica limiti da Piano Studi)
   // ============================================================================
   function popolaSelectOverride() {
     document.getElementById('ovMat').innerHTML = db.studenti.map(s => `<option value="${s.matricola}">${s.matricola} - ${s.nome} (${s.anno}° Anno)</option>`).join('');
-    document.getElementById('ovDoc').innerHTML = db.staff.map(d => `<option value="${d.nome}">${d.nome} (${d.ruolo})</option>`).join('');
+    document.getElementById('ovDoc').innerHTML = db.docenti.map(d => `<option value="${d.nome}">${d.nome} (${d.ruolo})</option>`).join('');
     
     const tuttiReparti = new Set();
     Object.values(db.coorti).forEach(c => {
       if(c.anni) Object.values(c.anni).forEach(arr => arr.forEach(r => tuttiReparti.add(r.nome)));
     });
     document.getElementById('ovRep').innerHTML = Array.from(tuttiReparti).map(r => `<option value="${r}">${r}</option>`).join('');
+  }
+
+  function trovaTargetRepartoCoorte(coorteKey, nomeReparto, ruolo) {
+    const c = db.coorti[coorteKey];
+    if(!c || !c.anni) return 0;
+    let max = 0;
+    Object.values(c.anni).forEach(arr => {
+      arr.forEach(r => {
+        if(r.nome === nomeReparto) {
+          if(ruolo === 'Primo') max += parseFloat(r.tpv || 0);
+          else if(ruolo === 'Secondo') max += parseFloat(r.secondo || 0);
+          else max += parseFloat(r.teorico || 0);
+        }
+      });
+    });
+    return max;
   }
 
   function registraTimbraturaDaAdmin() {
@@ -941,17 +944,16 @@
     const ore = parseFloat(document.getElementById('ovOre').value);
     const nota = document.getElementById('ovNota').value.trim();
 
-    if(!nota || nota.length < 3) return alert("⚠️ NOTA OBBLIGATORIA: Inserisci la prestazione clinica eseguita o l'argomento della lezione teorica.");
-    if(!matricola || !data || !ore || ore <= 0 || ore > 12) return alert("Controlla le ore inserite (0.5 - 12h).");
+    if(!nota || nota.length < 3) return alert("⚠️ NOTA OBBLIGATORIA: Specificare la prestazione eseguita o l'argomento della lezione.");
+    if(!matricola || !data || !ore || ore <= 0 || ore > 12) return alert("Verificare i dati inseriti (0.5 - 12h).");
 
     const st = db.studenti.find(s => s.matricola === matricola);
-    const cfg = db.coorti[st.coorte];
+    const targetRep = trovaTargetRepartoCoorte(st.coorte, reparto, ruolo);
 
-    // Stessa identica logica normativa dello scanner QR
-    if(ruolo === 'Primo' && st.anno === '5' && cfg) {
-      const oreAtt = db.timbrature.filter(t => t.matricola === matricola && t.ruolo === 'Primo').reduce((s,t) => s + parseFloat(t.ore), 0) + parseFloat(st.bonus || 0);
-      if((oreAtt + ore) > cfg.limite_quinto_anno) {
-        return alert(`⛔ BLOCCO 5° ANNO: Lo studente supererebbe il tetto di ${cfg.limite_quinto_anno}h previsto per la coorte ${st.coorte}.`);
+    if(targetRep > 0) {
+      const svolteRep = db.timbrature.filter(t => t.matricola === matricola && t.reparto === reparto && t.ruolo === ruolo).reduce((s,t) => s + parseFloat(t.ore), 0);
+      if((svolteRep + ore) > targetRep) {
+        return alert(`⛔ LIMITE PIANO DI STUDI: Lo studente supererebbe il monte ore massimo previsto (${targetRep}h) per ${reparto} nella modalità selezionata.`);
       }
     }
 
@@ -986,7 +988,7 @@
     }).forEach(t => {
       const st = db.studenti.find(s => s.matricola === t.matricola);
       let badgeCol = t.ruolo === 'Primo' ? 'background:#dcfce7; color:#166534;' : (t.ruolo === 'Secondo' ? 'background:#e0f2fe; color:#0369a1;' : 'background:#f3e8ff; color:#6b21a8;');
-      let labelRuolo = t.ruolo === 'Primo' ? '1° Op (TPV)' : (t.ruolo === 'Secondo' ? '2° Op' : '📚 Teorico');
+      let labelRuolo = t.ruolo === 'Primo' ? '1° Op (TPV)' : (t.ruolo === 'Secondo' ? '2° Operatore' : '📚 Teorico');
 
       tbody.innerHTML += `
         <tr>
@@ -1013,7 +1015,7 @@
     const t = db.timbrature.find(x => x.id === id);
     if(!t) return;
     const nuovaNota = document.getElementById(`timbnota_${id}`).value.trim();
-    if(nuovaNota.length < 3) return alert("La nota clinica/argomento non può essere vuota.");
+    if(nuovaNota.length < 3) return alert("La descrizione della prestazione/argomento è obbligatoria.");
     t.nota = nuovaNota;
     t.ore = parseFloat(document.getElementById(`timbore_${id}`).value) || 4;
     salvaDB();
@@ -1022,7 +1024,7 @@
   }
 
   function eliminaTimbratura(id) {
-    if(!confirm("Eliminare questa presenza? Il monte ore verrà ricalcolato.")) return;
+    if(!confirm("Eliminare definitivamente questa registrazione?")) return;
     db.timbrature = db.timbrature.filter(x => x.id !== id);
     salvaDB();
     renderTimbrature();
@@ -1033,18 +1035,18 @@
     db.auth.presEmail = document.getElementById('cfgPresEmail').value.trim();
     db.auth.presPass = document.getElementById('cfgPresPass').value.trim();
     salvaDB();
-    alert("Credenziali Presidenza salvate!");
+    alert("Credenziali Presidenza aggiornate.");
   }
 
   function salvaCredenzialiAdmin() {
     db.auth.adminEmail = document.getElementById('cfgAdmEmail').value.trim();
     db.auth.adminPass = document.getElementById('cfgAdmPass').value.trim();
     salvaDB();
-    alert("Credenziali Super-Admin aggiornate!");
+    alert("Credenziali Amministratore aggiornate.");
   }
 
   function resetDatabaseLocale() {
-    if(!confirm("Ripristinare tutti i dati dimostrativi di fabbrica?")) return;
+    if(!confirm("Ripristinare l'intero database locale alla configurazione iniziale?")) return;
     localStorage.removeItem(DB_KEY);
     location.reload();
   }
