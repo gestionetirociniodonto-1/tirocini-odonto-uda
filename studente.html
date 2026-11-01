@@ -6,50 +6,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
-    :root { --bg: #f8fafc; --card: #fff; --text: #0f172a; --tpv: #0284c7; --border: #e2e8f0; }
-    body { margin:0; padding:12px; background: var(--bg); color: var(--text); font-family: system-ui; display: flex; flex-direction: column; min-height: 100vh; }
+    :root { --bg: #f8fafc; --card: #fff; --text: #0f172a; --tpv: #0284c7; --border: #e2e8f0; --ok: #10b981; }
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { margin:0; padding:14px; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; max-width: 500px; margin-left: auto; margin-right: auto; }
     .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-    h2 { margin:0 0 10px; font-size: 18px; color: var(--text); }
+    h2 { margin:0 0 8px; font-size: 17px; color: var(--text); }
     .qr-container { background: #0f172a; padding: 20px; border-radius: 12px; text-align: center; }
     canvas { background: white; padding: 10px; border-radius: 8px; }
-    .progress-bg { background: #f1f5f9; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 5px; }
-    .progress-fill { background: var(--tpv); height: 100%; transition: 0.5s; }
-    .sub-discipline { font-size: 11px; display: flex; justify-content: space-between; margin-top: 8px; color: #475569; border-top: 1px dashed var(--border); padding-top: 8px;}
+    .progress-bg { background: #e2e8f0; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 6px; }
+    .progress-fill { background: var(--tpv); height: 100%; transition: 0.4s; }
+    .sub-discipline { font-size: 12px; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; color: #334155; border-top: 1px dashed var(--border); padding-top: 8px; }
     
-    #modalPrivacy { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; padding: 20px; }
-    .privacy-box { background: white; padding: 20px; border-radius: 16px; max-width: 400px; text-align: center; }
-    .btn { background: var(--tpv); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    
+    #loginStu, #modalPrivacy { position: fixed; inset:0; background: rgba(15,23,42,0.92); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .modal-card { background: white; padding: 26px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center; }
+    .modal-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; }
+    .btn { background: var(--tpv); color: white; border: none; padding: 13px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
     .footer-tribute { margin-top: auto; text-align: center; font-size: 10px; color: #64748b; padding: 10px; }
   </style>
 </head>
 <body>
 
-  <!-- ACCETTAZIONE PRIVACY E FRODI -->
-  <div id="modalPrivacy">
-    <div class="privacy-box">
-      <h2 style="margin-top:0;">Privacy GDPR & Normativa D.M. 653/2022</h2>
-      <p style="font-size:13px; color:#475569; margin-bottom:20px;">Acconsenti al trattamento dei dati clinici per il monitoraggio accademico. Le frodi (es. screenshot del QR) costituiscono reato accademico punibile con l'esclusione.</p>
+  <!-- LOGIN STUDENTE (Sincronizzato con Password in chiaro dell'Admin) -->
+  <div id="loginStu">
+    <div class="modal-card">
+      <h2 style="margin-top:0;">Libretto Tirocini Ud'A</h2>
+      <p style="font-size:12px; color:#64748b;">Accedi con Matricola e Password (es. 3201456 / Uda3201456!)</p>
+      <input type="text" id="matInput" placeholder="Matricola" value="3201456">
+      <input type="password" id="passInput" placeholder="Password" value="Uda3201456!">
+      <button class="btn" onclick="effettuaLoginStudente()">Apri Tesserino QR</button>
+      <div id="errStu" style="color:#ef4444; font-size:12px; margin-top:10px; display:none;">Credenziali non valide o profilo archiviato.</div>
+    </div>
+  </div>
+
+  <!-- PRIVACY GDPR -->
+  <div id="modalPrivacy" style="display:none;">
+    <div class="modal-card">
+      <h2 style="margin-top:0;">Privacy GDPR & D.M. 653/2022</h2>
+      <p style="font-size:13px; color:#475569; margin-bottom:20px;">Acconsenti al trattamento dei dati clinici per il monitoraggio accademico. L'utilizzo di screenshot del QR Code costituisce illecito disciplinare.</p>
       <button class="btn" onclick="accettaPrivacy()">Accetto e Continuo</button>
     </div>
   </div>
 
   <div class="box" style="text-align:center;">
-    <h2 id="nomeSt">Mario Rossi - 3201456</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span id="badgeCoorte" style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:6px; font-weight:bold;"></span>
+      <button onclick="logoutStudente()" style="background:none; border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;">Esci</button>
+    </div>
+    <h2 id="nomeSt">Studente</h2>
     <div class="qr-container"><canvas id="qr"></canvas></div>
-    <div style="font-size:12px; margin-top:10px; color:#64748b; font-weight:bold;">⏳ Token rigenerato in: <span id="timer" style="color:var(--text);">60</span>s</div>
+    <div style="font-size:12px; margin-top:10px; color:#64748b; font-weight:bold;">⏳ Token anti-frode rigenerato in: <span id="timer" style="color:var(--text);">60</span>s</div>
   </div>
 
   <div class="box">
-    <h2>Requisiti TPV (1° Operatore)</h2>
-    <div style="font-size:13px; font-weight:bold; color:var(--tpv);">Totale Globale: <span id="totTpv">140</span> / 600h</div>
-    <div class="progress-bg"><div class="progress-fill" id="barTpv" style="width:23.3%"></div></div>
-    
-    <div id="listaReparti" style="margin-top:20px;">
-      <div class="sub-discipline"><span>Chirurgia Orale A (Max 60h)</span><b style="color:var(--text);">20 / 60h</b></div>
-      <div class="sub-discipline"><span>Protesi A (Max 120h)</span><b style="color:var(--text);">80 / 120h</b></div>
-      <div class="sub-discipline"><span>Ortognatodonzia A (Max 120h)</span><b style="color:var(--text);">40 / 120h</b></div>
+    <h2>Piano di Studi TPV (1° Operatore)</h2>
+    <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:bold; color:var(--tpv);">
+      <span>Progresso Totale: <span id="totTpv">0</span> / <span id="targetGlobale">600</span>h</span>
+      <span>PPV: <span id="totPpv">0</span>/<span id="targetPpv">3</span></span>
     </div>
+    <div class="progress-bg"><div class="progress-fill" id="barTpv" style="width:0%"></div></div>
+    <div id="infoQuintoAnno" style="font-size:11px; color:#b45309; margin-top:6px; font-weight:600;"></div>
+    
+    <div id="listaReparti" style="margin-top:16px;"></div>
   </div>
 
   <div class="footer-tribute">
@@ -59,26 +76,93 @@
   </div>
 
 <script>
-  let qr; const MATRICOLA = "3201456"; // Da estrarre tramite JWT
+  const DB_KEY = 'UDA_CLINICAL_DB_V3';
+  let qr;
+  let matricolaAttiva = localStorage.getItem('uda_stu_mat');
 
   window.onload = () => {
-    if(!localStorage.getItem('uda_privacy')) document.getElementById('modalPrivacy').style.display = 'flex';
-    qr = new QRious({ element: document.getElementById('qr'), size: 220, level: 'M' });
+    qr = new QRious({ element: document.getElementById('qr'), size: 210, level: 'M' });
+    if(matricolaAttiva) {
+      document.getElementById('loginStu').style.display = 'none';
+      caricaFascicolo();
+    }
     setInterval(generaToken, 1000);
-    generaToken(); // Esecuzione immediata
   };
 
+  function effettuaLoginStudente() {
+    const db = JSON.parse(localStorage.getItem(DB_KEY));
+    const mat = document.getElementById('matInput').value.trim();
+    const pass = document.getElementById('passInput').value.trim();
+    const st = db ? db.studenti.find(s => s.matricola === mat && s.pass === pass && !s.archiviato) : null;
+
+    if(st) {
+      matricolaAttiva = st.matricola;
+      localStorage.setItem('uda_stu_mat', matricolaAttiva);
+      document.getElementById('loginStu').style.display = 'none';
+      if(!localStorage.getItem('uda_privacy_' + matricolaAttiva)) {
+        document.getElementById('modalPrivacy').style.display = 'flex';
+      }
+      caricaFascicolo();
+      generaToken(true);
+    } else {
+      document.getElementById('errStu').style.display = 'block';
+    }
+  }
+
+  function logoutStudente() {
+    localStorage.removeItem('uda_stu_mat');
+    location.reload();
+  }
+
   function accettaPrivacy() {
-    localStorage.setItem('uda_privacy', 'true');
+    localStorage.setItem('uda_privacy_' + matricolaAttiva, 'true');
     document.getElementById('modalPrivacy').style.display = 'none';
   }
 
-  function generaToken() {
+  function caricaFascicolo() {
+    const db = JSON.parse(localStorage.getItem(DB_KEY));
+    if(!db) return;
+    const st = db.studenti.find(s => s.matricola === matricolaAttiva);
+    if(!st) return logoutStudente();
+
+    const cfg = db.coorti[st.coorte] || { totale_ore_tpv: 600, limite_quinto_anno: 180, casi_ppv_richiesti: 3, reparti: [] };
+    const timb = db.timbrature.filter(t => t.matricola === st.matricola);
+    const oreTpv = timb.filter(t => t.ruolo === 'Primo').reduce((sum, t) => sum + parseFloat(t.ore), 0) + parseFloat(st.bonus || 0);
+    const ppv = timb.filter(t => t.ppv).length;
+
+    document.getElementById('nomeSt').innerText = `${st.nome} (${st.matricola})`;
+    document.getElementById('badgeCoorte').innerText = `Coorte ${st.coorte} • ${st.anno === 'FC' ? 'Fuori Corso' : st.anno + '° Anno'}`;
+    document.getElementById('totTpv').innerText = oreTpv;
+    document.getElementById('targetGlobale').innerText = cfg.totale_ore_tpv;
+    document.getElementById('totPpv').innerText = ppv;
+    document.getElementById('targetPpv').innerText = cfg.casi_ppv_richiesti;
+    document.getElementById('barTpv').style.width = Math.min(100, (oreTpv / cfg.totale_ore_tpv) * 100) + '%';
+
+    document.getElementById('infoQuintoAnno').innerText = st.anno === '5' 
+      ? `⚠️ Tetto 5° Anno per la tua Coorte: ${oreTpv} / ${cfg.limite_quinto_anno}h` 
+      : (st.bonus > 0 ? `Include ${st.bonus}h di convalida pregressa.` : '');
+
+    const contRep = document.getElementById('listaReparti');
+    contRep.innerHTML = '';
+    cfg.reparti.forEach(r => {
+      const svolte = timb.filter(t => t.ruolo === 'Primo' && t.reparto === r.nome).reduce((s,t) => s + parseFloat(t.ore), 0);
+      contRep.innerHTML += `
+        <div class="sub-discipline">
+          <span>${r.nome} (Max ${r.target}h)</span>
+          <b style="color:${svolte >= r.target ? 'var(--ok)' : 'var(--text)'};">${svolte} / ${r.target}h</b>
+        </div>
+      `;
+    });
+  }
+
+  function generaToken(forza = false) {
+    if(!matricolaAttiva) return;
     const epoch = Math.floor(Date.now() / 1000);
-    const rimanenti = 60 - (epoch % 60); // Rigenera esattamente ogni minuto
+    const rimanenti = 60 - (epoch % 60);
     document.getElementById('timer').innerText = rimanenti;
-    if (rimanenti === 60 || qr.value === "") {
-      qr.value = btoa(`${MATRICOLA}|${epoch}`);
+    if (forza || rimanenti === 60 || qr.value === "") {
+      qr.value = btoa(`${matricolaAttiva}|${epoch}`);
+      caricaFascicolo();
     }
   }
 </script>
