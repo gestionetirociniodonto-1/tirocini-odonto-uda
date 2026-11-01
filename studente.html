@@ -2,21 +2,30 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Ud'A - Fascicolo Studente</title>
+  <title>Ud'A - Fascicolo Studente (1°-6° Anno)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
-    :root { --bg: #f8fafc; --card: #fff; --text: #0f172a; --tpv: #0284c7; --border: #e2e8f0; --ok: #10b981; }
+    :root { --bg: #f8fafc; --card: #fff; --text: #0f172a; --tpv: #0284c7; --sec: #0d9488; --teo: #7c3aed; --border: #e2e8f0; --ok: #10b981; }
     * { box-sizing: border-box; font-family: system-ui, sans-serif; }
-    body { margin:0; padding:14px; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; max-width: 500px; margin-left: auto; margin-right: auto; }
-    .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-    h2 { margin:0 0 8px; font-size: 17px; color: var(--text); }
-    .qr-container { background: #0f172a; padding: 20px; border-radius: 12px; text-align: center; }
+    body { margin:0; padding:14px; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; max-width: 520px; margin-left: auto; margin-right: auto; }
+    .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+    h2 { margin:0 0 10px; font-size: 16px; color: var(--text); }
+    .qr-container { background: #0f172a; padding: 18px; border-radius: 12px; text-align: center; }
     canvas { background: white; padding: 10px; border-radius: 8px; }
-    .progress-bg { background: #e2e8f0; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 6px; }
-    .progress-fill { background: var(--tpv); height: 100%; transition: 0.4s; }
-    .sub-discipline { font-size: 12px; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; color: #334155; border-top: 1px dashed var(--border); padding-top: 8px; }
     
+    .kpi-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .mini-kpi { background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 10px; text-align: center; }
+    
+    .year-tabs { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .y-tab { flex: 1; text-align: center; padding: 7px 6px; border-radius: 7px; font-size: 11.5px; font-weight: 700; background: #f1f5f9; color: #475569; cursor: pointer; border: 1px solid var(--border); white-space: nowrap; }
+    .y-tab.active { background: var(--tpv); color: white; border-color: var(--tpv); }
+
+    .rep-card { border: 1px solid var(--border); border-radius: 10px; padding: 11px; margin-bottom: 8px; background: #fcfdff; }
+    .rep-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .rep-badges { display: flex; gap: 6px; flex-wrap: wrap; font-size: 11px; }
+    .pill { padding: 3px 7px; border-radius: 5px; font-weight: 600; }
+
     #loginStu, #modalPrivacy { position: fixed; inset:0; background: rgba(15,23,42,0.92); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .modal-card { background: white; padding: 26px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center; }
     .modal-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; }
@@ -26,47 +35,77 @@
 </head>
 <body>
 
-  <!-- LOGIN STUDENTE (Sincronizzato con Password in chiaro dell'Admin) -->
+  <!-- LOGIN STUDENTE -->
   <div id="loginStu">
     <div class="modal-card">
       <h2 style="margin-top:0;">Libretto Tirocini Ud'A</h2>
-      <p style="font-size:12px; color:#64748b;">Accedi con Matricola e Password (es. 3201456 / Uda3201456!)</p>
+      <p style="font-size:12px; color:#64748b;">Demo: <b>3201456</b> (5° anno) o <b>3204411</b> (4° anno)<br>Password: <b>Uda3201456!</b></p>
       <input type="text" id="matInput" placeholder="Matricola" value="3201456">
       <input type="password" id="passInput" placeholder="Password" value="Uda3201456!">
-      <button class="btn" onclick="effettuaLoginStudente()">Apri Tesserino QR</button>
-      <div id="errStu" style="color:#ef4444; font-size:12px; margin-top:10px; display:none;">Credenziali non valide o profilo archiviato.</div>
+      <button class="btn" onclick="effettuaLoginStudente()">Apri Libretto & QR</button>
+      <div id="errStu" style="color:#ef4444; font-size:12px; margin-top:10px; display:none;">Credenziali non valide.</div>
     </div>
   </div>
 
-  <!-- PRIVACY GDPR -->
+  <!-- PRIVACY -->
   <div id="modalPrivacy" style="display:none;">
     <div class="modal-card">
       <h2 style="margin-top:0;">Privacy GDPR & D.M. 653/2022</h2>
-      <p style="font-size:13px; color:#475569; margin-bottom:20px;">Acconsenti al trattamento dei dati clinici per il monitoraggio accademico. L'utilizzo di screenshot del QR Code costituisce illecito disciplinare.</p>
+      <p style="font-size:13px; color:#475569; margin-bottom:20px;">Acconsenti al trattamento dei dati clinici. L'uso di screenshot del QR Code costituisce illecito disciplinare.</p>
       <button class="btn" onclick="accettaPrivacy()">Accetto e Continuo</button>
     </div>
   </div>
 
+  <!-- TESSERINO QR -->
   <div class="box" style="text-align:center;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
       <span id="badgeCoorte" style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:6px; font-weight:bold;"></span>
-      <button onclick="logoutStudente()" style="background:none; border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;">Esci</button>
+      <button onclick="logoutStudente()" style="background:none; border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;">Cambia Studente</button>
     </div>
     <h2 id="nomeSt">Studente</h2>
     <div class="qr-container"><canvas id="qr"></canvas></div>
-    <div style="font-size:12px; margin-top:10px; color:#64748b; font-weight:bold;">⏳ Token anti-frode rigenerato in: <span id="timer" style="color:var(--text);">60</span>s</div>
+    <div style="font-size:12px; margin-top:10px; color:#64748b; font-weight:bold;">⏳ Token rigenerato in: <span id="timer" style="color:var(--text);">60</span>s</div>
   </div>
 
+  <!-- RIEPILOGO GLOBALE CARRIERA (1°-6° ANNO) -->
   <div class="box">
-    <h2>Piano di Studi TPV (1° Operatore)</h2>
-    <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:bold; color:var(--tpv);">
-      <span>Progresso Totale: <span id="totTpv">0</span> / <span id="targetGlobale">600</span>h</span>
-      <span>PPV: <span id="totPpv">0</span>/<span id="targetPpv">3</span></span>
+    <h2>Riepilogo Carriera (1° - 6° Anno)</h2>
+    <div class="kpi-3">
+      <div class="mini-kpi">
+        <div style="font-size:10px; color:#64748b; font-weight:bold;">1° OP (TPV)</div>
+        <div style="font-size:16px; font-weight:900; color:var(--tpv);"><span id="totTpv">0</span>/<span id="tarTpv">600</span>h</div>
+      </div>
+      <div class="mini-kpi">
+        <div style="font-size:10px; color:#64748b; font-weight:bold;">2° OPERATORE</div>
+        <div style="font-size:16px; font-weight:900; color:var(--sec);"><span id="totSec">0</span>/<span id="tarSec">150</span>h</div>
+      </div>
+      <div class="mini-kpi">
+        <div style="font-size:10px; color:#64748b; font-weight:bold;">TEORICO FRONT.</div>
+        <div style="font-size:16px; font-weight:900; color:var(--teo);"><span id="totTeo">0</span>/<span id="tarTeo">100</span>h</div>
+      </div>
     </div>
-    <div class="progress-bg"><div class="progress-fill" id="barTpv" style="width:0%"></div></div>
-    <div id="infoQuintoAnno" style="font-size:11px; color:#b45309; margin-top:6px; font-weight:600;"></div>
-    
-    <div id="listaReparti" style="margin-top:16px;"></div>
+    <div style="font-size:12px; display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
+      <span>Casi Clinici PPV Superati: <b id="totPpv" style="color:var(--ok);">0/3</b></span>
+      <span id="infoQuintoAnno" style="color:#b45309;"></span>
+    </div>
+
+    <!-- SELETTORE ANNO PIANO STUDI (1° - 6°) -->
+    <h2>Piano Tirocini per Anno di Corso</h2>
+    <div class="year-tabs" id="stuYearTabs">
+      <div class="y-tab" onclick="cambiaAnnoVista('1')">1° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('2')">2° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('3')">3° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('4')">4° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('5')">5° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('6')">6° Anno</div>
+    </div>
+    <div id="listaRepartiAnno"></div>
+  </div>
+
+  <!-- DIARIO PRESTAZIONI E LEZIONI TEORICHE CON NOTA -->
+  <div class="box">
+    <h2>Diario Clinico & Lezioni Certificate</h2>
+    <div id="diarioNote" style="font-size:12px;"></div>
   </div>
 
   <div class="footer-tribute">
@@ -76,12 +115,13 @@
   </div>
 
 <script>
-  const DB_KEY = 'UDA_CLINICAL_DB_V3';
+  const DB_KEY = 'UDA_CLINICAL_DB_V4';
   let qr;
   let matricolaAttiva = localStorage.getItem('uda_stu_mat');
+  let annoVista = null;
 
   window.onload = () => {
-    qr = new QRious({ element: document.getElementById('qr'), size: 210, level: 'M' });
+    qr = new QRious({ element: document.getElementById('qr'), size: 200, level: 'M' });
     if(matricolaAttiva) {
       document.getElementById('loginStu').style.display = 'none';
       caricaFascicolo();
@@ -97,6 +137,7 @@
 
     if(st) {
       matricolaAttiva = st.matricola;
+      annoVista = st.anno === 'FC' ? '6' : st.anno;
       localStorage.setItem('uda_stu_mat', matricolaAttiva);
       document.getElementById('loginStu').style.display = 'none';
       if(!localStorage.getItem('uda_privacy_' + matricolaAttiva)) {
@@ -109,14 +150,12 @@
     }
   }
 
-  function logoutStudente() {
-    localStorage.removeItem('uda_stu_mat');
-    location.reload();
-  }
+  function logoutStudente() { localStorage.removeItem('uda_stu_mat'); location.reload(); }
+  function accettaPrivacy() { localStorage.setItem('uda_privacy_' + matricolaAttiva, 'true'); document.getElementById('modalPrivacy').style.display = 'none'; }
 
-  function accettaPrivacy() {
-    localStorage.setItem('uda_privacy_' + matricolaAttiva, 'true');
-    document.getElementById('modalPrivacy').style.display = 'none';
+  function cambiaAnnoVista(a) {
+    annoVista = a;
+    caricaFascicolo();
   }
 
   function caricaFascicolo() {
@@ -124,35 +163,73 @@
     if(!db) return;
     const st = db.studenti.find(s => s.matricola === matricolaAttiva);
     if(!st) return logoutStudente();
+    if(!annoVista) annoVista = st.anno === 'FC' ? '6' : st.anno;
 
-    const cfg = db.coorti[st.coorte] || { totale_ore_tpv: 600, limite_quinto_anno: 180, casi_ppv_richiesti: 3, reparti: [] };
+    const cfg = db.coorti[st.coorte] || { limite_quinto_anno: 180, casi_ppv_richiesti: 3, anni: {} };
     const timb = db.timbrature.filter(t => t.matricola === st.matricola);
     const oreTpv = timb.filter(t => t.ruolo === 'Primo').reduce((sum, t) => sum + parseFloat(t.ore), 0) + parseFloat(st.bonus || 0);
+    const oreSec = timb.filter(t => t.ruolo === 'Secondo').reduce((sum, t) => sum + parseFloat(t.ore), 0);
+    const oreTeo = timb.filter(t => t.ruolo === 'Teorico').reduce((sum, t) => sum + parseFloat(t.ore), 0);
     const ppv = timb.filter(t => t.ppv).length;
 
+    let tarTpv = 0, tarSec = 0, tarTeo = 0;
+    if(cfg.anni) {
+      Object.values(cfg.anni).forEach(arr => arr.forEach(r => {
+        tarTpv += parseFloat(r.tpv || 0); tarSec += parseFloat(r.secondo || 0); tarTeo += parseFloat(r.teorico || 0);
+      }));
+    }
+
     document.getElementById('nomeSt').innerText = `${st.nome} (${st.matricola})`;
-    document.getElementById('badgeCoorte').innerText = `Coorte ${st.coorte} • ${st.anno === 'FC' ? 'Fuori Corso' : st.anno + '° Anno'}`;
+    document.getElementById('badgeCoorte').innerText = `Coorte ${st.coorte} • Iscritto al ${st.anno === 'FC' ? 'Fuori Corso' : st.anno + '° Anno'}`;
     document.getElementById('totTpv').innerText = oreTpv;
-    document.getElementById('targetGlobale').innerText = cfg.totale_ore_tpv;
-    document.getElementById('totPpv').innerText = ppv;
-    document.getElementById('targetPpv').innerText = cfg.casi_ppv_richiesti;
-    document.getElementById('barTpv').style.width = Math.min(100, (oreTpv / cfg.totale_ore_tpv) * 100) + '%';
+    document.getElementById('tarTpv').innerText = tarTpv || 600;
+    document.getElementById('totSec').innerText = oreSec;
+    document.getElementById('tarSec').innerText = tarSec;
+    document.getElementById('totTeo').innerText = oreTeo;
+    document.getElementById('tarTeo').innerText = tarTeo;
+    document.getElementById('totPpv').innerText = `${ppv}/${cfg.casi_ppv_richiesti || 3}`;
+    document.getElementById('infoQuintoAnno').innerText = st.anno === '5' ? `Tetto 5° Anno: ${oreTpv}/${cfg.limite_quinto_anno}h` : '';
 
-    document.getElementById('infoQuintoAnno').innerText = st.anno === '5' 
-      ? `⚠️ Tetto 5° Anno per la tua Coorte: ${oreTpv} / ${cfg.limite_quinto_anno}h` 
-      : (st.bonus > 0 ? `Include ${st.bonus}h di convalida pregressa.` : '');
-
-    const contRep = document.getElementById('listaReparti');
-    contRep.innerHTML = '';
-    cfg.reparti.forEach(r => {
-      const svolte = timb.filter(t => t.ruolo === 'Primo' && t.reparto === r.nome).reduce((s,t) => s + parseFloat(t.ore), 0);
-      contRep.innerHTML += `
-        <div class="sub-discipline">
-          <span>${r.nome} (Max ${r.target}h)</span>
-          <b style="color:${svolte >= r.target ? 'var(--ok)' : 'var(--text)'};">${svolte} / ${r.target}h</b>
-        </div>
-      `;
+    // Evidenzia tab anno selezionato
+    document.querySelectorAll('#stuYearTabs .y-tab').forEach((el, idx) => {
+      el.classList.toggle('active', String(idx + 1) === String(annoVista));
     });
+
+    const repAnno = (cfg.anni && cfg.anni[annoVista]) ? cfg.anni[annoVista] : [];
+    const contRep = document.getElementById('listaRepartiAnno');
+    contRep.innerHTML = '';
+
+    if(repAnno.length === 0) {
+      contRep.innerHTML = `<div style="font-size:12px; color:#64748b; text-align:center; padding:12px;">Nessun tirocinio programmato dall'Admin per il ${annoVista}° Anno.</div>`;
+    } else {
+      repAnno.forEach(r => {
+        const sTpv = timb.filter(t => t.reparto === r.nome && t.ruolo === 'Primo').reduce((s,t) => s + parseFloat(t.ore), 0);
+        const sSec = timb.filter(t => t.reparto === r.nome && t.ruolo === 'Secondo').reduce((s,t) => s + parseFloat(t.ore), 0);
+        const sTeo = timb.filter(t => t.reparto === r.nome && t.ruolo === 'Teorico').reduce((s,t) => s + parseFloat(t.ore), 0);
+        contRep.innerHTML += `
+          <div class="rep-card">
+            <div class="rep-title"><span>${r.nome}</span><span style="color:#64748b; font-size:11px;">${annoVista}° Anno</span></div>
+            <div class="rep-badges">
+              ${r.tpv > 0 ? `<span class="pill" style="background:#e0f2fe; color:#0369a1;">1° Op (TPV): ${sTpv}/${r.tpv}h</span>` : ''}
+              ${r.secondo > 0 ? `<span class="pill" style="background:#ccfbf1; color:#0f766e;">2° Op: ${sSec}/${r.secondo}h</span>` : ''}
+              ${r.teorico > 0 ? `<span class="pill" style="background:#f3e8ff; color:#6b21a8;">📚 Teorico: ${sTeo}/${r.teorico}h</span>` : ''}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Diario clinico con note obbligatorie
+    const contNote = document.getElementById('diarioNote');
+    contNote.innerHTML = timb.map(t => `
+      <div style="border-bottom:1px solid #f1f5f9; padding:8px 0;">
+        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+          <span>${t.data} • ${t.reparto} (${t.ore}h)</span>
+          <span style="color:var(--tpv);">${t.ruolo === 'Primo' ? '1° Op' : (t.ruolo === 'Secondo' ? '2° Op' : 'Teorico')} ${t.ppv ? '★ PPV' : ''}</span>
+        </div>
+        <div style="color:#334155; margin-top:2px;">📝 <i>"${t.nota || ' Prestazione certificata'}"</i> — <span style="color:#64748b;">${t.docente}</span></div>
+      </div>
+    `).join('') || '<div style="color:#64748b;">Nessuna attività registrata.</div>';
   }
 
   function generaToken(forza = false) {
