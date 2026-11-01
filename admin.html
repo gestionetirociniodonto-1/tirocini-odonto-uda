@@ -32,6 +32,7 @@
     label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; display: block; margin-bottom: 5px; letter-spacing: 0.3px; }
     input, select { padding: 9px 11px; border-radius: 6px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; background: white; color: var(--text); }
     input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(29,78,216,0.12); }
+    .search-select { background: #eff6ff; border-color: #93c5fd; font-weight: 600; }
     
     .btn { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12.5px; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .btn:hover { filter: brightness(1.08); }
@@ -66,7 +67,7 @@
 </head>
 <body>
 
-  <!-- AUTENTICAZIONE AMMINISTRATORE (Senza credenziali in chiaro o suggerite) -->
+  <!-- AUTENTICAZIONE AMMINISTRATORE -->
   <div id="adminLogin">
     <div class="login-box">
       <div style="font-size:30px; margin-bottom:8px;">🏛️</div>
@@ -94,7 +95,7 @@
     <div class="nav" onclick="switchTab('tab-piani', this)">📚 Ordinamento & Reparti per Anno</div>
     <div class="nav" onclick="switchTab('tab-doc', this)">👨‍⚕️ Corpo Docente & Tutor Clinici</div>
     <div class="nav" onclick="switchTab('tab-timbrature', this)">📋 Registro & Convalida Presenze</div>
-    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Configurazione Accessi</div>
+    <div class="nav" onclick="switchTab('tab-presidenza', this)">🏛️ Configurazione & Backup</div>
     
     <div class="footer-tribute">
       Università "G. d'Annunzio" Chieti-Pescara<br>
@@ -260,15 +261,30 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAB 4: REGISTRO & CONVALIDA PRESENZE                              -->
+    <!-- TAB 4: REGISTRO & CONVALIDA PRESENZE (Con Ricerca Autocomplete!)  -->
     <!-- ================================================================= -->
     <div id="tab-timbrature" class="tab-content">
       <div class="panel" style="border-left: 4px solid var(--accent);">
-        <h3>✍️ Registrazione Presenza Clinica o Teorica Frontale</h3>
+        <h3>✍️ Registrazione Presenza Clinica o Teorica Frontale (Ricerca Rapida)</h3>
+        <p style="font-size:12px; color:#64748b; margin-top:0;">
+          Digita direttamente la <b>Matricola</b> o il <b>Cognome</b> dello studente nella casella: il sistema filtra istantaneamente l'elenco senza dover scorrere e propone automaticamente i reparti del suo piano di studi.
+        </p>
         <div class="grid-6" style="margin-bottom:10px;">
-          <div><label>Studente</label><select id="ovMat"></select></div>
-          <div><label>Docente / Tutor Certificatore</label><select id="ovDoc"></select></div>
-          <div><label>Reparto / Modulo</label><select id="ovRep"></select></div>
+          <div>
+            <label>🔍 Cerca Studente (Matricola/Nome)</label>
+            <input type="text" id="ovMat" list="dlStudenti" class="search-select" placeholder="Digita matricola o nome..." oninput="filtraRepartiPerStudenteSelezionato()" autocomplete="off">
+            <datalist id="dlStudenti"></datalist>
+          </div>
+          <div>
+            <label>🔍 Cerca Docente / Tutor</label>
+            <input type="text" id="ovDoc" list="dlDocenti" class="search-select" placeholder="Digita nome docente..." autocomplete="off">
+            <datalist id="dlDocenti"></datalist>
+          </div>
+          <div>
+            <label>🔍 Reparto / Modulo</label>
+            <input type="text" id="ovRep" list="dlReparti" class="search-select" placeholder="Digita o scegli reparto..." autocomplete="off">
+            <datalist id="dlReparti"></datalist>
+          </div>
           <div><label>Data Attività</label><input type="date" id="ovData"></div>
           <div><label>Tipologia & Turno</label>
             <select id="ovRuolo">
@@ -318,7 +334,7 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAB 5: CONFIGURAZIONE ACCESSI DIREZIONALI                         -->
+    <!-- TAB 5: CONFIGURAZIONE ACCESSI & BACKUP SISTEMA                    -->
     <!-- ================================================================= -->
     <div id="tab-presidenza" class="tab-content">
       <div class="grid-2">
@@ -335,14 +351,21 @@
         </div>
 
         <div class="panel">
-          <h3>🔐 Credenziali Direzione Sistema (Amministratore)</h3>
+          <h3>🔐 Credenziali Direzione Sistema & Backup Completo</h3>
           <label>Email Amministratore</label>
           <input type="email" id="cfgAdmEmail" style="margin-bottom:12px;">
           <label>Password Amministratore</label>
           <input type="text" id="cfgAdmPass" class="pwd-input" style="width:100%; font-size:14px; margin-bottom:15px;">
-          <div style="display:flex; gap:10px;">
-            <button class="btn" style="flex:1;" onclick="salvaCredenzialiAdmin()">💾 Aggiorna Credenziali Admin</button>
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <button class="btn" style="flex:1;" onclick="salvaCredenzialiAdmin()">💾 Salva Credenziali Admin</button>
             <button class="btn" style="background:var(--ko); flex:1;" onclick="resetDatabaseLocale()">🔄 Ripristina Dati Iniziali</button>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" style="background:#0f766e; flex:1;" onclick="esportaBackupJSON()">📦 Scarica Backup JSON</button>
+            <label class="btn" style="background:#475569; flex:1; cursor:pointer;">
+              📂 Ripristina Backup JSON
+              <input type="file" accept=".json" style="display:none;" onchange="importaBackupJSON(event)">
+            </label>
           </div>
         </div>
       </div>
@@ -364,12 +387,8 @@
     coorti: {
       '2024/2025': {
         anni: {
-          '1': [
-            { id: 101, nome: 'Ergonomia e Prevenzione Infezioni Ospedaliere', tpv: 0, secondo: 10, teorico: 20, ppv: 0 }
-          ],
-          '2': [
-            { id: 201, nome: 'Materiali Dentali e Manichino Preclinico', tpv: 0, secondo: 20, teorico: 20, ppv: 0 }
-          ],
+          '1': [{ id: 101, nome: 'Ergonomia e Prevenzione Infezioni Ospedaliere', tpv: 0, secondo: 10, teorico: 20, ppv: 0 }],
+          '2': [{ id: 201, nome: 'Materiali Dentali e Manichino Preclinico', tpv: 0, secondo: 20, teorico: 20, ppv: 0 }],
           '3': [
             { id: 301, nome: 'Semeiotica Odontostomatologica e Radiologia', tpv: 0, secondo: 30, teorico: 20, ppv: 0 },
             { id: 302, nome: 'Parodontologia Clinica Base', tpv: 20, secondo: 20, teorico: 10, ppv: 0 }
@@ -478,7 +497,6 @@
     document.getElementById('pageTitle').innerText = el.innerText.substring(3).trim();
   }
 
-  // CALCOLO DINAMICO TARGET DALLA MATRICE REPARTI (Nessun parametro statico ridondante)
   function calcolaTargetCoorte(coorteKey, annoSpecifico = null) {
     const c = db.coorti[coorteKey];
     if(!c || !c.anni) return { tpv: 0, secondo: 0, teorico: 0, ppv: 0 };
@@ -589,7 +607,7 @@
     st.bonus = parseFloat(document.getElementById(`bonus_${mat}`).value) || 0;
     salvaDB();
     feedbackBottone(btn, "✓");
-    setTimeout(renderStudenti, 450);
+    setTimeout(() => { renderStudenti(); popolaSelectOverride(); }, 450);
   }
 
   function toggleArchiviaStudente(mat) {
@@ -598,6 +616,7 @@
     st.archiviato = !st.archiviato;
     salvaDB();
     renderStudenti();
+    popolaSelectOverride();
   }
 
   function eliminaStudente(mat) {
@@ -805,14 +824,21 @@
   function salvaRepartoCoorteAnno(idx, btn) {
     const c = document.getElementById('selCoorteAttiva').value;
     const item = db.coorti[c].anni[annoPianoSelezionato][idx];
-    item.nome = document.getElementById(`repnome_${idx}`).value.trim();
+    const vecchioNome = item.nome;
+    const nuovoNome = document.getElementById(`repnome_${idx}`).value.trim();
+    item.nome = nuovoNome;
     item.tpv = parseFloat(document.getElementById(`reptpv_${idx}`).value) || 0;
     item.secondo = parseFloat(document.getElementById(`repsec_${idx}`).value) || 0;
     item.teorico = parseFloat(document.getElementById(`repteo_${idx}`).value) || 0;
     item.ppv = parseInt(document.getElementById(`repppv_${idx}`).value) || 0;
+    
+    // Propaga eventuale rinomina del reparto alle timbrature esistenti
+    if(vecchioNome !== nuovoNome) {
+      db.timbrature.forEach(t => { if(t.reparto === vecchioNome) t.reparto = nuovoNome; });
+    }
     salvaDB();
     feedbackBottone(btn, "✓ Salvato");
-    setTimeout(() => { caricaConfigCoorte(); popolaSelectOverride(); renderStudenti(); }, 400);
+    setTimeout(() => { caricaConfigCoorte(); popolaSelectOverride(); renderStudenti(); renderTimbrature(); }, 400);
   }
 
   function rimuoviRepartoCoorteAnno(idx) {
@@ -906,17 +932,34 @@
   }
 
   // ============================================================================
-  // SEZIONE 4: REGISTRO E CONVALIDA PRESENZE (Verifica limiti da Piano Studi)
+  // SEZIONE 4: REGISTRO PRESENZE CON AUTOCOMPLETE ISTANTANEO E FILTRO REPARTI
   // ============================================================================
   function popolaSelectOverride() {
-    document.getElementById('ovMat').innerHTML = db.studenti.map(s => `<option value="${s.matricola}">${s.matricola} - ${s.nome} (${s.anno}° Anno)</option>`).join('');
-    document.getElementById('ovDoc').innerHTML = db.docenti.map(d => `<option value="${d.nome}">${d.nome} (${d.ruolo})</option>`).join('');
+    document.getElementById('dlStudenti').innerHTML = db.studenti.filter(s => !s.archiviato).map(s => `<option value="${s.matricola}">${s.nome} (${s.anno === 'FC' ? 'Fuori Corso' : s.anno + '° Anno'} - Coorte ${s.coorte})</option>`).join('');
+    document.getElementById('dlDocenti').innerHTML = db.docenti.map(d => `<option value="${d.nome}">${d.ruolo} - ${d.email}</option>`).join('');
     
     const tuttiReparti = new Set();
     Object.values(db.coorti).forEach(c => {
       if(c.anni) Object.values(c.anni).forEach(arr => arr.forEach(r => tuttiReparti.add(r.nome)));
     });
-    document.getElementById('ovRep').innerHTML = Array.from(tuttiReparti).map(r => `<option value="${r}">${r}</option>`).join('');
+    document.getElementById('dlReparti').innerHTML = Array.from(tuttiReparti).map(r => `<option value="${r}"></option>`).join('');
+  }
+
+  // Suggerisce in automatico i reparti specifici dell'anno dello studente cercato
+  function filtraRepartiPerStudenteSelezionato() {
+    const val = document.getElementById('ovMat').value.trim();
+    const st = db.studenti.find(s => s.matricola === val || s.nome.toLowerCase() === val.toLowerCase());
+    if(!st) return;
+
+    const cfg = db.coorti[st.coorte];
+    if(!cfg || !cfg.anni) return;
+
+    const repStudente = new Set();
+    if(st.anno !== 'FC' && cfg.anni[st.anno]) {
+      cfg.anni[st.anno].forEach(r => repStudente.add(r.nome));
+    }
+    Object.values(cfg.anni).forEach(arr => arr.forEach(r => repStudente.add(r.nome)));
+    document.getElementById('dlReparti').innerHTML = Array.from(repStudente).map(r => `<option value="${r}">Piano Studi ${st.coorte}</option>`).join('');
   }
 
   function trovaTargetRepartoCoorte(coorteKey, nomeReparto, ruolo) {
@@ -936,20 +979,30 @@
   }
 
   function registraTimbraturaDaAdmin() {
-    const matricola = document.getElementById('ovMat').value;
-    const docente = document.getElementById('ovDoc').value;
-    const reparto = document.getElementById('ovRep').value;
+    const inputStudente = document.getElementById('ovMat').value.trim();
+    // Permette di trovare lo studente sia che l'Admin abbia scritto la matricola sia che abbia scritto il cognome/nome
+    const st = db.studenti.find(s => s.matricola === inputStudente || s.nome.toLowerCase() === inputStudente.toLowerCase() || inputStudente.startsWith(s.matricola));
+    if(!st) return alert("⚠️ Studente non trovato: digita o seleziona una matricola valida dall'elenco a comparsa.");
+
+    const matricola = st.matricola;
+    const docente = document.getElementById('ovDoc').value.trim() || (db.docenti[0] ? db.docenti[0].nome : 'Docente');
+    const reparto = document.getElementById('ovRep').value.trim();
     const data = document.getElementById('ovData').value;
     const [ruolo, turno, ppvStr] = document.getElementById('ovRuolo').value.split('|');
     const ore = parseFloat(document.getElementById('ovOre').value);
     const nota = document.getElementById('ovNota').value.trim();
 
+    if(!reparto) return alert("⚠️ Seleziona o digita il Reparto / Modulo didattico.");
     if(!nota || nota.length < 3) return alert("⚠️ NOTA OBBLIGATORIA: Specificare la prestazione eseguita o l'argomento della lezione.");
-    if(!matricola || !data || !ore || ore <= 0 || ore > 12) return alert("Verificare i dati inseriti (0.5 - 12h).");
+    if(!data || !ore || ore <= 0 || ore > 12) return alert("Verificare i dati inseriti (0.5 - 12h).");
 
-    const st = db.studenti.find(s => s.matricola === matricola);
+    // Controllo Anti-Doppione nello stesso giorno e turno
+    const doppione = db.timbrature.some(t => t.matricola === matricola && t.data === data && t.turno === turno);
+    if(doppione) {
+      return alert(`⛔ DOPPIA TIMBRATURA RILEVATA: Lo studente ${st.nome} (${matricola}) ha già una presenza registrata in data ${data} per il turno di ${turno}.`);
+    }
+
     const targetRep = trovaTargetRepartoCoorte(st.coorte, reparto, ruolo);
-
     if(targetRep > 0) {
       const svolteRep = db.timbrature.filter(t => t.matricola === matricola && t.reparto === reparto && t.ruolo === ruolo).reduce((s,t) => s + parseFloat(t.ore), 0);
       if((svolteRep + ore) > targetRep) {
@@ -962,9 +1015,10 @@
       data, turno, matricola, docente, reparto, ruolo, ore,
       ppv: ppvStr === 'true',
       nota,
-      anno_rif: st ? st.anno : '5'
+      anno_rif: st.anno
     });
     salvaDB();
+    document.getElementById('ovMat').value = '';
     document.getElementById('ovNota').value = '';
     renderTimbrature();
     renderStudenti();
@@ -1031,6 +1085,9 @@
     renderStudenti();
   }
 
+  // ============================================================================
+  // SEZIONE 5: ACCESSI & BACKUP / RIPRISTINO JSON
+  // ============================================================================
   function salvaCredenzialiPresidenza() {
     db.auth.presEmail = document.getElementById('cfgPresEmail').value.trim();
     db.auth.presPass = document.getElementById('cfgPresPass').value.trim();
@@ -1043,6 +1100,38 @@
     db.auth.adminPass = document.getElementById('cfgAdmPass').value.trim();
     salvaDB();
     alert("Credenziali Amministratore aggiornate.");
+  }
+
+  function esportaBackupJSON() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+    const a = document.createElement('a');
+    a.setAttribute("href", dataStr);
+    a.setAttribute("download", `Backup_Sistema_Tirocini_UdA_${new Date().toISOString().slice(0,10)}.json`);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function importaBackupJSON(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if(parsed && parsed.coorti && parsed.studenti) {
+          db = parsed;
+          salvaDB();
+          aggiornaTuttoUI();
+          alert("✅ Backup JSON ripristinato con successo!");
+        } else {
+          alert("File JSON non valido.");
+        }
+      } catch(err) {
+        alert("Errore nella lettura del file di backup.");
+      }
+    };
+    reader.readAsText(file);
   }
 
   function resetDatabaseLocale() {
