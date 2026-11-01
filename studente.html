@@ -2,16 +2,16 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Ud'A - Fascicolo Studente (1°-6° Anno)</title>
+  <title>Ud'A - Libretto Tirocini Studente</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
-    :root { --bg: #f8fafc; --card: #fff; --text: #0f172a; --tpv: #0284c7; --sec: #0d9488; --teo: #7c3aed; --border: #e2e8f0; --ok: #10b981; }
-    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    :root { --bg: #f4f6f9; --card: #fff; --text: #0f172a; --tpv: #0284c7; --sec: #0d9488; --teo: #7c3aed; --border: #e2e8f0; --ok: #059669; }
+    * { box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
     body { margin:0; padding:14px; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; max-width: 520px; margin-left: auto; margin-right: auto; }
-    .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-    h2 { margin:0 0 10px; font-size: 16px; color: var(--text); }
-    .qr-container { background: #0f172a; padding: 18px; border-radius: 12px; text-align: center; }
+    .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+    h2 { margin:0 0 10px; font-size: 15.5px; color: var(--text); }
+    .qr-container { background: #0b192c; padding: 18px; border-radius: 12px; text-align: center; }
     canvas { background: white; padding: 10px; border-radius: 8px; }
     
     .kpi-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
@@ -26,70 +26,68 @@
     .rep-badges { display: flex; gap: 6px; flex-wrap: wrap; font-size: 11px; }
     .pill { padding: 3px 7px; border-radius: 5px; font-weight: 600; }
 
-    #loginStu, #modalPrivacy { position: fixed; inset:0; background: rgba(15,23,42,0.92); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .modal-card { background: white; padding: 26px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center; }
-    .modal-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; }
-    .btn { background: var(--tpv); color: white; border: none; padding: 13px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-    .footer-tribute { margin-top: auto; text-align: center; font-size: 10px; color: #64748b; padding: 10px; }
+    #loginStu, #modalPrivacy { position: fixed; inset:0; background: rgba(11,25,44,0.94); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .modal-card { background: white; padding: 28px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center; }
+    .modal-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+    .btn { background: var(--tpv); color: white; border: none; padding: 13px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; font-size: 14px; }
+    .footer-tribute { margin-top: auto; text-align: center; font-size: 10.5px; color: #64748b; padding: 10px; }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN STUDENTE -->
+  <!-- LOGIN STUDENTE (Senza credenziali esposte) -->
   <div id="loginStu">
     <div class="modal-card">
-      <h2 style="margin-top:0;">Libretto Tirocini Ud'A</h2>
-      <p style="font-size:12px; color:#64748b;">Demo: <b>3201456</b> (5° anno) o <b>3204411</b> (4° anno)<br>Password: <b>Uda3201456!</b></p>
-      <input type="text" id="matInput" placeholder="Matricola" value="3201456">
-      <input type="password" id="passInput" placeholder="Password" value="Uda3201456!">
-      <button class="btn" onclick="effettuaLoginStudente()">Apri Libretto & QR</button>
-      <div id="errStu" style="color:#ef4444; font-size:12px; margin-top:10px; display:none;">Credenziali non valide.</div>
+      <div style="font-size:28px; margin-bottom:6px;">🎓</div>
+      <h2 style="margin-top:0; font-size:18px;">Libretto Elettronico Tirocini</h2>
+      <p style="font-size:12px; color:#64748b; margin-bottom:16px;">Corso di Laurea in Odontoiatria e Protesi Dentaria</p>
+      <input type="text" id="matInput" placeholder="Numero di Matricola" autocomplete="off">
+      <input type="password" id="passInput" placeholder="Password Personale" autocomplete="off">
+      <button class="btn" onclick="effettuaLoginStudente()">Accedi al Fascicolo</button>
+      <div id="errStu" style="color:#dc2626; font-size:12px; margin-top:10px; display:none;">Matricola o password non corrette.</div>
     </div>
   </div>
 
-  <!-- PRIVACY -->
+  <!-- CONSENSO GDPR -->
   <div id="modalPrivacy" style="display:none;">
     <div class="modal-card">
-      <h2 style="margin-top:0;">Privacy GDPR & D.M. 653/2022</h2>
-      <p style="font-size:13px; color:#475569; margin-bottom:20px;">Acconsenti al trattamento dei dati clinici. L'uso di screenshot del QR Code costituisce illecito disciplinare.</p>
-      <button class="btn" onclick="accettaPrivacy()">Accetto e Continuo</button>
+      <h2 style="margin-top:0;">Informativa GDPR & D.M. 653/2022</h2>
+      <p style="font-size:13px; color:#475569; margin-bottom:20px;">Acconsento al trattamento dei dati accademici per la certificazione delle attività abilitanti. La riproduzione statica del QR Code costituisce illecito disciplinare.</p>
+      <button class="btn" onclick="accettaPrivacy()">Confermo e Procedo</button>
     </div>
   </div>
 
-  <!-- TESSERINO QR -->
   <div class="box" style="text-align:center;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
       <span id="badgeCoorte" style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:6px; font-weight:bold;"></span>
-      <button onclick="logoutStudente()" style="background:none; border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;">Cambia Studente</button>
+      <button onclick="logoutStudente()" style="background:none; border:1px solid #cbd5e1; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer;">Disconnetti</button>
     </div>
     <h2 id="nomeSt">Studente</h2>
     <div class="qr-container"><canvas id="qr"></canvas></div>
-    <div style="font-size:12px; margin-top:10px; color:#64748b; font-weight:bold;">⏳ Token rigenerato in: <span id="timer" style="color:var(--text);">60</span>s</div>
+    <div style="font-size:12px; margin-top:10px; color:#64748b; font-weight:bold;">⏳ Codice dinamico valido per: <span id="timer" style="color:var(--text);">60</span>s</div>
   </div>
 
-  <!-- RIEPILOGO GLOBALE CARRIERA (1°-6° ANNO) -->
   <div class="box">
-    <h2>Riepilogo Carriera (1° - 6° Anno)</h2>
+    <h2>Avanzamento Complessivo Carriera (1° - 6° Anno)</h2>
     <div class="kpi-3">
       <div class="mini-kpi">
         <div style="font-size:10px; color:#64748b; font-weight:bold;">1° OP (TPV)</div>
-        <div style="font-size:16px; font-weight:900; color:var(--tpv);"><span id="totTpv">0</span>/<span id="tarTpv">600</span>h</div>
+        <div style="font-size:15.5px; font-weight:900; color:var(--tpv);"><span id="totTpv">0</span>/<span id="tarTpv">0</span>h</div>
       </div>
       <div class="mini-kpi">
         <div style="font-size:10px; color:#64748b; font-weight:bold;">2° OPERATORE</div>
-        <div style="font-size:16px; font-weight:900; color:var(--sec);"><span id="totSec">0</span>/<span id="tarSec">150</span>h</div>
+        <div style="font-size:15.5px; font-weight:900; color:var(--sec);"><span id="totSec">0</span>/<span id="tarSec">0</span>h</div>
       </div>
       <div class="mini-kpi">
         <div style="font-size:10px; color:#64748b; font-weight:bold;">TEORICO FRONT.</div>
-        <div style="font-size:16px; font-weight:900; color:var(--teo);"><span id="totTeo">0</span>/<span id="tarTeo">100</span>h</div>
+        <div style="font-size:15.5px; font-weight:900; color:var(--teo);"><span id="totTeo">0</span>/<span id="tarTeo">0</span>h</div>
       </div>
     </div>
-    <div style="font-size:12px; display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
-      <span>Casi Clinici PPV Superati: <b id="totPpv" style="color:var(--ok);">0/3</b></span>
-      <span id="infoQuintoAnno" style="color:#b45309;"></span>
+    <div style="font-size:12px; display:flex; justify-content:space-between; font-weight:bold; margin-bottom:12px;">
+      <span>Prove Pratiche Valutative (PPV): <b id="totPpv" style="color:var(--ok);">0/0</b></span>
+      <span id="infoBonus" style="color:#475569;"></span>
     </div>
 
-    <!-- SELETTORE ANNO PIANO STUDI (1° - 6°) -->
     <h2>Piano Tirocini per Anno di Corso</h2>
     <div class="year-tabs" id="stuYearTabs">
       <div class="y-tab" onclick="cambiaAnnoVista('1')">1° Anno</div>
@@ -102,20 +100,18 @@
     <div id="listaRepartiAnno"></div>
   </div>
 
-  <!-- DIARIO PRESTAZIONI E LEZIONI TEORICHE CON NOTA -->
   <div class="box">
-    <h2>Diario Clinico & Lezioni Certificate</h2>
+    <h2>Registro Cronologico Prestazioni & Lezioni</h2>
     <div id="diarioNote" style="font-size:12px;"></div>
   </div>
 
   <div class="footer-tribute">
     🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
-    Sistema di Gestione Clinica Abilitante D.M. 653/2022<br>
-    Software Architecture & Engineering by <b>Mohaidine Aariouach</b>
+    Sistema Abilitante D.M. 653/2022 — Architecture by <b>Mohaidine Aariouach</b>
   </div>
 
 <script>
-  const DB_KEY = 'UDA_CLINICAL_DB_V4';
+  const DB_KEY = 'UDA_CLINICAL_DB_V5';
   let qr;
   let matricolaAttiva = localStorage.getItem('uda_stu_mat');
   let annoVista = null;
@@ -128,6 +124,8 @@
     }
     setInterval(generaToken, 1000);
   };
+
+  window.addEventListener('storage', (e) => { if(e.key === DB_KEY && matricolaAttiva) caricaFascicolo(); });
 
   function effettuaLoginStudente() {
     const db = JSON.parse(localStorage.getItem(DB_KEY));
@@ -152,45 +150,40 @@
 
   function logoutStudente() { localStorage.removeItem('uda_stu_mat'); location.reload(); }
   function accettaPrivacy() { localStorage.setItem('uda_privacy_' + matricolaAttiva, 'true'); document.getElementById('modalPrivacy').style.display = 'none'; }
-
-  function cambiaAnnoVista(a) {
-    annoVista = a;
-    caricaFascicolo();
-  }
+  function cambiaAnnoVista(a) { annoVista = a; caricaFascicolo(); }
 
   function caricaFascicolo() {
     const db = JSON.parse(localStorage.getItem(DB_KEY));
     if(!db) return;
-    const st = db.studenti.find(s => s.matricola === matricolaAttiva);
+    const st = db.studenti.find(s => s.matricola === matricolaAttiva && !s.archiviato);
     if(!st) return logoutStudente();
     if(!annoVista) annoVista = st.anno === 'FC' ? '6' : st.anno;
 
-    const cfg = db.coorti[st.coorte] || { limite_quinto_anno: 180, casi_ppv_richiesti: 3, anni: {} };
+    const cfg = db.coorti[st.coorte] || { anni: {} };
     const timb = db.timbrature.filter(t => t.matricola === st.matricola);
     const oreTpv = timb.filter(t => t.ruolo === 'Primo').reduce((sum, t) => sum + parseFloat(t.ore), 0) + parseFloat(st.bonus || 0);
     const oreSec = timb.filter(t => t.ruolo === 'Secondo').reduce((sum, t) => sum + parseFloat(t.ore), 0);
     const oreTeo = timb.filter(t => t.ruolo === 'Teorico').reduce((sum, t) => sum + parseFloat(t.ore), 0);
     const ppv = timb.filter(t => t.ppv).length;
 
-    let tarTpv = 0, tarSec = 0, tarTeo = 0;
+    let tarTpv = 0, tarSec = 0, tarTeo = 0, tarPpv = 0;
     if(cfg.anni) {
       Object.values(cfg.anni).forEach(arr => arr.forEach(r => {
-        tarTpv += parseFloat(r.tpv || 0); tarSec += parseFloat(r.secondo || 0); tarTeo += parseFloat(r.teorico || 0);
+        tarTpv += parseFloat(r.tpv || 0); tarSec += parseFloat(r.secondo || 0); tarTeo += parseFloat(r.teorico || 0); tarPpv += parseInt(r.ppv || 0);
       }));
     }
 
     document.getElementById('nomeSt').innerText = `${st.nome} (${st.matricola})`;
-    document.getElementById('badgeCoorte').innerText = `Coorte ${st.coorte} • Iscritto al ${st.anno === 'FC' ? 'Fuori Corso' : st.anno + '° Anno'}`;
+    document.getElementById('badgeCoorte').innerText = `Coorte ${st.coorte} • ${st.anno === 'FC' ? 'Fuori Corso' : st.anno + '° Anno'}`;
     document.getElementById('totTpv').innerText = oreTpv;
-    document.getElementById('tarTpv').innerText = tarTpv || 600;
+    document.getElementById('tarTpv').innerText = tarTpv;
     document.getElementById('totSec').innerText = oreSec;
     document.getElementById('tarSec').innerText = tarSec;
     document.getElementById('totTeo').innerText = oreTeo;
     document.getElementById('tarTeo').innerText = tarTeo;
-    document.getElementById('totPpv').innerText = `${ppv}/${cfg.casi_ppv_richiesti || 3}`;
-    document.getElementById('infoQuintoAnno').innerText = st.anno === '5' ? `Tetto 5° Anno: ${oreTpv}/${cfg.limite_quinto_anno}h` : '';
+    document.getElementById('totPpv').innerText = `${ppv}/${tarPpv}`;
+    document.getElementById('infoBonus').innerText = st.bonus > 0 ? `(Include ${st.bonus}h pregresse)` : '';
 
-    // Evidenzia tab anno selezionato
     document.querySelectorAll('#stuYearTabs .y-tab').forEach((el, idx) => {
       el.classList.toggle('active', String(idx + 1) === String(annoVista));
     });
@@ -200,12 +193,13 @@
     contRep.innerHTML = '';
 
     if(repAnno.length === 0) {
-      contRep.innerHTML = `<div style="font-size:12px; color:#64748b; text-align:center; padding:12px;">Nessun tirocinio programmato dall'Admin per il ${annoVista}° Anno.</div>`;
+      contRep.innerHTML = `<div style="font-size:12px; color:#64748b; text-align:center; padding:12px;">Nessun reparto configurato per il ${annoVista}° Anno.</div>`;
     } else {
       repAnno.forEach(r => {
         const sTpv = timb.filter(t => t.reparto === r.nome && t.ruolo === 'Primo').reduce((s,t) => s + parseFloat(t.ore), 0);
         const sSec = timb.filter(t => t.reparto === r.nome && t.ruolo === 'Secondo').reduce((s,t) => s + parseFloat(t.ore), 0);
         const sTeo = timb.filter(t => t.reparto === r.nome && t.ruolo === 'Teorico').reduce((s,t) => s + parseFloat(t.ore), 0);
+        const sPpv = timb.filter(t => t.reparto === r.nome && t.ppv).length;
         contRep.innerHTML += `
           <div class="rep-card">
             <div class="rep-title"><span>${r.nome}</span><span style="color:#64748b; font-size:11px;">${annoVista}° Anno</span></div>
@@ -213,23 +207,22 @@
               ${r.tpv > 0 ? `<span class="pill" style="background:#e0f2fe; color:#0369a1;">1° Op (TPV): ${sTpv}/${r.tpv}h</span>` : ''}
               ${r.secondo > 0 ? `<span class="pill" style="background:#ccfbf1; color:#0f766e;">2° Op: ${sSec}/${r.secondo}h</span>` : ''}
               ${r.teorico > 0 ? `<span class="pill" style="background:#f3e8ff; color:#6b21a8;">📚 Teorico: ${sTeo}/${r.teorico}h</span>` : ''}
+              ${r.ppv > 0 ? `<span class="pill" style="background:#fef3c7; color:#92400e;">★ PPV: ${sPpv}/${r.ppv}</span>` : ''}
             </div>
           </div>
         `;
       });
     }
 
-    // Diario clinico con note obbligatorie
-    const contNote = document.getElementById('diarioNote');
-    contNote.innerHTML = timb.map(t => `
+    document.getElementById('diarioNote').innerHTML = timb.map(t => `
       <div style="border-bottom:1px solid #f1f5f9; padding:8px 0;">
         <div style="display:flex; justify-content:space-between; font-weight:bold;">
           <span>${t.data} • ${t.reparto} (${t.ore}h)</span>
           <span style="color:var(--tpv);">${t.ruolo === 'Primo' ? '1° Op' : (t.ruolo === 'Secondo' ? '2° Op' : 'Teorico')} ${t.ppv ? '★ PPV' : ''}</span>
         </div>
-        <div style="color:#334155; margin-top:2px;">📝 <i>"${t.nota || ' Prestazione certificata'}"</i> — <span style="color:#64748b;">${t.docente}</span></div>
+        <div style="color:#334155; margin-top:2px;">📝 <i>"${t.nota}"</i> — <span style="color:#64748b;">${t.docente}</span></div>
       </div>
-    `).join('') || '<div style="color:#64748b;">Nessuna attività registrata.</div>';
+    `).join('') || '<div style="color:#64748b;">Nessuna presenza registrata.</div>';
   }
 
   function generaToken(forza = false) {
