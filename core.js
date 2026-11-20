@@ -199,13 +199,13 @@
   // ----------------------------------------------------------------------------
   // 5. UI HELPERS (TOAST, ESCAPE XSS, BUTTON LOCK, ENTER KEY)
   // ----------------------------------------------------------------------------
-  function esc(str) {
+ function esc(str) {
     return String(str ?? '')
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"')
-      .replace(/'/g, ''');
+      .replace(/&/g, '&' + 'amp;')
+      .replace(/</g, '&' + 'lt;')
+      .replace(/>/g, '&' + 'gt;')
+      .replace(/"/g, '&' + 'quot;')
+      .replace(/'/g, '&' + '#39;');
   }
 
   function ensureToastContainer() {
