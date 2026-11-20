@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Ud'A - Terminale Docenti & Tutor Clinici</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="config.js"></script>
+  <script src="core.js"></script>
+  <style>
+    .doc-header { margin: 0 auto 12px; display: flex; justify-content: space-between; align-items: center; max-width: 560px; width: 100%; gap: 8px; }
+    .mode-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+    .mode-btn { padding: 10px 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.14); background: #0f172a; color: #94a3b8; font-weight: 700; cursor: pointer; text-align: center; font-size: 12px; transition: 0.15s; }
+    .mode-btn.active { background: var(--accent-sky); color: #fff; border-color: var(--accent-sky); }
+    .mode-btn.active-teo { background: var(--purple); color: #fff; border-color: var(--purple); }
+    #reader { border-radius: 12px; overflow: hidden; border: 2px solid rgba(255,255,255,0.15); background: #000; min-height: 220px; }
+    .cam-diag { display: none; background: rgba(220,38,38,0.16); border: 1px solid rgba(248,113,113,0.45); color: #fecaca; padding: 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; margin-top: 10px; }
+    .scan-overlay { display: none; position: fixed; inset: 0; z-index: 9800; justify-content: center; align-items: center; flex-direction: column; padding: 24px; text-align: center; }
+    .log-item { border-bottom: 1px solid rgba(255,255,255,0.08); padding: 10px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; }
+    .log-item:last-child { border-bottom: none; }
+    .report-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12.5px; gap: 10px; }
+  </style>
+</head>
+<body class="theme-dark">
+
+  <!-- LOGIN CORPO DOCENTE E TUTOR -->
+  <div id="docenteLogin" class="login-overlay">
+    <div class="login-box">
+      <div style="font-size:30px; margin-bottom:6px;">👨‍⚕️</div>
+      <h2 style="margin:0 0 4px; font-size:18px;">Accesso Corpo Docente & Tutor</h2>
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:14px;">Selezionare il proprio profilo e inserire il codice PIN personale</p>
+      <input type="text" id="filterProf" placeholder="🔍 Filtra per cognome o nome..." oninput="filtraListaDocentiLogin()" autocomplete="off">
+      <select id="selProf"></select>
+      <input type="password" id="pinProf" placeholder="Codice PIN Personale" inputmode="numeric" autocomplete="off">
+      <button id="btnLoginDoc" class="btn" style="width:100%; margin-top:10px; padding:13px;" onclick="autenticaDocente(this)">Abilita Terminale di Convalida</button>
+      <div id="errDoc" class="login-error"></div>
+    </div>
+  </div>
+
+  <!-- MODALE REPORT CONVALIDA MASSIVA D'AULA -->
+  <div id="modalReport" class="modal-backdrop">
+    <div class="cert-box" style="max-width:560px; padding:24px;">
+      <h3 style="margin:0 0 6px; font-size:16px;">📋 Riepilogo Convalida d'Aula</h3>
+      <div id="reportSummary" style="font-size:12.5px; color:var(--muted); margin-bottom:14px;"></div>
+      <div id="reportList" style="max-height:340px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; margin-bottom:16px;"></div>
+      <button class="btn" style="width:100%;" onclick="document.getElementById('modalReport').style.display='none'">Chiudi Riepilogo</button>
+    </div>
+  </div>
+
+  <!-- OVERLAY ESITO SCANSIONE QR -->
+  <div id="overlayEsito" class="scan-overlay" onclick="chiudiOverlayRapido()">
+    <h2 id="titoloEsito" style="color:#fff; font-size:28px; margin:0 0 10px;"></h2>
+    <p id="msgEsito" style="color:#fff; font-size:15px; max-width:380px; line-height:1.45; white-space:pre-line; margin:0;"></p>
+    <div style="margin-top:18px; font-size:11px; opacity:0.8; color:#fff;">Tocca per proseguire</div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="doc-header">
+    <div>
+      <h1 style="font-size:14.5px; margin:0; color:#38bdf8; letter-spacing:0.3px;">UD'A CONVALIDA ATTIVITÀ CLINICHE E TEORICHE</h1>
+      <div id="nomeHeader" style="font-size:12.5px; color:#e2e8f0; font-weight:700; margin-top:2px;">Terminale Docente</div>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button class="btn btn-small btn-secondary" onclick="ricaricaTerminale(this)">🔄</button>
+      <button class="btn btn-small btn-ko" onclick="logoutDocente()">Esci</button>
+    </div>
+  </header>
+
+  <!-- CONFIGURAZIONE TURNO CORRENTE -->
+  <section class="glass-panel">
+    <label>Reparto Clinico / Modulo Didattico</label>
+    <input type="text" id="filterRep" placeholder="🔍 Filtra reparto..." oninput="filtraRepartiSelect()" style="margin-bottom:6px; padding:8px 10px; font-size:12px;">
+    <select id="reparto" onchange="salvaStatoLocale()" style="margin-bottom:12px;"></select>
+
+    <label>Modalità di Frequenza</label>
+    <div class="mode-group">
+      <div class="mode-btn active" id="btnPrimo" onclick="setRuolo('Primo')">🦷 1° Op (TPV)</div>
+      <div class="mode-btn" id="btnSecondo" onclick="setRuolo('Secondo')">👁️ 2° Op</div>
+      <div class="mode-btn" id="btnTeorico" onclick="setRuolo('Teorico')">📚 Teorico</div>
+    </div>
+
+    <label style="display:flex; align-items:center; gap:8px; margin-bottom:12px; color:#fff; text-transform:none; cursor:pointer; font-size:12.5px;">
+      <input type="checkbox" id="chkPpv" style="width:18px; height:18px; margin:0;">
+      <span>Certifica superamento <b>Prova Pratica Valutativa (PPV)</b></span>
+    </label>
+
+    <label id="lblNotaClinica" style="color:#38bdf8;">📝 Prestazione Clinica / Argomento Lezione (Obbligatorio)</label>
+    <input type="text" id="notaClinica" placeholder="Specificare la prestazione eseguita o l'argomento trattato" style="margin-bottom:10px;">
+
+    <div style="display:flex; gap:10px;">
+      <div style="flex:1;">
+        <label>Turno</label>
+        <select id="turno"><option value="Mattina">Mattina</option><option value="Pomeriggio">Pomeriggio</option></select>
+      </div>
+      <div style="flex:1;">
+        <label>Ore</label>
+        <input type="number" id="ore" step="0.5" min="0.5" max="12" value="4">
+      </div>
+    </div>
+  </section>
+
+  <!-- SCANNER QR CODE CON DIAGNOSTICA FOTOCAMERA -->
+  <section class="glass-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <label style="margin:0;">📷 Scanner QR Code Studente</label>
+      <button id="btnCamToggle" class="btn btn-small btn-outline" style="color:#e2e8f0; border-color:rgba(255,255,255,0.25);" onclick="avviaScanner()">Riavvia Fotocamera</button>
+    </div>
+    <div id="reader"></div>
+    <div id="camDiag" class="cam-diag"></div>
+  </section>
+
+  <!-- CONVALIDA MANUALE O MASSIVA D'AULA -->
+  <section class="glass-panel">
+    <label>✍️ Convalida Singola o Massiva d'Aula (Matricole separate da virgola o a capo)</label>
+    <textarea id="manualMat" rows="2" placeholder="Es. 3201456, 3204411, 3203300" style="margin-bottom:8px;"></textarea>
+    <button class="btn" style="width:100%;" onclick="convalidaManualeOMassiva(this)">✅ Certifica Matricole Inserite</button>
+  </section>
+
+  <!-- REGISTRO PRESENZE CONVALIDATE OGGI DAL DOCENTE -->
+  <section class="glass-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <label style="margin:0; color:#38bdf8;">📋 Convalidate Oggi da Te (<span id="cntOggi">0</span>)</label>
+      <span style="font-size:11px; color:#94a3b8;">Annullabile in giornata</span>
+    </div>
+    <div id="listaOggi"></div>
+  </section>
+
+  <div class="footer-tribute">
+    🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
+    Sistema Abilitante D.M. 653/2022 — Architecture by <b style="color:#f8fafc;">Mohaidine Aariouach</b>
+  </div>
+
+<script>
+  const SCOPE = 'docente';
+  let docState = {
+    token: UDA.session.get(SCOPE),
+    docentiLogin: [],
+    reparti: [],
+    config: {},
+    timbratureOggi: [],
+    ruoloScelto: 'Primo'
+  };
+  let html5QrCode = null;
+  let scannerBusy = false;
+  let overlayTimer = null;
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('turno').value = new Date().getHours() < 14 ? 'Mattina' : 'Pomeriggio';
+    UDA.ui.bindEnter(['pinProf'], () => autenticaDocente(document.getElementById('btnLoginDoc')));
+
+    await caricaListaDocentiLogin();
+
+    if (docState.token) {
+      try {
+        const chk = await UDA.rpc('rpc_verifica_sessione', { p_token: docState.token });
+        if (chk && chk.valida && (chk.ruolo === 'docente' || chk.ruolo === 'tutor')) {
+          document.getElementById('docenteLogin').style.display = 'none';
+          await caricaTerminale();
+          avviaScanner();
+          return;
+        }
+      } catch (_) {}
+      UDA.session.clear(SCOPE);
+      docState.token = null;
+    }
+  });
+
+  async function caricaListaDocentiLogin() {
+    const sel = document.getElementById('selProf');
+    const err = document.getElementById('errDoc');
+    try {
+      docState.docentiLogin = await UDA.rpc('rpc_lista_docenti_login') || [];
+      filtraListaDocentiLogin();
+      if (!docState.docentiLogin.length) {
+        err.textContent = 'Nessun Docente o Tutor ancora abilitato dalla Direzione Sistema.';
+        err.style.display = 'block';
+      }
+    } catch (e) {
+      sel.innerHTML = '<option value="">Connessione non disponibile</option>';
+      err.textContent = e.message;
+      err.style.display = 'block';
+    }
+  }
+
+  function filtraListaDocentiLogin() {
+    const q = document.getElementById('filterProf').value.toUpperCase().trim();
+    const esc = UDA.ui.esc;
+    const list = docState.docentiLogin.filter(d => d.nominativo.toUpperCase().includes(q));
+    document.getElementById('selProf').innerHTML = list.map(d =>
+      `<option value="${esc(d.id)}">${esc(d.nominativo)} (${d.ruolo === 'tutor' ? 'Tutor' : 'Docente'})</option>`
+    ).join('') || '<option value="">Nessun profilo trovato</option>';
+  }
+
+  async function autenticaDocente(btn) {
+    const idDoc = document.getElementById('selProf').value;
+    const pin = document.getElementById('pinProf').value.trim();
+    const err = document.getElementById('errDoc');
+    err.style.display = 'none';
+
+    if (!idDoc || !pin) {
+      err.textContent = 'Selezionare il nominativo e inserire il PIN.';
+      err.style.display = 'block';
+      return;
+    }
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const res = await UDA.rpc('rpc_login_docente', { p_id_docente: idDoc, p_pin: pin });
+        docState.token = res.token;
+        UDA.session.set(SCOPE, res.token);
+        UDA.time.sync(res.server_epoch);
+        document.getElementById('docenteLogin').style.display = 'none';
+        document.getElementById('pinProf').value = '';
+        await caricaTerminale();
+        avviaScanner();
+      } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+      }
+    }, 'Verifica PIN...');
+  }
+
+  async function logoutDocente() {
+    await fermaScanner();
+    try { if (docState.token) await UDA.rpc('rpc_logout', { p_token: docState.token }); } catch (_) {}
+    UDA.session.clear(SCOPE);
+    location.reload();
+  }
+
+  async function ricaricaTerminale(btn) {
+    await UDA.ui.lockBtn(btn, async () => {
+      await caricaTerminale();
+      UDA.ui.toast('Terminale aggiornato.', 'success');
+    }, '...');
+  }
+
+  async function caricaTerminale() {
+    try {
+      const data = await UDA.rpc('rpc_docente_bootstrap', { p_token: docState.token });
+      docState.config = data.config || {};
+      docState.reparti = data.reparti || [];
+      docState.timbratureOggi = data.timbrature_oggi || [];
+
+      const roleLbl = data.docente.ruolo === 'tutor' ? 'Tutor Clinico' : 'Docente';
+      document.getElementById('nomeHeader').textContent = `👨‍⚕️ ${data.docente.nominativo} (${roleLbl})`;
+
+      const maxOre = docState.config.max_ore_singola_timbratura || 12;
+      document.getElementById('ore').max = maxOre;
+      document.getElementById('lblNotaClinica').textContent = docState.config.nota_obbligatoria
+        ? `📝 Prestazione Clinica / Argomento Lezione (Obbligatorio, min ${docState.config.nota_min_caratteri || 3} car.)`
+        : '📝 Prestazione Clinica / Argomento Lezione (Facoltativo)';
+
+      filtraRepartiSelect();
+      const savedRep = localStorage.getItem('uda_v6_last_rep');
+      if (savedRep && docState.reparti.some(r => String(r.id_reparto) === savedRep)) {
+        document.getElementById('reparto').value = savedRep;
+      }
+
+      setRuolo(docState.ruoloScelto);
+      renderListaOggi();
+    } catch (e) {
+      if (String(e.raw || '').includes('NON_AUTORIZZATO')) {
+        UDA.session.clear(SCOPE);
+        location.reload();
+      } else {
+        UDA.ui.toast(e.message, 'error');
+      }
+    }
+  }
+
+  function filtraRepartiSelect() {
+    const q = document.getElementById('filterRep').value.toUpperCase().trim();
+    const sel = document.getElementById('reparto');
+    const prev = sel.value;
+    const esc = UDA.ui.esc;
+    const list = docState.reparti.filter(r => r.nome.toUpperCase().includes(q));
+    sel.innerHTML = list.map(r => `<option value="${r.id_reparto}">${esc(r.nome)}</option>`).join('') || '<option value="">Nessun reparto configurato</option>';
+    if (list.some(r => String(r.id_reparto) === prev)) sel.value = prev;
+  }
+
+  function salvaStatoLocale() {
+    localStorage.setItem('uda_v6_last_rep', document.getElementById('reparto').value);
+  }
+
+  function setRuolo(r) {
+    docState.ruoloScelto = r;
+    document.getElementById('btnPrimo').className = r === 'Primo' ? 'mode-btn active' : 'mode-btn';
+    document.getElementById('btnSecondo').className = r === 'Secondo' ? 'mode-btn active' : 'mode-btn';
+    document.getElementById('btnTeorico').className = r === 'Teorico' ? 'mode-btn active-teo' : 'mode-btn';
+
+    const soloPrimo = docState.config.blocco_ppv_solo_primo !== false;
+    const chk = document.getElementById('chkPpv');
+    chk.disabled = soloPrimo && r !== 'Primo';
+    if (chk.disabled) chk.checked = false;
+  }
+
+  // --------------------------------------------------------------------------
+  // SCANNER FOTOCAMERA & DIAGNOSTICA
+  // --------------------------------------------------------------------------
+  async function fermaScanner() {
+    if (html5QrCode) {
+      try { await html5QrCode.stop(); } catch (_) {}
+      try { html5QrCode.clear(); } catch (_) {}
+      html5QrCode = null;
+    }
+  }
+
+  async function avviaScanner() {
+    const diag = document.getElementById('camDiag');
+    diag.style.display = 'none';
+    await fermaScanner();
+
+    if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      diag.innerHTML = '⚠️ <b>Fotocamera bloccata dal browser:</b> lo scanner richiede una connessione sicura <b>HTTPS</b> (es. GitHub Pages o Netlify). Nel frattempo puoi comunque usare la <b>Convalida Manuale</b> qui sotto.';
+      diag.style.display = 'block';
+      return;
+    }
+
+    if (typeof Html5Qrcode === 'undefined') {
+      diag.innerHTML = '⚠️ Libreria scanner non caricata (verifica la connessione Internet). Usa la convalida manuale qui sotto.';
+      diag.style.display = 'block';
+      return;
+    }
+
+    try {
+      html5QrCode = new Html5Qrcode('reader');
+      await html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 12, qrbox: { width: 230, height: 230 } },
+        onScanSuccess
+      );
+    } catch (err) {
+      diag.innerHTML = `⚠️ <b>Fotocamera non attiva:</b> verifica di aver concesso il permesso fotocamera al browser nelle impostazioni del dispositivo, poi premi <b>Riavvia Fotocamera</b>. (${UDA.ui.esc(err && err.message ? err.message : 'Permesso negato o dispositivo assente')})`;
+      diag.style.display = 'block';
+    }
+  }
+
+  function playBeep(ok) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = ok ? 'sine' : 'sawtooth';
+      osc.frequency.value = ok ? 880 : 240;
+      gain.gain.value = 0.08;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      setTimeout(() => { osc.stop(); ctx.close(); }, ok ? 140 : 280);
+    } catch (_) {}
+  }
+
+  function mostraOverlay(ok, titolo, msg) {
+    const ov = document.getElementById('overlayEsito');
+    ov.style.background = ok ? 'rgba(5,150,105,0.96)' : 'rgba(220,38,38,0.96)';
+    document.getElementById('titoloEsito').textContent = titolo;
+    document.getElementById('msgEsito').textContent = msg;
+    ov.style.display = 'flex';
+    playBeep(ok);
+    if (navigator.vibrate) navigator.vibrate(ok ? 60 : [80, 50, 80]);
+    clearTimeout(overlayTimer);
+    overlayTimer = setTimeout(chiudiOverlayRapido, ok ? 2100 : 3200);
+  }
+
+  function chiudiOverlayRapido() {
+    clearTimeout(overlayTimer);
+    document.getElementById('overlayEsito').style.display = 'none';
+    scannerBusy = false;
+  }
+
+  function raccogliParametriForm() {
+    const idReparto = parseInt(document.getElementById('reparto').value, 10);
+    const turno = document.getElementById('turno').value;
+    const ore = parseFloat(document.getElementById('ore').value);
+    const ppv = document.getElementById('chkPpv').checked;
+    const nota = document.getElementById('notaClinica').value.trim();
+
+    if (!idReparto) throw new Error('Selezionare un Reparto o Modulo didattico.');
+    if (!ore || ore <= 0) throw new Error('Inserire un numero di ore valido.');
+    if (docState.config.nota_obbligatoria && nota.length < (docState.config.nota_min_caratteri || 3)) {
+      throw new Error(`Inserire la prestazione clinica o l'argomento (minimo ${docState.config.nota_min_caratteri || 3} caratteri).`);
+    }
+    return { idReparto, turno, ore, ppv, nota };
+  }
+
+  async function onScanSuccess(tokenBase64) {
+    if (scannerBusy) return;
+    scannerBusy = true;
+
+    try {
+      const form = raccogliParametriForm();
+      const parsed = UDA.crypto.parseQrToken(tokenBase64);
+
+      const res = await UDA.rpc('rpc_docente_valida_presenza', {
+        p_token: docState.token,
+        p_matricola: parsed.matricola,
+        p_id_reparto: form.idReparto,
+        p_ruolo_clinico: docState.ruoloScelto,
+        p_turno: form.turno,
+        p_ore: form.ore,
+        p_caso_ppv: form.ppv,
+        p_nota: form.nota,
+        p_origine: 'qr',
+        p_timestamp: parsed.timestamp,
+        p_firma: parsed.firma
+      });
+
+      mostraOverlay(true, '✅ CERTIFICATO', `${res.studente} (${res.matricola})\n+${form.ore}h in ${res.reparto}\n"${form.nota || '-'}"`);
+      await caricaTerminale();
+    } catch (e) {
+      mostraOverlay(false, '⛔ OPERAZIONE BLOCCATA', e.message);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // CONVALIDA MANUALE O MASSIVA D'AULA CON REPORT STRUTTURATO
+  // --------------------------------------------------------------------------
+  async function convalidaManualeOMassiva(btn) {
+    const raw = document.getElementById('manualMat').value.trim();
+    if (!raw) return UDA.ui.toast('Inserire almeno una matricola.', 'warn');
+
+    let form;
+    try { form = raccogliParametriForm(); }
+    catch (e) { return UDA.ui.toast(e.message, 'error', 4500); }
+
+    const matricole = Array.from(new Set(raw.split(/[\s,;]+/).map(m => m.trim()).filter(Boolean)));
+    if (!matricole.length) return;
+
+    await UDA.ui.lockBtn(btn, async () => {
+      const esiti = [];
+      for (const mat of matricole) {
+        try {
+          const res = await UDA.rpc('rpc_docente_valida_presenza', {
+            p_token: docState.token,
+            p_matricola: mat,
+            p_id_reparto: form.idReparto,
+            p_ruolo_clinico: docState.ruoloScelto,
+            p_turno: form.turno,
+            p_ore: form.ore,
+            p_caso_ppv: form.ppv,
+            p_nota: form.nota,
+            p_origine: 'manuale_docente',
+            p_timestamp: UDA.time.now(),
+            p_firma: null
+          });
+          esiti.push({ mat, ok: true, msg: `${res.studente} — +${form.ore}h registrate` });
+        } catch (e) {
+          esiti.push({ mat, ok: false, msg: e.message });
+        }
+      }
+
+      await caricaTerminale();
+      const okCount = esiti.filter(x => x.ok).length;
+      const koCount = esiti.length - okCount;
+
+      if (esiti.length === 1) {
+        if (okCount === 1) {
+          document.getElementById('manualMat').value = '';
+          mostraOverlay(true, '✅ CERTIFICATO', esiti[0].msg);
+        } else {
+          mostraOverlay(false, '⛔ BLOCCATO', `${esiti[0].mat}: ${esiti[0].msg}`);
+        }
+        return;
+      }
+
+      // Report dettagliato per convalida multipla
+      if (koCount === 0) document.getElementById('manualMat').value = '';
+      else document.getElementById('manualMat').value = esiti.filter(x => !x.ok).map(x => x.mat).join(', ');
+
+      const esc = UDA.ui.esc;
+      document.getElementById('reportSummary').innerHTML =
+        `Elaborate <b>${esiti.length}</b> matricole: <b style="color:var(--ok);">${okCount} certificate</b> — <b style="color:var(--ko);">${koCount} bloccate</b>.${koCount > 0 ? ' Le matricole bloccate sono rimaste nel campo per eventuale correzione.' : ''}`;
+      document.getElementById('reportList').innerHTML = esiti.map(x => `
+        <div class="report-row">
+          <div><b>${esc(x.mat)}</b><div style="font-size:11.5px; color:${x.ok ? 'var(--ok)' : 'var(--ko)'};">${esc(x.msg)}</div></div>
+          <span class="badge ${x.ok ? 'status-done' : 'status-risk'}">${x.ok ? 'OK' : 'BLOCCATO'}</span>
+        </div>
+      `).join('');
+      document.getElementById('modalReport').style.display = 'flex';
+    }, 'Certificazione...');
+  }
+
+  // --------------------------------------------------------------------------
+  // REGISTRO GIORNATA DOCENTE CON ANNULLAMENTO RAPIDO
+  // --------------------------------------------------------------------------
+  function renderListaOggi() {
+    const list = docState.timbratureOggi || [];
+    document.getElementById('cntOggi').textContent = list.length;
+    const esc = UDA.ui.esc;
+
+    document.getElementById('listaOggi').innerHTML = list.map(t => `
+      <div class="log-item">
+        <div>
+          <div style="font-weight:700; color:#f8fafc;">${esc(t.ora_reg)} • ${esc(t.studente)} (${esc(t.matricola)})</div>
+          <div style="color:#94a3b8; font-size:11.5px;">
+            ${esc(t.reparto)} • <b>${UDA.ui.formatNum(t.ore)}h</b> (${t.ruolo === 'Primo' ? '1° Op' : (t.ruolo === 'Secondo' ? '2° Op' : 'Teorico')}) ${t.ppv ? '★ PPV' : ''}
+          </div>
+          <div style="color:#cbd5e1; font-size:11px; margin-top:2px;"><i>"${esc(t.nota)}"</i></div>
+        </div>
+        <button class="btn btn-small btn-ko" onclick="annullaTimbraturaOggi('${t.id}', '${esc(t.studente)}', this)">Annulla</button>
+      </div>
+    `).join('') || '<div style="font-size:12px; color:#94a3b8; text-align:center; padding:10px;">Nessuna presenza convalidata oggi.</div>';
+  }
+
+  async function annullaTimbraturaOggi(id, nome, btn) {
+    if (!confirm(`Annullare la timbratura appena registrata per ${nome}?`)) return;
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_docente_annulla_timbratura', { p_token: docState.token, p_id_timbratura: id });
+        await caricaTerminale();
+        UDA.ui.toast('Timbratura annullata.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+</script>
+</body>
+</html>

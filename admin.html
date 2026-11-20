@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Ud'A - Direzione Sistema Tirocini</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="config.js"></script>
+  <script src="core.js"></script>
+</head>
+<body class="layout-admin">
+
+  <!-- AUTENTICAZIONE AMMINISTRATORE -->
+  <div id="adminLogin" class="login-overlay">
+    <div class="login-box">
+      <div style="font-size:32px; margin-bottom:8px;">🏛️</div>
+      <h2 style="margin:0 0 4px; font-size:19px;">Direzione Sistema Tirocini</h2>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">Università degli Studi "G. d'Annunzio" Chieti-Pescara</p>
+      <input type="email" id="admEmail" placeholder="Email Istituzionale Amministratore" autocomplete="username">
+      <input type="password" id="admPass" placeholder="Password di Sistema" autocomplete="current-password">
+      <button id="btnLoginAdmin" class="btn" style="width:100%; margin-top:12px; padding:13px;" onclick="effettuaLoginAdmin(this)">Autenticazione</button>
+      <div id="loginError" class="login-error"></div>
+    </div>
+  </div>
+
+  <!-- MODALE CERTIFICATO UFFICIALE A4 -->
+  <div id="modalCertificato" class="modal-backdrop">
+    <div class="cert-box" id="certContent"></div>
+  </div>
+
+  <!-- BACKDROP SIDEBAR MOBILE -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
+
+  <!-- MENU LATERALE -->
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <div class="brand-title">DIREZIONE SISTEMA</div>
+      <div class="brand-sub">CdS Odontoiatria e Protesi Dentaria</div>
+    </div>
+    <div class="nav active" onclick="switchTab('tab-stu', this)">🎓 Anagrafica Studenti (1°-6°)</div>
+    <div class="nav" onclick="switchTab('tab-piani', this)">📚 Ordinamento & Reparti</div>
+    <div class="nav" onclick="switchTab('tab-doc', this)">👨‍⚕️ Corpo Docente & Tutor</div>
+    <div class="nav" onclick="switchTab('tab-timbrature', this)">📋 Registro & Convalida</div>
+    <div class="nav" onclick="switchTab('tab-email', this)">📧 Centro Email & Credenziali</div>
+    <div class="nav" onclick="switchTab('tab-regole', this)">⚙️ Regole, Blocchi & Audit</div>
+    <div class="nav" onclick="switchTab('tab-accessi', this)">🏛️ Accessi & Backup DB</div>
+
+    <div style="padding:14px 20px;">
+      <button class="btn btn-ko btn-small" style="width:100%;" onclick="logoutAdmin()">Disconnetti Sessione</button>
+    </div>
+
+    <div class="footer-tribute">
+      Università "G. d'Annunzio" Chieti-Pescara<br>
+      Sistema Abilitante D.M. 653/2022<br>
+      Architecture by <b style="color:#f8fafc;">Mohaidine Aariouach</b>
+    </div>
+  </aside>
+
+  <!-- CONTENUTO PRINCIPALE -->
+  <main class="content">
+    <div class="header-bar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="mobile-menu-btn" onclick="toggleSidebar(true)" aria-label="Apri menu">☰</button>
+        <h2 id="pageTitle" style="margin:0; font-size:20px;">Anagrafica Studenti (1°-6°)</h2>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-small btn-outline" onclick="caricaDatiAdmin(this)">🔄 Aggiorna Dati</button>
+        <button class="btn btn-small btn-secondary" onclick="window.open('studente.html', '_blank')">📱 Portale Studente</button>
+        <button class="btn btn-small" style="background:#0369a1;" onclick="window.open('index.html', '_blank')">📷 Terminale Docenti</button>
+        <button class="btn btn-small btn-navy" onclick="window.open('presidenza.html', '_blank')">🏛️ Cruscotto Presidenza</button>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: ANAGRAFICA STUDENTI                                        -->
+    <!-- ================================================================= -->
+    <section id="tab-stu" class="tab-content active">
+      <div class="grid-2" style="margin-bottom:16px;">
+        <label class="upload-box" style="margin:0;">
+          <strong style="color:var(--accent); font-size:13.5px;">📥 Importa Flusso Segreteria Excel / CSV (Upsert)</strong>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Riconosce automaticamente le intestazioni (Matricola, Cognome, Nome, Email, Coorte, Anno, Bonus) preservando lo storico</div>
+          <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" style="display:none;" onchange="importaExcelStudenti(event)">
+        </label>
+        <div class="upload-box" style="border-color:var(--excel); background:#f0fdf4; margin:0;" onclick="esportaExcelStudenti()">
+          <strong style="color:var(--excel); font-size:13.5px;">📤 Esporta Tracciato Ufficiale ESSE3 (.xlsx)</strong>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Prospetto completo con Ore 1° Op (TPV), 2° Op, Teoriche, PPV e stato di idoneità</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>➕ Iscrizione / Abilitazione Singolo Studente</h3>
+        <div class="grid-4" style="margin-bottom:10px;">
+          <div><label>Matricola *</label><input type="text" id="newStuMat" placeholder="Es. 3201456"></div>
+          <div><label>Cognome *</label><input type="text" id="newStuCognome" placeholder="Cognome"></div>
+          <div><label>Nome *</label><input type="text" id="newStuNome" placeholder="Nome"></div>
+          <div><label>Email Istituzionale</label><input type="email" id="newStuEmail" placeholder="nome@studenti.unich.it"></div>
+        </div>
+        <div class="grid-4" style="align-items:end;">
+          <div><label>Coorte (A.A.)</label><select id="newStuCoorte" class="coorte-select"></select></div>
+          <div>
+            <label>Anno di Corso</label>
+            <select id="newStuAnno">
+              <option value="1">1° Anno</option><option value="2">2° Anno</option><option value="3">3° Anno</option>
+              <option value="4">4° Anno</option><option value="5" selected>5° Anno</option><option value="6">6° Anno</option>
+              <option value="FC">Fuori Corso (FC)</option>
+            </select>
+          </div>
+          <div><label>Ore Pregresse Bonus TPV</label><input type="number" id="newStuBonus" value="0" step="0.5" min="0"></div>
+          <div><label>Password Iniziale (Auto se vuota)</label><input type="text" id="newStuPass" placeholder="Generata automaticamente"></div>
+        </div>
+        <button class="btn" style="margin-top:12px;" onclick="aggiungiStudenteManuale(this)">Registra Studente in Anagrafica</button>
+      </div>
+
+      <div class="panel">
+        <h3>
+          <span>Studenti Iscritti & Monitoraggio Carriera (<span id="countStudenti">0</span>)</span>
+        </h3>
+        <div class="grid-3" style="margin-bottom:14px;">
+          <input type="text" id="cercaStu" placeholder="🔍 Filtra per Matricola, Cognome, Nome o Email..." oninput="renderStudenti()">
+          <select id="filtroCoorteStu" onchange="renderStudenti()"><option value="">Tutte le Coorti</option></select>
+          <select id="filtroAnnoStu" onchange="renderStudenti()">
+            <option value="">Tutti gli Attivi (1° - 6°, FC)</option>
+            <option value="1">1° Anno</option><option value="2">2° Anno</option><option value="3">3° Anno</option>
+            <option value="4">4° Anno</option><option value="5">5° Anno</option><option value="6">6° Anno</option>
+            <option value="FC">Fuori Corso (FC)</option><option value="ARCH">Solo Archiviati</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Matricola</th><th>Cognome / Nome / Email</th><th>Coorte & Anno</th>
+                <th>Credenziali</th><th>Bonus</th><th>1° Op (TPV)</th><th>2° Op</th><th>Teorico</th><th>PPV</th><th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="tabellaStudenti"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: ORDINAMENTO & REPARTI PER ANNO (1° - 6°)                   -->
+    <!-- ================================================================= -->
+    <section id="tab-piani" class="tab-content">
+      <div class="panel" style="border-left:4px solid var(--accent);">
+        <h3>📚 Gestione Coorti d'Immatricolazione</h3>
+        <p style="font-size:12px; color:var(--muted); margin-top:0;">
+          Ogni Coorte congela il proprio piano di studi dal 1° al 6° anno. Tutti i target orari e PPV si sommano dinamicamente dai reparti configurati qui sotto.
+        </p>
+        <div class="grid-4" style="align-items:end; background:#f8fafc; padding:14px; border-radius:8px; border:1px solid var(--border);">
+          <div><label>Coorte da Configurare</label><select id="selCoorteAttiva" class="coorte-select" onchange="renderPianiStudio()"></select></div>
+          <div><label>Nuova Coorte (A.A.)</label><input type="text" id="nuovaCoorteInput" placeholder="Es. 2027/2028"></div>
+          <div><button class="btn btn-navy" style="width:100%;" onclick="creaNuovaCoorte(this)">➕ Crea (clonando l'attuale)</button></div>
+          <div><button class="btn btn-ko" style="width:100%;" onclick="eliminaCoorteSelezionata(this)">🗑️ Elimina Coorte</button></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>
+          <span>📅 Piano Reparti e Moduli — Coorte <b id="lblCoorteReparti" style="color:var(--accent);"></b></span>
+          <span id="sommaOrePiano" class="badge status-progress" style="font-size:11px; white-space:normal;"></span>
+        </h3>
+
+        <div class="year-pills" id="yearPillsContainer">
+          <div class="year-pill" onclick="selezionaAnnoPiano('1', this)">1° Anno</div>
+          <div class="year-pill" onclick="selezionaAnnoPiano('2', this)">2° Anno</div>
+          <div class="year-pill" onclick="selezionaAnnoPiano('3', this)">3° Anno</div>
+          <div class="year-pill" onclick="selezionaAnnoPiano('4', this)">4° Anno</div>
+          <div class="year-pill active" onclick="selezionaAnnoPiano('5', this)">5° Anno</div>
+          <div class="year-pill" onclick="selezionaAnnoPiano('6', this)">6° Anno</div>
+        </div>
+
+        <div class="grid-6" style="margin-bottom:12px; align-items:end; background:#f8fafc; padding:14px; border-radius:8px; border:1px solid var(--border);">
+          <div style="grid-column:span 2;">
+            <label>Denominazione Reparto Clinico o Modulo Teorico</label>
+            <input type="text" id="nuovoRepartoNome" list="dlCatalogoReparti" placeholder="Es. Chirurgia Orale A" autocomplete="off">
+            <datalist id="dlCatalogoReparti"></datalist>
+          </div>
+          <div><label>Ore 1° Op (TPV)</label><input type="number" id="nuovoRepTpV" value="40" step="5" min="0"></div>
+          <div><label>Ore 2° Operatore</label><input type="number" id="nuovoRepSec" value="20" step="5" min="0"></div>
+          <div><label>Ore Teorico</label><input type="number" id="nuovoRepTeo" value="0" step="2" min="0"></div>
+          <div><label>PPV Richiesti</label><input type="number" id="nuovoRepPpv" value="0" step="1" min="0"></div>
+        </div>
+        <button class="btn" style="margin-bottom:14px;" onclick="aggiungiRepartoPiano(this)">➕ Inserisci nel Piano del <span id="btnLblAnno">5</span>° Anno</button>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Anno</th><th>Reparto Clinico / Modulo Teorico</th>
+                <th>1° Op (TPV)</th><th>2° Op</th><th>Teorico</th><th>PPV</th><th>Totale & CFU</th><th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="tabellaPianiStudio"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: CORPO DOCENTE E TUTOR CLINICI                              -->
+    <!-- ================================================================= -->
+    <section id="tab-doc" class="tab-content">
+      <div class="panel">
+        <h3>➕ Abilitazione Nuovo Docente o Tutor Clinico</h3>
+        <div class="grid-6" style="align-items:end;">
+          <div>
+            <label>Qualifica</label>
+            <select id="ruoloDoc"><option value="docente">Docente Universitario</option><option value="tutor">Tutor Clinico</option></select>
+          </div>
+          <div><label>Cognome *</label><input type="text" id="cognomeDoc" placeholder="Cognome"></div>
+          <div><label>Nome *</label><input type="text" id="nomeDoc" placeholder="Es. Prof. Giuseppe"></div>
+          <div style="grid-column:span 2;"><label>Email Istituzionale *</label><input type="email" id="emailDoc" placeholder="cognome@unich.it"></div>
+          <div><label>PIN (Auto se vuoto)</label><input type="text" id="pinDoc" placeholder="6 cifre"></div>
+        </div>
+        <button class="btn" style="margin-top:12px;" onclick="creaDocente(this)">Abilita Validatore & Genera PIN</button>
+      </div>
+
+      <div class="panel">
+        <h3>Corpo Docente & Tutor Clinici Abilitati (<span id="countDocenti">0</span>)</h3>
+        <input type="text" id="cercaDoc" placeholder="🔍 Cerca per Nominativo o Email..." oninput="renderDocenti()" style="margin-bottom:12px;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Qualifica</th><th>Cognome</th><th>Nome</th><th>Email Istituzionale</th><th>PIN Terminale</th><th>Stato</th><th>Azioni</th></tr></thead>
+            <tbody id="tabellaDocenti"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 4: REGISTRO & CONVALIDA PRESENZE                              -->
+    <!-- ================================================================= -->
+    <section id="tab-timbrature" class="tab-content">
+      <div class="panel" style="border-left:4px solid var(--accent);">
+        <h3>✍️ Registrazione Presenza Clinica o Teorica Frontale</h3>
+        <div class="grid-6" style="margin-bottom:10px;">
+          <div>
+            <label>🔍 Studente (Matricola/Nome)</label>
+            <input type="text" id="ovMat" list="dlStudenti" class="search-select" placeholder="Digita matricola o nome..." oninput="filtraRepartiPerStudente()" autocomplete="off">
+            <datalist id="dlStudenti"></datalist>
+          </div>
+          <div>
+            <label>🔍 Docente / Tutor</label>
+            <input type="text" id="ovDoc" list="dlDocenti" class="search-select" placeholder="Digita nome docente..." autocomplete="off">
+            <datalist id="dlDocenti"></datalist>
+          </div>
+          <div>
+            <label>🔍 Reparto / Modulo</label>
+            <input type="text" id="ovRep" list="dlReparti" class="search-select" placeholder="Digita o scegli reparto..." autocomplete="off">
+            <datalist id="dlReparti"></datalist>
+          </div>
+          <div><label>Data Attività</label><input type="date" id="ovData"></div>
+          <div>
+            <label>Tipologia & Turno</label>
+            <select id="ovRuolo">
+              <option value="Primo|Mattina|false">1° Op (TPV) - Mattina</option>
+              <option value="Primo|Pomeriggio|false">1° Op (TPV) - Pomeriggio</option>
+              <option value="Primo|Mattina|true">1° Op + Caso PPV - Mattina</option>
+              <option value="Primo|Pomeriggio|true">1° Op + Caso PPV - Pomeriggio</option>
+              <option value="Secondo|Mattina|false">2° Operatore - Mattina</option>
+              <option value="Secondo|Pomeriggio|false">2° Operatore - Pomeriggio</option>
+              <option value="Teorico|Mattina|false">📚 Teorico Frontale - Mattina</option>
+              <option value="Teorico|Pomeriggio|false">📚 Teorico Frontale - Pomeriggio</option>
+            </select>
+          </div>
+          <div><label>Ore</label><input type="number" id="ovOre" step="0.5" min="0.5" max="12" value="4"></div>
+        </div>
+        <div class="grid-3" style="align-items:end;">
+          <div style="grid-column:span 2;">
+            <label>📝 Prestazione Clinica Eseguita / Argomento Lezione</label>
+            <input type="text" id="ovNota" placeholder="Descrivere la prestazione o l'argomento trattato">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <label style="display:flex; align-items:center; gap:7px; text-transform:none; cursor:pointer; color:var(--warn); margin:0;">
+              <input type="checkbox" id="ovForza" style="width:16px; height:16px; margin:0;"> Forza inserimento (ignora blocchi normativi)
+            </label>
+            <button class="btn" style="width:100%;" onclick="registraTimbraturaAdmin(this)">✅ Certifica e Registra</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Registro Generale delle Presenze (<span id="countTimbrature">0</span>)</h3>
+        <div class="grid-4" style="margin-bottom:12px;">
+          <input type="text" id="cercaTimb" placeholder="🔍 Matricola, Studente, Docente, Reparto, Nota..." oninput="renderTimbrature()">
+          <select id="filtroTipoTimb" onchange="renderTimbrature()">
+            <option value="">Tutte le Tipologie</option>
+            <option value="Primo">Solo 1° Operatore (TPV)</option>
+            <option value="Secondo">Solo 2° Operatore</option>
+            <option value="Teorico">Solo Teorico Frontale</option>
+          </select>
+          <input type="date" id="filtroDataTimb" onchange="renderTimbrature()">
+          <button class="btn btn-secondary" onclick="resetFiltriTimbrature()">Reimposta Filtri</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Data & Turno</th><th>Studente</th><th>Docente / Origine</th><th>Reparto</th><th>Tipologia & PPV</th><th>Prestazione / Argomento</th><th>Ore</th><th>Azioni</th></tr></thead>
+            <tbody id="listaTimbrature"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 5: CENTRO EMAIL & DISTRIBUZIONE CREDENZIALI                   -->
+    <!-- ================================================================= -->
+    <section id="tab-email" class="tab-content">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Studenti da Avvisare</div><div id="kpiMailStuTodo" class="kpi-val" style="color:var(--accent);">0</div></div>
+        <div class="kpi"><div class="kpi-label">Studenti Già Avvisati</div><div id="kpiMailStuDone" class="kpi-val" style="color:var(--ok);">0</div></div>
+        <div class="kpi"><div class="kpi-label">Docenti / Tutor da Avvisare</div><div id="kpiMailDocTodo" class="kpi-val" style="color:var(--purple);">0</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel" style="border-left:4px solid var(--accent);">
+          <h3>🚀 Canale 1 — Invio Automatico 1-Click (Edge Function)</h3>
+          <p style="font-size:12px; color:var(--muted); margin-top:0;">
+            Invia automaticamente email formattate con credenziali e link diretto tramite la Edge Function Supabase (Brevo / Resend). Invia solo agli utenti non ancora avvisati.
+          </p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+            <button class="btn" style="flex:1;" onclick="inviaEmailMassivo('studente', this)">📧 Invia a Tutti i Nuovi Studenti</button>
+            <button class="btn btn-purple" style="flex:1;" onclick="inviaEmailMassivo('docente', this)">📧 Invia PIN ai Nuovi Docenti</button>
+          </div>
+          <div id="emailProgressWrap" style="display:none;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:4px;">
+              <span id="emailProgressLabel">Invio in corso...</span>
+              <span id="emailProgressPct">0%</span>
+            </div>
+            <div class="bar-bg"><div id="emailProgressBar" class="bar-fill" style="width:0%;"></div></div>
+          </div>
+        </div>
+
+        <div class="panel" style="border-left:4px solid var(--ok);">
+          <h3>🏛️ Canale 2 — Stampa Unione Istituzionale (Outlook / Gmail Ud'A)</h3>
+          <p style="font-size:12px; color:var(--muted); margin-top:0;">
+            Alternativa a zero configurazione API: scarica il file CSV pronto per Stampa Unione da inviare direttamente dall'email ufficiale della Segreteria.
+          </p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-ok" style="flex:1;" onclick="esportaCsvEmail('studenti_nuovi')">📋 CSV Nuovi Studenti</button>
+            <button class="btn btn-teal" style="flex:1;" onclick="esportaCsvEmail('studenti_tutti')">📋 CSV Tutti gli Studenti</button>
+            <button class="btn btn-navy" style="flex:1;" onclick="esportaCsvEmail('docenti')">📋 CSV Docenti & Tutor</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Coda Credenziali da Inviare (Studenti con Password Iniziale Attiva)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Matricola</th><th>Nominativo</th><th>Email</th><th>Coorte / Anno</th><th>Password Iniziale</th><th>Stato Invio</th><th>Azioni Rapide</th></tr></thead>
+            <tbody id="tabellaEmailQueue"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 6: REGOLE, BLOCCHI DINAMICI & AUDIT LOG                       -->
+    <!-- ================================================================= -->
+    <section id="tab-regole" class="tab-content">
+      <div class="panel" style="border-left:4px solid var(--ok);">
+        <h3>
+          <span>⚙️ Regole Operative e Blocchi Normativi (Attivi in Tempo Reale su tutto il DB)</span>
+          <button class="btn btn-ok" onclick="salvaConfigRegole(this)">💾 Salva Configurazione Blocchi</button>
+        </h3>
+
+        <div class="grid-2">
+          <div>
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">Blocco Tetto Orario per Reparto</div>
+                <div class="rule-desc">Impedisce di superare le ore configurate nel Piano di Studi per la disciplina</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="cfg_blocco_tetto_reparto"><span class="slider"></span></label>
+            </div>
+
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">Blocco Reparti di Anni Futuri</div>
+                <div class="rule-desc">Consente di timbrare solo i reparti previsti fino all'anno attuale (esclusi Fuori Corso)</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="cfg_blocco_anno_futuro"><span class="slider"></span></label>
+            </div>
+
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">Blocco Doppia Timbratura (Anti-Doppione)</div>
+                <div class="rule-desc">Impedisce due presenze identiche per Studente + Data + Turno + Reparto</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="cfg_blocco_doppione_turno"><span class="slider"></span></label>
+            </div>
+
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">PPV Consentito Solo come 1° Operatore</div>
+                <div class="rule-desc">Vincolo D.M. 653/2022 per la certificazione delle Prove Pratiche Valutative</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="cfg_blocco_ppv_solo_primo"><span class="slider"></span></label>
+            </div>
+
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">Nota Clinica / Argomento Obbligatorio</div>
+                <div class="rule-desc">Richiede la descrizione della prestazione svolta prima di salvare</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="cfg_nota_obbligatoria"><span class="slider"></span></label>
+            </div>
+
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">Cambio Password Autonomo Studente</div>
+                <div class="rule-desc">Permette agli studenti di personalizzare la password dal proprio portale</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="cfg_studente_cambio_password"><span class="slider"></span></label>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel" style="background:#f8fafc; margin-bottom:0;">
+              <h3 style="font-size:13px;">Parametri Numerici dei Limiti</h3>
+              <div style="margin-bottom:12px;">
+                <label>Max Ore Cumulabili per Singolo Turno (Mattina o Pomeriggio — 0 = disattivato)</label>
+                <input type="number" id="cfg_max_ore_turno" step="0.5" min="0" max="12">
+              </div>
+              <div style="margin-bottom:12px;">
+                <label>Max Ore per Singola Registrazione</label>
+                <input type="number" id="cfg_max_ore_singola_timbratura" step="0.5" min="0.5" max="24">
+              </div>
+              <div style="margin-bottom:12px;">
+                <label>Validità QR Code Dinamico in Secondi (0 = disattivato)</label>
+                <input type="number" id="cfg_qr_validita_sec" step="10" min="0" max="600">
+              </div>
+              <div>
+                <label>Lunghezza Minima Nota Clinica (caratteri)</label>
+                <input type="number" id="cfg_nota_min_caratteri" step="1" min="1" max="50">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>🛡️ Audit Log Medico-Legale (Ultime 150 Operazioni Critiche)</h3>
+        <div class="table-wrap" style="max-height:360px;">
+          <table>
+            <thead><tr><th>Data / Ora</th><th>Operatore</th><th>Azione</th><th>Tabella</th><th>Dettagli</th></tr></thead>
+            <tbody id="tabellaAudit"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 7: ACCESSI DIREZIONALI & BACKUP DATABASE                      -->
+    <!-- ================================================================= -->
+    <section id="tab-accessi" class="tab-content">
+      <div class="grid-2">
+        <div class="panel">
+          <h3>🏛️ Accesso Cruscotto Presidenza CdS</h3>
+          <label>Email Istituzionale Presidenza</label>
+          <input type="email" id="cfgPresEmail" style="margin-bottom:10px;">
+          <label>Nuova Password Presidenza (lascia vuoto per mantenerla invariata)</label>
+          <input type="password" id="cfgPresPass" placeholder="Nuova password..." style="margin-bottom:14px;">
+          <button class="btn btn-ok" style="width:100%;" onclick="aggiornaAccessoDirezionale('presidenza', this)">💾 Aggiorna Accesso Presidenza</button>
+        </div>
+
+        <div class="panel">
+          <h3>🔐 Accesso Direzione Sistema (Super-Admin)</h3>
+          <label>Email Amministratore</label>
+          <input type="email" id="cfgAdmEmail" style="margin-bottom:10px;">
+          <label>Nuova Password Amministratore (lascia vuoto per mantenerla invariata)</label>
+          <input type="password" id="cfgAdmPass" placeholder="Nuova password..." style="margin-bottom:14px;">
+          <button class="btn" style="width:100%;" onclick="aggiornaAccessoDirezionale('superadmin', this)">💾 Aggiorna Accesso Admin</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>📦 Backup Completo Database & Diagnostica Supabase</h3>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+          <button class="btn btn-teal" onclick="scaricaBackupJSON(this)">📦 Scarica Backup Completo JSON (Disaster Recovery)</button>
+          <button class="btn btn-outline" onclick="testConnessioneDB(this)">⚡ Test Connessione & Keep-Alive Server</button>
+          <span id="pingStatus" style="font-size:12px; font-weight:700; color:var(--muted);"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const SCOPE = 'admin';
+  let state = {
+    token: UDA.session.get(SCOPE),
+    config: {},
+    coorti: [],
+    reparti: [],
+    piani: [],
+    studenti: [],
+    docenti: [],
+    timbrature: [],
+    audit: [],
+    direzione: {}
+  };
+  let annoPianoSelezionato = '5';
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    const oggi = new Date().toISOString().split('T')[0];
+    document.getElementById('ovData').max = oggi;
+    document.getElementById('ovData').value = oggi;
+
+    UDA.ui.bindEnter(['admEmail', 'admPass'], () => effettuaLoginAdmin(document.getElementById('btnLoginAdmin')));
+
+    if (state.token) {
+      try {
+        const chk = await UDA.rpc('rpc_verifica_sessione', { p_token: state.token });
+        if (chk && chk.valida && chk.ruolo === 'superadmin') {
+          document.getElementById('adminLogin').style.display = 'none';
+          await caricaDatiAdmin();
+          return;
+        }
+      } catch (_) {}
+      UDA.session.clear(SCOPE);
+      state.token = null;
+    }
+  });
+
+  function toggleSidebar(open) {
+    document.getElementById('sidebar').classList.toggle('open', open);
+    document.getElementById('sidebarBackdrop').classList.toggle('open', open);
+  }
+
+  function switchTab(id, el) {
+    document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.nav').forEach(e => e.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (el) {
+      el.classList.add('active');
+      document.getElementById('pageTitle').textContent = el.textContent.replace(/^[^\wÀ-ÿ]+/, '').trim();
+    }
+    toggleSidebar(false);
+  }
+
+  // --------------------------------------------------------------------------
+  // AUTENTICAZIONE & BOOTSTRAP
+  // --------------------------------------------------------------------------
+  async function effettuaLoginAdmin(btn) {
+    const email = document.getElementById('admEmail').value.trim();
+    const pass = document.getElementById('admPass').value;
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+
+    if (!email || !pass) {
+      errEl.textContent = 'Inserire email e password.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const res = await UDA.rpc('rpc_login', {
+          p_identificativo: email,
+          p_segreto: pass,
+          p_ruoli: ['superadmin']
+        });
+        state.token = res.token;
+        UDA.session.set(SCOPE, res.token);
+        UDA.time.sync(res.server_epoch);
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('admPass').value = '';
+        await caricaDatiAdmin();
+        UDA.ui.toast('Accesso Direzione Sistema confermato.', 'success');
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = 'block';
+      }
+    }, 'Verifica...');
+  }
+
+  async function logoutAdmin() {
+    try { if (state.token) await UDA.rpc('rpc_logout', { p_token: state.token }); } catch (_) {}
+    UDA.session.clear(SCOPE);
+    location.reload();
+  }
+
+  async function caricaDatiAdmin(btn) {
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const data = await UDA.rpc('rpc_admin_bootstrap', { p_token: state.token });
+        state.config = data.config || {};
+        state.coorti = data.coorti || [];
+        state.reparti = data.reparti || [];
+        state.piani = data.piani || [];
+        state.studenti = data.studenti || [];
+        state.docenti = data.docenti || [];
+        state.timbrature = data.timbrature || [];
+        state.audit = data.audit || [];
+        state.direzione = data.direzione || {};
+        aggiornaTuttoUI();
+        if (btn) UDA.ui.toast('Dati sincronizzati dal server.', 'success');
+      } catch (e) {
+        if (String(e.raw || '').includes('NON_AUTORIZZATO')) {
+          UDA.session.clear(SCOPE);
+          location.reload();
+        } else {
+          UDA.ui.toast(e.message, 'error');
+        }
+      }
+    }, 'Sincronizzazione...');
+  }
+
+  function aggiornaTuttoUI() {
+    popolaSelectCoorti();
+    popolaCataloghi();
+    renderStudenti();
+    renderPianiStudio();
+    renderDocenti();
+    renderTimbrature();
+    renderCentroEmail();
+    renderConfigRegole();
+    renderAudit();
+    document.getElementById('cfgAdmEmail').value = state.direzione.admin_email || '';
+    document.getElementById('cfgPresEmail').value = state.direzione.presidenza_email || '';
+  }
+
+  // --------------------------------------------------------------------------
+  // TAB 1: STUDENTI & EXCEL
+  // --------------------------------------------------------------------------
+  function renderStudenti() {
+    const q = document.getElementById('cercaStu').value.toUpperCase().trim();
+    const fCoorte = document.getElementById('filtroCoorteStu').value;
+    const fAnno = document.getElementById('filtroAnnoStu').value;
+    const tbody = document.getElementById('tabellaStudenti');
+    const esc = UDA.ui.esc;
+
+    const filtrati = state.studenti.filter(s => {
+      const text = `${s.matricola} ${s.cognome} ${s.nome} ${s.email}`.toUpperCase();
+      if (q && !text.includes(q)) return false;
+      if (fCoorte && s.coorte !== fCoorte) return false;
+      if (fAnno === 'ARCH') return s.archiviato === true;
+      if (fAnno) return !s.archiviato && s.anno_corso === fAnno;
+      return !s.archiviato;
+    });
+
+    document.getElementById('countStudenti').textContent = filtrati.length;
+
+    tbody.innerHTML = filtrati.map(s => {
+      const m = UDA.calc.metricheStudente(s, state.piani, state.timbrature);
+      const optCoorte = state.coorti.map(c => `<option value="${esc(c)}" ${s.coorte === c ? 'selected' : ''}>${esc(c)}</option>`).join('');
+      const optAnno = ['1','2','3','4','5','6','FC'].map(a => `<option value="${a}" ${s.anno_corso === a ? 'selected' : ''}>${a === 'FC' ? 'Fuori Corso' : a + '° Anno'}</option>`).join('');
+      const pwdBadge = s.password_iniziale
+        ? `<code style="background:#fefce8; padding:3px 6px; border-radius:4px; border:1px solid #fde047; font-size:11px;">${esc(s.password_iniziale)}</code>`
+        : `<span class="badge status-done">Personalizzata</span>`;
+      const mailBadge = s.credenziali_inviate
+        ? `<span class="badge status-done" style="margin-top:4px;">✓ Email inviata</span>`
+        : `<span class="badge status-todo" style="margin-top:4px;">Da inviare</span>`;
+
+      return `
+        <tr style="${s.archiviato ? 'opacity:0.6;' : ''}">
+          <td><strong>${esc(s.matricola)}</strong></td>
+          <td style="min-width:190px;">
+            <div style="display:flex; gap:4px; margin-bottom:4px;">
+              <input type="text" id="cog_${s.id}" value="${esc(s.cognome)}" placeholder="Cognome" style="padding:4px 6px; font-weight:600;">
+              <input type="text" id="nom_${s.id}" value="${esc(s.nome)}" placeholder="Nome" style="padding:4px 6px; font-weight:600;">
+            </div>
+            <input type="email" id="eml_${s.id}" value="${esc(s.email)}" style="padding:4px 6px; font-size:11px; color:var(--muted);">
+          </td>
+          <td style="min-width:110px;">
+            <select id="coo_${s.id}" style="padding:4px; margin-bottom:4px;">${optCoorte}</select>
+            <select id="ann_${s.id}" style="padding:4px;">${optAnno}</select>
+          </td>
+          <td>${pwdBadge}<br>${mailBadge}</td>
+          <td><input type="number" class="num-input" id="bon_${s.id}" value="${s.ore_pregresse_bonus || 0}" step="0.5" min="0"></td>
+          <td><b style="color:${m.isIdoneo ? 'var(--ok)' : 'var(--accent)'};">${UDA.ui.formatNum(m.oreTpv)}</b>/${UDA.ui.formatNum(m.targetTpv)}h</td>
+          <td><b>${UDA.ui.formatNum(m.oreSec)}</b>/${UDA.ui.formatNum(m.targetSec)}h</td>
+          <td><b style="color:var(--purple);">${UDA.ui.formatNum(m.oreTeo)}</b>/${UDA.ui.formatNum(m.targetTeo)}h</td>
+          <td><b>${m.ppv}</b>/${m.targetPpv}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-small" title="Salva modifiche" onclick="salvaStudente('${s.id}', this)">💾</button>
+            <button class="btn btn-small btn-warn" title="Reset Password" onclick="resetPasswordStudente('${s.id}', this)">🔑</button>
+            <button class="btn btn-small btn-teal" title="Apri bozza email" onclick="apriMailSingolaStudente('${s.id}')">✉️</button>
+            <button class="btn btn-small btn-navy" title="Certificato PDF A4" onclick="apriCertificatoStudente('${s.id}')">📄</button>
+            <button class="btn btn-small btn-secondary" onclick="azioneStudente('${s.id}', '${s.archiviato ? 'riattiva' : 'archivia'}', this)">${s.archiviato ? 'Riattiva' : 'Archivia'}</button>
+            <button class="btn btn-small btn-ko" title="Elimina" onclick="eliminaStudente('${s.id}', '${esc(s.matricola)}', this)">✕</button>
+          </td>
+        </tr>
+      `;
+    }).join('') || '<tr><td colspan="10" class="text-center" style="padding:18px; color:var(--muted);">Nessuno studente trovato con i filtri attuali.</td></tr>';
+  }
+
+  async function aggiungiStudenteManuale(btn) {
+    const matricola = document.getElementById('newStuMat').value.trim();
+    const cognome = document.getElementById('newStuCognome').value.trim();
+    const nome = document.getElementById('newStuNome').value.trim();
+    const email = document.getElementById('newStuEmail').value.trim();
+    const coorte = document.getElementById('newStuCoorte').value;
+    const anno_corso = document.getElementById('newStuAnno').value;
+    const ore_pregresse_bonus = parseFloat(document.getElementById('newStuBonus').value) || 0;
+    const password = document.getElementById('newStuPass').value.trim();
+
+    if (!matricola || !nome) return UDA.ui.toast('Inserire almeno Matricola e Nome.', 'warn');
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_upsert_studenti', {
+          p_token: state.token,
+          p_studenti: [{ matricola, cognome, nome, email, coorte, anno_corso, ore_pregresse_bonus, password }]
+        });
+        ['newStuMat', 'newStuCognome', 'newStuNome', 'newStuEmail', 'newStuPass'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('newStuBonus').value = '0';
+        await caricaDatiAdmin();
+        UDA.ui.toast(`Studente ${matricola} registrato.`, 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  async function salvaStudente(id, btn) {
+    const s = state.studenti.find(x => x.id === id);
+    if (!s) return;
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_upsert_studenti', {
+          p_token: state.token,
+          p_studenti: [{
+            matricola: s.matricola,
+            cognome: document.getElementById(`cog_${id}`).value.trim(),
+            nome: document.getElementById(`nom_${id}`).value.trim(),
+            email: document.getElementById(`eml_${id}`).value.trim(),
+            coorte: document.getElementById(`coo_${id}`).value,
+            anno_corso: document.getElementById(`ann_${id}`).value,
+            ore_pregresse_bonus: parseFloat(document.getElementById(`bon_${id}`).value) || 0
+          }]
+        });
+        await caricaDatiAdmin();
+        UDA.ui.toast(`Scheda ${s.matricola} aggiornata.`, 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+
+  async function resetPasswordStudente(id, btn) {
+    const custom = prompt('Inserisci la nuova password (lascia vuoto per generarne una automatica sicura):');
+    if (custom === null) return;
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const res = await UDA.rpc('rpc_admin_azione_studente', {
+          p_token: state.token, p_id: id, p_azione: 'reset_password', p_valore: custom.trim() || null
+        });
+        await caricaDatiAdmin();
+        UDA.ui.toast(`Nuova password generata: ${res.nuova_password}`, 'success', 6000);
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+
+  async function azioneStudente(id, azione, btn) {
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_azione_studente', { p_token: state.token, p_id: id, p_azione: azione, p_valore: null });
+        await caricaDatiAdmin();
+        UDA.ui.toast('Stato studente aggiornato.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+
+  async function eliminaStudente(id, mat, btn) {
+    if (!confirm(`Eliminare definitivamente la matricola ${mat} e tutte le sue timbrature?`)) return;
+    await azioneStudente(id, 'elimina', btn);
+  }
+
+  function apriCertificatoStudente(id) {
+    const st = state.studenti.find(s => s.id === id);
+    if (st) UDA.pdf.apriCertificato(st, state.piani, state.timbrature);
+  }
+
+  function apriMailSingolaStudente(id) {
+    const st = state.studenti.find(s => s.id === id);
+    if (st) UDA.export.mailtoCredenziali(st, 'studente');
+  }
+
+  function esportaExcelStudenti() {
+    UDA.export.excelStudenti(state.studenti, state.piani, state.timbrature, 'Tracciato_ESSE3_UdA');
+  }
+
+  async function importaExcelStudenti(event) {
+    const file = event.target.files[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+      if (rows.length < 2) return UDA.ui.toast('Il file non contiene righe valide.', 'warn');
+
+      const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+      const headers = rows[0].map(norm);
+      const findCol = (aliases, fallback) => {
+        const idx = headers.findIndex(h => aliases.some(a => h === a || h.includes(a)));
+        return idx >= 0 ? idx : fallback;
+      };
+
+      const iMat = findCol(['matricola', 'mat'], 0);
+      const iCog = findCol(['cognome', 'surname'], 1);
+      const iNom = findCol(['nome', 'name'], 2);
+      const iEml = findCol(['email', 'mail'], 3);
+      const iCoo = findCol(['coorte', 'immatricolazione', 'aa'], 4);
+      const iAnn = findCol(['anno', 'annocorso'], 5);
+      const iBon = findCol(['bonus', 'pregresse', 'orepregresse'], -1);
+      const iPwd = findCol(['password', 'pass', 'pwd'], -1);
+
+      const defaultCoorte = state.coorti[0] || '2026/2027';
+      const payload = [];
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        const mat = String(r[iMat] || '').trim();
+        if (!mat) continue;
+
+        let cognome = iCog >= 0 ? String(r[iCog] || '').trim() : '';
+        let nome = iNom >= 0 ? String(r[iNom] || '').trim() : '';
+        if (!nome && cognome.includes(' ')) {
+          const parts = cognome.split(/\s+/);
+          cognome = parts[0];
+          nome = parts.slice(1).join(' ');
+        }
+        if (!nome) nome = 'Studente';
+
+        let annoRaw = iAnn >= 0 ? String(r[iAnn] || '').toUpperCase().trim() : '1';
+        const anno_corso = annoRaw.includes('FC') ? 'FC' : (annoRaw.replace(/\D/g, '') || '1');
+
+        const item = {
+          matricola: mat,
+          cognome,
+          nome,
+          email: iEml >= 0 ? String(r[iEml] || '').trim() : '',
+          coorte: (iCoo >= 0 && String(r[iCoo] || '').trim()) ? String(r[iCoo]).trim() : defaultCoorte,
+          anno_corso,
+          password: iPwd >= 0 ? String(r[iPwd] || '').trim() : ''
+        };
+        if (iBon >= 0 && r[iBon] !== '') item.ore_pregresse_bonus = parseFloat(String(r[iBon]).replace(',', '.')) || 0;
+        payload.push(item);
+      }
+
+      if (!payload.length) return UDA.ui.toast('Nessuna matricola valida trovata nel file.', 'warn');
+
+      const res = await UDA.rpc('rpc_admin_upsert_studenti', { p_token: state.token, p_studenti: payload });
+      await caricaDatiAdmin();
+      UDA.ui.toast(`Importazione completata: ${res.inseriti} nuovi, ${res.aggiornati} aggiornati.`, 'success', 5000);
+    } catch (e) {
+      UDA.ui.toast('Errore importazione: ' + e.message, 'error', 5000);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // TAB 2: ORDINAMENTO & PIANI DI STUDIO
+  // --------------------------------------------------------------------------
+  function popolaSelectCoorti() {
+    const esc = UDA.ui.esc;
+    document.querySelectorAll('.coorte-select').forEach(sel => {
+      const prev = sel.value;
+      sel.innerHTML = state.coorti.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+      if (state.coorti.includes(prev)) sel.value = prev;
+    });
+    const fCoo = document.getElementById('filtroCoorteStu');
+    const prevF = fCoo.value;
+    fCoo.innerHTML = `<option value="">Tutte le Coorti</option>` + state.coorti.map(c => `<option value="${esc(c)}">Coorte ${esc(c)}</option>`).join('');
+    fCoo.value = prevF;
+  }
+
+  function selezionaAnnoPiano(anno, el) {
+    annoPianoSelezionato = anno;
+    document.querySelectorAll('#yearPillsContainer .year-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('btnLblAnno').textContent = anno;
+    renderPianiStudio();
+  }
+
+  function renderPianiStudio() {
+    const coorte = document.getElementById('selCoorteAttiva').value;
+    const tbody = document.getElementById('tabellaPianiStudio');
+    const esc = UDA.ui.esc;
+    document.getElementById('lblCoorteReparti').textContent = `${coorte || '-'} (${annoPianoSelezionato}° Anno)`;
+
+    const righe = state.piani.filter(p => p.coorte === coorte && String(p.anno_corso) === String(annoPianoSelezionato));
+    const totAnno = UDA.calc.targetCoorte(state.piani, coorte, annoPianoSelezionato);
+    const totCoorte = UDA.calc.targetCoorte(state.piani, coorte);
+
+    document.getElementById('sommaOrePiano').textContent =
+      `${annoPianoSelezionato}° Anno: ${totAnno.tpv}h TPV | ${totAnno.secondo}h 2°Op | ${totAnno.teorico}h Teo | ${totAnno.ppv} PPV  —  Totale Coorte: ${totCoorte.tpv}h TPV | ${totCoorte.secondo}h 2°Op | ${totCoorte.teorico}h Teo | ${totCoorte.ppv} PPV`;
+
+    tbody.innerHTML = righe.map(r => {
+      const tot = parseFloat(r.target_tpv) + parseFloat(r.target_secondo) + parseFloat(r.target_teorico);
+      const cfu = (tot / 20).toFixed(1);
+      return `
+        <tr>
+          <td><span class="badge status-progress">${esc(r.anno_corso)}° Anno</span></td>
+          <td><input type="text" id="pnome_${r.id_piano}" value="${esc(r.reparto)}" style="font-weight:600;"></td>
+          <td><input type="number" id="ptpv_${r.id_piano}" class="num-input" value="${r.target_tpv}" step="5" min="0"> h</td>
+          <td><input type="number" id="psec_${r.id_piano}" class="num-input" value="${r.target_secondo}" step="5" min="0"> h</td>
+          <td><input type="number" id="pteo_${r.id_piano}" class="num-input" value="${r.target_teorico}" step="2" min="0"> h</td>
+          <td><input type="number" id="pppv_${r.id_piano}" class="num-input" value="${r.target_ppv}" step="1" min="0"></td>
+          <td><b>${UDA.ui.formatNum(tot)}h</b> <span class="badge status-todo">${cfu} CFU</span></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-small" onclick="salvaRigaPiano(${r.id_piano}, this)">💾 Salva</button>
+            <button class="btn btn-small btn-ko" onclick="eliminaRigaPiano(${r.id_piano}, this)">Rimuovi</button>
+          </td>
+        </tr>
+      `;
+    }).join('') || `<tr><td colspan="8" class="text-center" style="padding:18px; color:var(--muted);">Nessun reparto assegnato al ${annoPianoSelezionato}° Anno di questa coorte.</td></tr>`;
+  }
+
+  async function aggiungiRepartoPiano(btn) {
+    const coorte = document.getElementById('selCoorteAttiva').value;
+    const nome = document.getElementById('nuovoRepartoNome').value.trim();
+    if (!coorte || !nome) return UDA.ui.toast('Specificare coorte e denominazione reparto.', 'warn');
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_salva_piano', {
+          p_token: state.token,
+          p_id_piano: null,
+          p_coorte: coorte,
+          p_anno: annoPianoSelezionato,
+          p_nome_reparto: nome,
+          p_tpv: parseFloat(document.getElementById('nuovoRepTpV').value) || 0,
+          p_secondo: parseFloat(document.getElementById('nuovoRepSec').value) || 0,
+          p_teorico: parseFloat(document.getElementById('nuovoRepTeo').value) || 0,
+          p_ppv: parseInt(document.getElementById('nuovoRepPpv').value, 10) || 0
+        });
+        document.getElementById('nuovoRepartoNome').value = '';
+        await caricaDatiAdmin();
+        UDA.ui.toast(`Reparto "${nome}" inserito nel ${annoPianoSelezionato}° Anno.`, 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  async function salvaRigaPiano(idPiano, btn) {
+    const coorte = document.getElementById('selCoorteAttiva').value;
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_salva_piano', {
+          p_token: state.token,
+          p_id_piano: idPiano,
+          p_coorte: coorte,
+          p_anno: annoPianoSelezionato,
+          p_nome_reparto: document.getElementById(`pnome_${idPiano}`).value.trim(),
+          p_tpv: parseFloat(document.getElementById(`ptpv_${idPiano}`).value) || 0,
+          p_secondo: parseFloat(document.getElementById(`psec_${idPiano}`).value) || 0,
+          p_teorico: parseFloat(document.getElementById(`pteo_${idPiano}`).value) || 0,
+          p_ppv: parseInt(document.getElementById(`pppv_${idPiano}`).value, 10) || 0
+        });
+        await caricaDatiAdmin();
+        UDA.ui.toast('Piano di studi aggiornato.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+
+  async function eliminaRigaPiano(idPiano, btn) {
+    if (!confirm('Rimuovere questa disciplina dal piano di studi?')) return;
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_elimina_piano', { p_token: state.token, p_id_piano: idPiano });
+        await caricaDatiAdmin();
+        UDA.ui.toast('Disciplina rimossa dal piano.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+
+  async function creaNuovaCoorte(btn) {
+    const nuova = document.getElementById('nuovaCoorteInput').value.trim();
+    const clonaDa = document.getElementById('selCoorteAttiva').value;
+    if (!nuova) return UDA.ui.toast('Inserire l\'Anno Accademico (es. 2027/2028).', 'warn');
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_crea_coorte', { p_token: state.token, p_coorte: nuova, p_clona_da: clonaDa || null });
+        document.getElementById('nuovaCoorteInput').value = '';
+        await caricaDatiAdmin();
+        document.getElementById('selCoorteAttiva').value = nuova;
+        renderPianiStudio();
+        UDA.ui.toast(`Coorte ${nuova} creata.`, 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  async function eliminaCoorteSelezionata(btn) {
+    const c = document.getElementById('selCoorteAttiva').value;
+    if (!confirm(`Eliminare la coorte ${c}? (Possibile solo se non ha studenti associati)`)) return;
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_elimina_coorte', { p_token: state.token, p_coorte: c });
+        await caricaDatiAdmin();
+        UDA.ui.toast(`Coorte ${c} eliminata.`, 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // TAB 3: DOCENTI E TUTOR CLINICI
+  // --------------------------------------------------------------------------
+  function renderDocenti() {
+    const q = document.getElementById('cercaDoc').value.toUpperCase().trim();
+    const tbody = document.getElementById('tabellaDocenti');
+    const esc = UDA.ui.esc;
+    const filtrati = state.docenti.filter(d => `${d.nominativo} ${d.email}`.toUpperCase().includes(q));
+    document.getElementById('countDocenti').textContent = filtrati.length;
+
+    tbody.innerHTML = filtrati.map(d => `
+      <tr>
+        <td>
+          <select id="druolo_${d.id}" style="padding:5px; width:110px;">
+            <option value="docente" ${d.ruolo === 'docente' ? 'selected' : ''}>Docente</option>
+            <option value="tutor" ${d.ruolo === 'tutor' ? 'selected' : ''}>Tutor</option>
+          </select>
+        </td>
+        <td><input type="text" id="dcog_${d.id}" value="${esc(d.cognome)}" style="font-weight:600;"></td>
+        <td><input type="text" id="dnom_${d.id}" value="${esc(d.nome)}" style="font-weight:600;"></td>
+        <td><input type="email" id="deml_${d.id}" value="${esc(d.email)}"></td>
+        <td><input type="text" class="pwd-input" id="dpin_${d.id}" value="${esc(d.pin || '')}" placeholder="Nuovo PIN"></td>
+        <td>
+          <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; cursor:pointer;">
+            <input type="checkbox" id="datt_${d.id}" ${d.attivo ? 'checked' : ''} style="width:16px; height:16px; margin:0;">
+            <span style="color:${d.attivo ? 'var(--ok)' : 'var(--ko)'};">${d.attivo ? 'Attivo' : 'Sospeso'}</span>
+          </label>
+        </td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-small" onclick="salvaDocente('${d.id}', this)">💾 Salva</button>
+          <button class="btn btn-small btn-teal" title="Invia PIN via mail" onclick="apriMailDocente('${d.id}')">✉️</button>
+          <button class="btn btn-small btn-ko" onclick="eliminaDocente('${d.id}', '${esc(d.nominativo)}', this)">Revoca</button>
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="7" class="text-center" style="padding:18px; color:var(--muted);">Nessun docente o tutor abilitato.</td></tr>';
+  }
+
+  async function creaDocente(btn) {
+    const ruolo = document.getElementById('ruoloDoc').value;
+    const cognome = document.getElementById('cognomeDoc').value.trim();
+    const nome = document.getElementById('nomeDoc').value.trim();
+    const email = document.getElementById('emailDoc').value.trim();
+    const pin = document.getElementById('pinDoc').value.trim();
+    if (!nome || !email) return UDA.ui.toast('Inserire Nome ed Email istituzionale.', 'warn');
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_salva_docente', {
+          p_token: state.token, p_id: null, p_ruolo: ruolo, p_cognome: cognome, p_nome: nome, p_email: email, p_pin: pin, p_attivo: true
+        });
+        ['cognomeDoc', 'nomeDoc', 'emailDoc', 'pinDoc'].forEach(id => document.getElementById(id).value = '');
+        await caricaDatiAdmin();
+        UDA.ui.toast('Profilo Docente/Tutor abilitato.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  async function salvaDocente(id, btn) {
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_salva_docente', {
+          p_token: state.token,
+          p_id: id,
+          p_ruolo: document.getElementById(`druolo_${id}`).value,
+          p_cognome: document.getElementById(`dcog_${id}`).value.trim(),
+          p_nome: document.getElementById(`dnom_${id}`).value.trim(),
+          p_email: document.getElementById(`deml_${id}`).value.trim(),
+          p_pin: document.getElementById(`dpin_${id}`).value.trim(),
+          p_attivo: document.getElementById(`datt_${id}`).checked
+        });
+        await caricaDatiAdmin();
+        UDA.ui.toast('Profilo aggiornato.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+
+  async function eliminaDocente(id, nome, btn) {
+    if (!confirm(`Revocare e rimuovere definitivamente ${nome}?`)) return;
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_elimina_docente', { p_token: state.token, p_id: id });
+        await caricaDatiAdmin();
+        UDA.ui.toast('Docente/Tutor rimosso.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+
+  function apriMailDocente(id) {
+    const d = state.docenti.find(x => x.id === id);
+    if (d) UDA.export.mailtoCredenziali(d, 'docente');
+  }
+
+  // --------------------------------------------------------------------------
+  // TAB 4: REGISTRO & CONVALIDA PRESENZE (AUTOCOMPLETE + OVERRIDE)
+  // --------------------------------------------------------------------------
+  function popolaCataloghi() {
+    const esc = UDA.ui.esc;
+    document.getElementById('dlCatalogoReparti').innerHTML = state.reparti.map(r => `<option value="${esc(r.nome)}"></option>`).join('');
+    document.getElementById('dlStudenti').innerHTML = state.studenti.filter(s => !s.archiviato)
+      .map(s => `<option value="${esc(s.matricola)}">${esc(s.nominativo)} (${s.anno_corso === 'FC' ? 'FC' : s.anno_corso + '°'} - ${esc(s.coorte)})</option>`).join('');
+    document.getElementById('dlDocenti').innerHTML = state.docenti.filter(d => d.attivo)
+      .map(d => `<option value="${esc(d.nominativo)}">${esc(d.ruolo)} — ${esc(d.email)}</option>`).join('');
+    document.getElementById('dlReparti').innerHTML = state.reparti.filter(r => r.attivo)
+      .map(r => `<option value="${esc(r.nome)}"></option>`).join('');
+  }
+
+  function filtraRepartiPerStudente() {
+    const val = document.getElementById('ovMat').value.trim().toLowerCase();
+    const st = state.studenti.find(s => s.matricola.toLowerCase() === val || s.nominativo.toLowerCase() === val);
+    if (!st) return;
+    const esc = UDA.ui.esc;
+    const pianoSt = state.piani.filter(p => p.coorte === st.coorte);
+    const ordinati = [
+      ...pianoSt.filter(p => String(p.anno_corso) === String(st.anno_corso)),
+      ...pianoSt.filter(p => String(p.anno_corso) !== String(st.anno_corso))
+    ];
+    const seen = new Set();
+    const opts = [];
+    ordinati.forEach(p => {
+      if (!seen.has(p.reparto)) {
+        seen.add(p.reparto);
+        opts.push(`<option value="${esc(p.reparto)}">${esc(p.anno_corso)}° Anno — Piano ${esc(st.coorte)}</option>`);
+      }
+    });
+    state.reparti.forEach(r => {
+      if (!seen.has(r.nome)) opts.push(`<option value="${esc(r.nome)}">Catalogo Generale</option>`);
+    });
+    document.getElementById('dlReparti').innerHTML = opts.join('');
+  }
+
+  async function registraTimbraturaAdmin(btn) {
+    const inStu = document.getElementById('ovMat').value.trim();
+    const st = state.studenti.find(s => s.matricola.toLowerCase() === inStu.toLowerCase() || s.nominativo.toLowerCase() === inStu.toLowerCase());
+    if (!st) return UDA.ui.toast('Seleziona uno studente valido tramite matricola o nominativo.', 'warn');
+
+    const inDoc = document.getElementById('ovDoc').value.trim();
+    const doc = state.docenti.find(d => d.nominativo.toLowerCase() === inDoc.toLowerCase());
+
+    const inRep = document.getElementById('ovRep').value.trim();
+    const rep = state.reparti.find(r => r.nome.toLowerCase() === inRep.toLowerCase());
+    if (!rep) return UDA.ui.toast('Seleziona un reparto/modulo valido dal catalogo.', 'warn');
+
+    const [ruolo, turno, ppvStr] = document.getElementById('ovRuolo').value.split('|');
+    const data = document.getElementById('ovData').value;
+    const ore = parseFloat(document.getElementById('ovOre').value);
+    const nota = document.getElementById('ovNota').value.trim();
+    const forza = document.getElementById('ovForza').checked;
+
+    if (!ore || ore <= 0) return UDA.ui.toast('Inserire un monte ore valido.', 'warn');
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_crea_timbratura', {
+          p_token: state.token,
+          p_matricola: st.matricola,
+          p_id_docente: doc ? doc.id : null,
+          p_id_reparto: rep.id_reparto,
+          p_data: data,
+          p_turno: turno,
+          p_ruolo_clinico: ruolo,
+          p_ore: ore,
+          p_caso_ppv: ppvStr === 'true',
+          p_nota: nota,
+          p_forza: forza
+        });
+        document.getElementById('ovMat').value = '';
+        document.getElementById('ovNota').value = '';
+        document.getElementById('ovForza').checked = false;
+        await caricaDatiAdmin();
+        UDA.ui.toast(`Presenza registrata per ${st.nominativo}.`, 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error', 5500); }
+    });
+  }
+
+  function resetFiltriTimbrature() {
+    document.getElementById('cercaTimb').value = '';
+    document.getElementById('filtroTipoTimb').value = '';
+    document.getElementById('filtroDataTimb').value = '';
+    renderTimbrature();
+  }
+
+  function renderTimbrature() {
+    const q = document.getElementById('cercaTimb').value.toUpperCase().trim();
+    const fTipo = document.getElementById('filtroTipoTimb').value;
+    const fData = document.getElementById('filtroDataTimb').value;
+    const tbody = document.getElementById('listaTimbrature');
+    const esc = UDA.ui.esc;
+
+    const filtrate = state.timbrature.filter(t => {
+      const text = `${t.matricola} ${t.studente} ${t.docente} ${t.reparto} ${t.nota}`.toUpperCase();
+      if (q && !text.includes(q)) return false;
+      if (fTipo && t.ruolo !== fTipo) return false;
+      if (fData && t.data !== fData) return false;
+      return true;
+    });
+
+    document.getElementById('countTimbrature').textContent = filtrate.length;
+
+    tbody.innerHTML = filtrate.map(t => {
+      const badgeClass = t.ruolo === 'Primo' ? 'status-done' : (t.ruolo === 'Secondo' ? 'status-progress' : 'status-teo');
+      const labelRuolo = t.ruolo === 'Primo' ? '1° Op (TPV)' : (t.ruolo === 'Secondo' ? '2° Op' : '📚 Teorico');
+      const origLabel = t.origine === 'qr' ? 'QR' : (t.origine === 'admin' ? 'Admin' : 'Manuale');
+
+      return `
+        <tr>
+          <td><b>${UDA.ui.formatDateIt(t.data)}</b><br><span style="font-size:11px; color:var(--muted);">${esc(t.turno)}</span></td>
+          <td><strong>${esc(t.matricola)}</strong><br>${esc(t.studente)} (${esc(t.anno_rif)}°)</td>
+          <td>${esc(t.docente)}<br><span class="badge status-todo" style="margin-top:2px;">${origLabel}</span></td>
+          <td><b>${esc(t.reparto)}</b></td>
+          <td>
+            <span class="badge ${badgeClass}">${labelRuolo}</span>
+            <label style="display:flex; align-items:center; gap:5px; margin-top:4px; text-transform:none; cursor:pointer;">
+              <input type="checkbox" id="tppv_${t.id}" ${t.ppv ? 'checked' : ''} style="width:14px; height:14px; margin:0;"> ★ PPV
+            </label>
+          </td>
+          <td><input type="text" id="tnota_${t.id}" value="${esc(t.nota)}" style="font-size:12px;"></td>
+          <td><input type="number" class="num-input" id="tore_${t.id}" value="${t.ore}" step="0.5" min="0.5" max="24"> h</td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-small" onclick="modificaTimbratura('${t.id}', this)">💾</button>
+            <button class="btn btn-small btn-ko" onclick="eliminaTimbratura('${t.id}', this)">✕</button>
+          </td>
+        </tr>
+      `;
+    }).join('') || '<tr><td colspan="8" class="text-center" style="padding:18px; color:var(--muted);">Nessuna presenza trovata.</td></tr>';
+  }
+
+  async function modificaTimbratura(id, btn, forza = false) {
+    const ore = parseFloat(document.getElementById(`tore_${id}`).value);
+    const nota = document.getElementById(`tnota_${id}`).value.trim();
+    const ppv = document.getElementById(`tppv_${id}`).checked;
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_modifica_timbratura', {
+          p_token: state.token, p_id_timbratura: id, p_ore: ore, p_nota: nota, p_caso_ppv: ppv, p_forza: forza
+        });
+        await caricaDatiAdmin();
+        UDA.ui.toast('Registrazione aggiornata.', 'success');
+      } catch (e) {
+        if (!forza && confirm(`${e.message}\n\nVuoi forzare il salvataggio ignorando i blocchi normativi?`)) {
+          return modificaTimbratura(id, null, true);
+        }
+        UDA.ui.toast(e.message, 'error', 5000);
+      }
+    }, '...');
+  }
+
+  async function eliminaTimbratura(id, btn) {
+    if (!confirm('Eliminare definitivamente questa presenza dal registro? (Operazione tracciata nell\'Audit Log)')) return;
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_elimina_timbratura', { p_token: state.token, p_id_timbratura: id });
+        await caricaDatiAdmin();
+        UDA.ui.toast('Presenza eliminata.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, '...');
+  }
+
+  // --------------------------------------------------------------------------
+  // TAB 5: CENTRO EMAIL & STAMPA UNIONE
+  // --------------------------------------------------------------------------
+  function renderCentroEmail() {
+    const attivi = state.studenti.filter(s => !s.archiviato);
+    const daInviare = attivi.filter(s => !s.credenziali_inviate && s.password_iniziale);
+    const inviati = attivi.filter(s => s.credenziali_inviate);
+    const docTodo = state.docenti.filter(d => d.attivo && !d.credenziali_inviate && d.pin);
+
+    document.getElementById('kpiMailStuTodo').textContent = daInviare.length;
+    document.getElementById('kpiMailStuDone').textContent = inviati.length;
+    document.getElementById('kpiMailDocTodo').textContent = docTodo.length;
+
+    const esc = UDA.ui.esc;
+    document.getElementById('tabellaEmailQueue').innerHTML = daInviare.map(s => `
+      <tr>
+        <td><strong>${esc(s.matricola)}</strong></td>
+        <td>${esc(s.nominativo)}</td>
+        <td>${esc(s.email)}</td>
+        <td>${esc(s.coorte)} (${esc(s.anno_corso)}°)</td>
+        <td><code>${esc(s.password_iniziale)}</code></td>
+        <td><span class="badge status-todo">In attesa</span></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-small" onclick="inviaEmailSingolo('${s.id}', 'studente', this)">📧 Auto</button>
+          <button class="btn btn-small btn-teal" onclick="apriMailSingolaStudente('${s.id}')">✉️ Client</button>
+          <button class="btn btn-small btn-ok" onclick="azioneStudente('${s.id}', 'segna_inviata', this)">✓ Segna inviata</button>
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="7" class="text-center" style="padding:18px; color:var(--ok); font-weight:600;">Tutte le credenziali iniziali degli studenti attivi risultano già inviate.</td></tr>';
+  }
+
+  function esportaCsvEmail(modalita) {
+    if (modalita === 'studenti_nuovi') {
+      const list = state.studenti.filter(s => !s.archiviato && !s.credenziali_inviate && s.password_iniziale);
+      if (!list.length) return UDA.ui.toast('Nessun nuovo studente da esportare.', 'info');
+      UDA.export.csvStampaUnione(list, 'studente');
+    } else if (modalita === 'studenti_tutti') {
+      UDA.export.csvStampaUnione(state.studenti.filter(s => !s.archiviato), 'studente');
+    } else {
+      UDA.export.csvStampaUnione(state.docenti.filter(d => d.attivo), 'docente');
+    }
+    UDA.ui.toast('File CSV Stampa Unione generato.', 'success');
+  }
+
+  async function inviaEmailSingolo(id, tipo, btn) {
+    const u = tipo === 'studente' ? state.studenti.find(s => s.id === id) : state.docenti.find(d => d.id === id);
+    if (!u) return;
+    await eseguiInvioBatch([u], tipo, btn);
+  }
+
+  async function inviaEmailMassivo(tipo, btn) {
+    const targets = tipo === 'studente'
+      ? state.studenti.filter(s => !s.archiviato && !s.credenziali_inviate && s.password_iniziale)
+      : state.docenti.filter(d => d.attivo && !d.credenziali_inviate && d.pin);
+
+    if (!targets.length) return UDA.ui.toast('Nessun destinatario in attesa di invio.', 'info');
+    if (!confirm(`Avviare l'invio automatico delle credenziali a ${targets.length} ${tipo === 'studente' ? 'studenti' : 'docenti/tutor'}?`)) return;
+
+    await eseguiInvioBatch(targets, tipo, btn);
+  }
+
+  async function eseguiInvioBatch(targets, tipo, btn) {
+    const wrap = document.getElementById('emailProgressWrap');
+    const bar = document.getElementById('emailProgressBar');
+    const lbl = document.getElementById('emailProgressLabel');
+    const pct = document.getElementById('emailProgressPct');
+    const base = UDA.getBaseUrl();
+    const portalUrl = tipo === 'studente' ? `${base}/studente.html` : `${base}/index.html`;
+
+    await UDA.ui.lockBtn(btn, async () => {
+      wrap.style.display = 'block';
+      const batchSize = 15;
+      let inviatiIds = [];
+      let errori = 0;
+
+      for (let i = 0; i < targets.length; i += batchSize) {
+        const chunk = targets.slice(i, i + batchSize).map(u => ({
+          id: u.id,
+          email: u.email,
+          nominativo: u.nominativo,
+          matricola: u.matricola,
+          segreto: tipo === 'studente' ? u.password_iniziale : u.pin,
+          ruolo: u.ruolo || tipo
+        }));
+
+        try {
+          const res = await UDA.callEdgeFunction(UDA.cfg.EMAIL_EDGE_FUNCTION || 'send-credentials', {
+            token: state.token,
+            tipo,
+            portal_url: portalUrl,
+            ateneo: UDA.cfg.ATENEO_NOME,
+            cds: UDA.cfg.CDS_NOME,
+            recipients: chunk
+          });
+          if (Array.isArray(res.sent_ids)) inviatiIds.push(...res.sent_ids);
+          if (res.failed) errori += res.failed;
+        } catch (e) {
+          UDA.ui.toast(e.message, 'error', 6000);
+          errori += chunk.length;
+          break;
+        }
+
+        const done = Math.min(targets.length, i + batchSize);
+        const p = Math.round((done / targets.length) * 100);
+        bar.style.width = `${p}%`;
+        pct.textContent = `${p}%`;
+        lbl.textContent = `Elaborati ${done} di ${targets.length}...`;
+      }
+
+      if (inviatiIds.length > 0) {
+        await UDA.rpc('rpc_admin_marca_email_inviate', { p_token: state.token, p_ids: inviatiIds });
+        await caricaDatiAdmin();
+      }
+
+      UDA.ui.toast(`Invio completato: ${inviatiIds.length} riuscite, ${errori} errori.`, errori ? 'warn' : 'success', 5500);
+      setTimeout(() => { wrap.style.display = 'none'; bar.style.width = '0%'; }, 3000);
+    }, 'Invio in corso...');
+  }
+
+  // --------------------------------------------------------------------------
+  // TAB 6: REGOLE & BLOCCHI DINAMICI + AUDIT LOG
+  // --------------------------------------------------------------------------
+  function renderConfigRegole() {
+    const c = state.config || {};
+    const bools = [
+      'blocco_tetto_reparto', 'blocco_anno_futuro', 'blocco_doppione_turno',
+      'blocco_ppv_solo_primo', 'nota_obbligatoria', 'studente_cambio_password'
+    ];
+    bools.forEach(k => {
+      const el = document.getElementById(`cfg_${k}`);
+      if (el) el.checked = Boolean(c[k]);
+    });
+    document.getElementById('cfg_max_ore_turno').value = c.max_ore_turno ?? 6;
+    document.getElementById('cfg_max_ore_singola_timbratura').value = c.max_ore_singola_timbratura ?? 12;
+    document.getElementById('cfg_qr_validita_sec').value = c.qr_validita_sec ?? 60;
+    document.getElementById('cfg_nota_min_caratteri').value = c.nota_min_caratteri ?? 3;
+  }
+
+  async function salvaConfigRegole(btn) {
+    const p_cfg = {
+      blocco_tetto_reparto: document.getElementById('cfg_blocco_tetto_reparto').checked,
+      blocco_anno_futuro: document.getElementById('cfg_blocco_anno_futuro').checked,
+      blocco_doppione_turno: document.getElementById('cfg_blocco_doppione_turno').checked,
+      blocco_ppv_solo_primo: document.getElementById('cfg_blocco_ppv_solo_primo').checked,
+      nota_obbligatoria: document.getElementById('cfg_nota_obbligatoria').checked,
+      studente_cambio_password: document.getElementById('cfg_studente_cambio_password').checked,
+      max_ore_turno: parseFloat(document.getElementById('cfg_max_ore_turno').value) || 0,
+      max_ore_singola_timbratura: parseFloat(document.getElementById('cfg_max_ore_singola_timbratura').value) || 12,
+      qr_validita_sec: parseInt(document.getElementById('cfg_qr_validita_sec').value, 10) || 0,
+      nota_min_caratteri: parseInt(document.getElementById('cfg_nota_min_caratteri').value, 10) || 3
+    };
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        state.config = await UDA.rpc('rpc_admin_salva_config', { p_token: state.token, p_cfg });
+        await caricaDatiAdmin();
+        UDA.ui.toast('Regole e blocchi salvati e attivi immediatamente su tutto il sistema.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  function renderAudit() {
+    const esc = UDA.ui.esc;
+    document.getElementById('tabellaAudit').innerHTML = (state.audit || []).map(a => {
+      const dt = a.created_at ? new Date(a.created_at).toLocaleString('it-IT') : '-';
+      return `
+        <tr>
+          <td style="white-space:nowrap;">${esc(dt)}</td>
+          <td><b>${esc(a.operatore_label)}</b></td>
+          <td><span class="badge status-progress">${esc(a.azione)}</span></td>
+          <td>${esc(a.tabella)}</td>
+          <td style="font-family:monospace; font-size:11px; max-width:340px; word-break:break-word;">${esc(a.dettagli ? JSON.stringify(a.dettagli) : '-')}</td>
+        </tr>
+      `;
+    }).join('') || '<tr><td colspan="5" class="text-center" style="padding:16px; color:var(--muted);">Nessun evento registrato.</td></tr>';
+  }
+
+  // --------------------------------------------------------------------------
+  // TAB 7: ACCESSI DIREZIONALI & BACKUP
+  // --------------------------------------------------------------------------
+  async function aggiornaAccessoDirezionale(ruolo, btn) {
+    const email = document.getElementById(ruolo === 'presidenza' ? 'cfgPresEmail' : 'cfgAdmEmail').value.trim();
+    const pass = document.getElementById(ruolo === 'presidenza' ? 'cfgPresPass' : 'cfgAdmPass').value.trim();
+    if (!email) return UDA.ui.toast('Inserire un indirizzo email valido.', 'warn');
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_admin_aggiorna_accesso_direzionale', {
+          p_token: state.token, p_ruolo: ruolo, p_email: email, p_nuova_password: pass || null
+        });
+        document.getElementById(ruolo === 'presidenza' ? 'cfgPresPass' : 'cfgAdmPass').value = '';
+        await caricaDatiAdmin();
+        UDA.ui.toast('Credenziali direzionali aggiornate.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  async function scaricaBackupJSON(btn) {
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const dump = await UDA.rpc('rpc_admin_backup_export', { p_token: state.token });
+        UDA.export.downloadBlob(
+          JSON.stringify(dump, null, 2),
+          `Backup_DB_UdA_${new Date().toISOString().slice(0, 10)}.json`,
+          'application/json'
+        );
+        UDA.ui.toast('Backup JSON scaricato.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    }, 'Esportazione...');
+  }
+
+  async function testConnessioneDB(btn) {
+    const t0 = performance.now();
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const res = await UDA.rpc('rpc_ping');
+        const ms = Math.round(performance.now() - t0);
+        const el = document.getElementById('pingStatus');
+        el.style.color = 'var(--ok)';
+        el.textContent = `✅ Database online (${ms} ms) — Ora server: ${new Date(res.server_epoch * 1000).toLocaleTimeString('it-IT')}`;
+      } catch (e) {
+        const el = document.getElementById('pingStatus');
+        el.style.color = 'var(--ko)';
+        el.textContent = `❌ ${e.message}`;
+      }
+    }, 'Ping...');
+  }
+</script>
+</body>
+</html>

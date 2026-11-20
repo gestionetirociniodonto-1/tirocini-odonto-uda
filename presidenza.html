@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Ud'A - Cruscotto Presidenza CdS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="config.js"></script>
+  <script src="core.js"></script>
+  <style>
+    body.pres-wrap { padding: 22px; display: flex; flex-direction: column; min-height: 100vh; }
+    .pres-header { display: flex; justify-content: space-between; align-items: center; background: var(--navy); color: #fff; padding: 20px 24px; border-radius: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+    .stat-row { margin-bottom: 10px; font-size: 12.5px; }
+    .stat-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; gap: 8px; }
+    @media (max-width: 820px) { body.pres-wrap { padding: 12px; } }
+  </style>
+</head>
+<body class="pres-wrap">
+
+  <!-- AUTENTICAZIONE PRESIDENZA -->
+  <div id="presLogin" class="login-overlay">
+    <div class="login-box">
+      <div style="font-size:30px; margin-bottom:6px;">🏛️</div>
+      <h2 style="margin:0 0 4px; font-size:18px;">Presidenza Corso di Studio</h2>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:18px;">Monitoraggio Didattico e Abilitante D.M. 653/2022</p>
+      <input type="email" id="presEmail" placeholder="Email Istituzionale Presidenza" autocomplete="username">
+      <input type="password" id="presPass" placeholder="Password Riservata" autocomplete="current-password">
+      <button id="btnLoginPres" class="btn" style="width:100%; margin-top:10px; padding:13px;" onclick="effettuaLoginPresidenza(this)">Accedi al Cruscotto Direzionale</button>
+      <div id="loginError" class="login-error"></div>
+    </div>
+  </div>
+
+  <!-- MODALE CERTIFICATO UFFICIALE A4 -->
+  <div id="modalCertificato" class="modal-backdrop">
+    <div class="cert-box" id="certContent"></div>
+  </div>
+
+  <!-- INTESTAZIONE -->
+  <header class="pres-header">
+    <div>
+      <h1 style="margin:0; font-size:20px;">Cruscotto Direzionale Presidenza (1° - 6° Anno)</h1>
+      <div style="font-size:12.5px; opacity:0.85; margin-top:4px;">Analisi in tempo reale TPV, 2° Operatore, Tirocini Teorici e Prove Pratiche Valutative (PPV)</div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-small btn-ok" onclick="esportaFiltratiExcel()">📤 Esporta Report Excel</button>
+      <button class="btn btn-small" style="background:rgba(255,255,255,0.16);" onclick="caricaDashboard(this)">🔄 Aggiorna</button>
+      <button class="btn btn-small btn-ko" onclick="logoutPresidenza()">Disconnetti</button>
+    </div>
+  </header>
+
+  <!-- KPI DIREZIONALI -->
+  <section class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Studenti Attivi</div><div id="kpiTot" class="kpi-val" style="color:var(--navy);">0</div></div>
+    <div class="kpi"><div class="kpi-label">🟢 Idonei Esame Finale</div><div id="kpiIdonei" class="kpi-val" style="color:var(--ok);">0</div></div>
+    <div class="kpi"><div class="kpi-label">🔴 Criticità (6° Anno < 50%)</div><div id="kpiRischio" class="kpi-val" style="color:var(--ko);">0</div></div>
+    <div class="kpi"><div class="kpi-label">🦷 Ore Totali Certificate</div><div id="kpiOreGlobali" class="kpi-val" style="color:var(--accent-sky);">0h</div></div>
+    <div class="kpi"><div class="kpi-label">★ Prove PPV Superate</div><div id="kpiPpvGlobali" class="kpi-val" style="color:var(--purple);">0</div></div>
+  </section>
+
+  <!-- GRAFICI DISTRIBUZIONE -->
+  <section class="grid-2" style="margin-bottom:18px;">
+    <div class="panel" style="margin-bottom:0;">
+      <h3>📊 Media Ore Certificate per Anno di Corso (1° - 6°, FC)</h3>
+      <div id="statsPerAnno"></div>
+    </div>
+    <div class="panel" style="margin-bottom:0;">
+      <h3>🏥 Erogazione Didattica per Reparto / Modulo (Top 8)</h3>
+      <div id="statsPerReparto"></div>
+    </div>
+  </section>
+
+  <!-- BARRA FILTRI -->
+  <section class="grid-4" style="margin-bottom:14px;">
+    <input type="text" id="cercaPres" placeholder="🔍 Cerca per Matricola o Nominativo..." oninput="renderPresidenza()">
+    <select id="filtroCoortePres" onchange="renderPresidenza()"><option value="">Tutte le Coorti</option></select>
+    <select id="filtroAnnoPres" onchange="renderPresidenza()">
+      <option value="">Tutti gli Anni (1° - 6°, FC)</option>
+      <option value="1">1° Anno</option><option value="2">2° Anno</option><option value="3">3° Anno</option>
+      <option value="4">4° Anno</option><option value="5">5° Anno</option><option value="6">6° Anno</option>
+      <option value="FC">Fuori Corso (FC)</option>
+    </select>
+    <select id="filtroStatoPres" onchange="renderPresidenza()">
+      <option value="">Tutti gli Stati</option>
+      <option value="IDONEO">Solo Idonei Laurea</option>
+      <option value="RISCHIO">Solo Criticità 6° Anno</option>
+    </select>
+  </section>
+
+  <!-- TABELLA STUDENTI CON CERTIFICATO PDF -->
+  <section class="table-wrap" style="max-height:540px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Matricola</th><th>Nominativo</th><th>Coorte</th><th>Anno</th>
+          <th>1° Op (TPV)</th><th>2° Op</th><th>Teorico</th><th>PPV</th>
+          <th>Ultima Prestazione / Argomento</th><th>Stato</th><th>Fascicolo</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyPresidenza"></tbody>
+    </table>
+  </section>
+
+  <div class="footer-tribute">
+    🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
+    Sistema Abilitante D.M. 653/2022 — Architecture by <b style="color:var(--navy);">Mohaidine Aariouach</b>
+  </div>
+
+<script>
+  const SCOPE = 'presidenza';
+  let presState = {
+    token: UDA.session.get(SCOPE),
+    coorti: [],
+    piani: [],
+    studenti: [],
+    timbrature: [],
+    filtratiCorrenti: []
+  };
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    UDA.ui.bindEnter(['presEmail', 'presPass'], () => effettuaLoginPresidenza(document.getElementById('btnLoginPres')));
+
+    if (presState.token) {
+      try {
+        const chk = await UDA.rpc('rpc_verifica_sessione', { p_token: presState.token });
+        if (chk && chk.valida && (chk.ruolo === 'presidenza' || chk.ruolo === 'superadmin')) {
+          document.getElementById('presLogin').style.display = 'none';
+          await caricaDashboard();
+          return;
+        }
+      } catch (_) {}
+      UDA.session.clear(SCOPE);
+      presState.token = null;
+    }
+  });
+
+  async function effettuaLoginPresidenza(btn) {
+    const email = document.getElementById('presEmail').value.trim();
+    const pass = document.getElementById('presPass').value;
+    const err = document.getElementById('loginError');
+    err.style.display = 'none';
+
+    if (!email || !pass) {
+      err.textContent = 'Inserire email e password.';
+      err.style.display = 'block';
+      return;
+    }
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const res = await UDA.rpc('rpc_login', {
+          p_identificativo: email,
+          p_segreto: pass,
+          p_ruoli: ['presidenza', 'superadmin']
+        });
+        presState.token = res.token;
+        UDA.session.set(SCOPE, res.token);
+        document.getElementById('presLogin').style.display = 'none';
+        document.getElementById('presPass').value = '';
+        await caricaDashboard();
+      } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+      }
+    }, 'Accesso...');
+  }
+
+  async function logoutPresidenza() {
+    try { if (presState.token) await UDA.rpc('rpc_logout', { p_token: presState.token }); } catch (_) {}
+    UDA.session.clear(SCOPE);
+    location.reload();
+  }
+
+  async function caricaDashboard(btn) {
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const data = await UDA.rpc('rpc_presidenza_dashboard', { p_token: presState.token });
+        presState.coorti = data.coorti || [];
+        presState.piani = data.piani || [];
+        presState.studenti = data.studenti || [];
+        presState.timbrature = data.timbrature || [];
+
+        const sel = document.getElementById('filtroCoortePres');
+        const prev = sel.value;
+        sel.innerHTML = '<option value="">Tutte le Coorti</option>' +
+          presState.coorti.map(c => `<option value="${UDA.ui.esc(c)}">Coorte ${UDA.ui.esc(c)}</option>`).join('');
+        sel.value = prev;
+
+        renderPresidenza();
+        if (btn) UDA.ui.toast('Cruscotto aggiornato.', 'success');
+      } catch (e) {
+        if (String(e.raw || '').includes('NON_AUTORIZZATO')) {
+          UDA.session.clear(SCOPE);
+          location.reload();
+        } else {
+          UDA.ui.toast(e.message, 'error');
+        }
+      }
+    }, 'Aggiornamento...');
+  }
+
+  function renderPresidenza() {
+    const q = document.getElementById('cercaPres').value.toUpperCase().trim();
+    const fCoorte = document.getElementById('filtroCoortePres').value;
+    const fAnno = document.getElementById('filtroAnnoPres').value;
+    const fStato = document.getElementById('filtroStatoPres').value;
+    const esc = UDA.ui.esc;
+
+    let tot = 0, idonei = 0, rischio = 0;
+    const contatoriAnni = { '1':{n:0,ore:0}, '2':{n:0,ore:0}, '3':{n:0,ore:0}, '4':{n:0,ore:0}, '5':{n:0,ore:0}, '6':{n:0,ore:0}, 'FC':{n:0,ore:0} };
+    const orePerReparto = {};
+    let sommaOreGlobali = 0, sommaPpvGlobali = 0;
+
+    presState.timbrature.forEach(t => {
+      const h = parseFloat(t.ore || 0);
+      sommaOreGlobali += h;
+      if (t.ppv) sommaPpvGlobali++;
+      orePerReparto[t.reparto] = (orePerReparto[t.reparto] || 0) + h;
+    });
+
+    const filtrati = [];
+    const rowsHtml = [];
+
+    presState.studenti.forEach(s => {
+      const m = UDA.calc.metricheStudente(s, presState.piani, presState.timbrature);
+      if (contatoriAnni[s.anno_corso]) {
+        contatoriAnni[s.anno_corso].n++;
+        contatoriAnni[s.anno_corso].ore += (m.oreTpv + m.oreSec + m.oreTeo);
+      }
+
+      if (fCoorte && s.coorte !== fCoorte) return;
+      if (fAnno && s.anno_corso !== fAnno) return;
+      if (q && !`${s.matricola} ${s.nominativo}`.toUpperCase().includes(q)) return;
+      if (fStato === 'IDONEO' && !m.isIdoneo) return;
+      if (fStato === 'RISCHIO' && !m.isRischio) return;
+
+      filtrati.push(s);
+      tot++;
+      if (m.isIdoneo) idonei++;
+      if (m.isRischio) rischio++;
+
+      const ultima = m.timbrature[0]
+        ? `${UDA.ui.formatDateIt(m.timbrature[0].data)} — ${m.timbrature[0].reparto}: "${m.timbrature[0].nota}"`
+        : 'Nessuna registrazione';
+
+      let badgeHtml = '<span class="badge status-progress">IN CORSO</span>';
+      let rowStyle = '';
+      if (m.isIdoneo) badgeHtml = '<span class="badge status-done">IDONEO LAUREA</span>';
+      else if (m.isRischio) { badgeHtml = '<span class="badge status-risk">CRITICITÀ 6° ANNO</span>'; rowStyle = 'background:#fff1f2;'; }
+
+      rowsHtml.push(`
+        <tr style="${rowStyle}">
+          <td><strong>${esc(s.matricola)}</strong></td>
+          <td><b>${esc(s.nominativo)}</b></td>
+          <td>${esc(s.coorte || '-')}</td>
+          <td><b>${s.anno_corso === 'FC' ? 'Fuori Corso' : esc(s.anno_corso) + '° Anno'}</b></td>
+          <td style="font-weight:700; color:${m.isIdoneo ? 'var(--ok)' : 'var(--text)'};">${UDA.ui.formatNum(m.oreTpv)} / ${UDA.ui.formatNum(m.targetTpv)}h</td>
+          <td>${UDA.ui.formatNum(m.oreSec)} / ${UDA.ui.formatNum(m.targetSec)}h</td>
+          <td style="color:var(--purple); font-weight:600;">${UDA.ui.formatNum(m.oreTeo)} / ${UDA.ui.formatNum(m.targetTeo)}h</td>
+          <td><b>${m.ppv}</b> / ${m.targetPpv}</td>
+          <td style="font-size:11.5px; color:#475569; max-width:240px;">${esc(ultima)}</td>
+          <td>${badgeHtml}</td>
+          <td><button class="btn btn-small btn-navy" onclick="apriCertificato('${s.id}')">📄 PDF</button></td>
+        </tr>
+      `);
+    });
+
+    presState.filtratiCorrenti = filtrati;
+    document.getElementById('tbodyPresidenza').innerHTML = rowsHtml.join('') ||
+      '<tr><td colspan="11" class="text-center" style="padding:18px; color:var(--muted);">Nessuno studente corrisponde ai filtri selezionati.</td></tr>';
+
+    document.getElementById('kpiTot').textContent = tot;
+    document.getElementById('kpiIdonei').textContent = idonei;
+    document.getElementById('kpiRischio').textContent = rischio;
+    document.getElementById('kpiOreGlobali').textContent = `${UDA.ui.formatNum(sommaOreGlobali)}h`;
+    document.getElementById('kpiPpvGlobali').textContent = sommaPpvGlobali;
+
+    const maxMedia = Math.max(100, ...Object.values(contatoriAnni).map(x => x.n ? x.ore / x.n : 0));
+    document.getElementById('statsPerAnno').innerHTML = ['1','2','3','4','5','6','FC'].map(a => {
+      const info = contatoriAnni[a];
+      const media = info.n > 0 ? Math.round(info.ore / info.n) : 0;
+      const perc = Math.min(100, Math.round((media / maxMedia) * 100));
+      return `
+        <div class="stat-row">
+          <div class="stat-label"><span>${a === 'FC' ? 'Fuori Corso' : a + '° Anno'} (${info.n} iscritti)</span><span>Media: ${media}h/studente</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${perc}%;"></div></div>
+        </div>
+      `;
+    }).join('');
+
+    const repEntries = Object.entries(orePerReparto).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    document.getElementById('statsPerReparto').innerHTML = repEntries.map(([nome, ore]) => {
+      const perc = Math.min(100, Math.round((ore / (sommaOreGlobali || 1)) * 100));
+      return `
+        <div class="stat-row">
+          <div class="stat-label"><span>${esc(nome)}</span><span>${UDA.ui.formatNum(ore)}h (${perc}%)</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${perc}%; background:var(--purple);"></div></div>
+        </div>
+      `;
+    }).join('') || '<div style="font-size:12px; color:var(--muted);">Nessuna presenza registrata.</div>';
+  }
+
+  function apriCertificato(id) {
+    const st = presState.studenti.find(s => s.id === id);
+    if (st) UDA.pdf.apriCertificato(st, presState.piani, presState.timbrature);
+  }
+
+  function esportaFiltratiExcel() {
+    if (!presState.filtratiCorrenti.length) return UDA.ui.toast('Nessuno studente da esportare con i filtri attuali.', 'warn');
+    UDA.export.excelStudenti(presState.filtratiCorrenti, presState.piani, presState.timbrature, 'Report_Presidenza_UdA');
+  }
+</script>
+</body>
+</html>

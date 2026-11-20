@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Ud'A - Libretto Tirocini Studente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="config.js"></script>
+  <script src="core.js"></script>
+  <style>
+    body.stu-wrap { padding: 14px; max-width: 540px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; }
+    .stu-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+    .stu-box h2 { margin: 0 0 10px; font-size: 15px; color: var(--text); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .qr-card { background: var(--navy); padding: 18px; border-radius: 12px; text-align: center; }
+    .qr-card canvas { background: #fff; padding: 10px; border-radius: 10px; max-width: 100%; height: auto; }
+    .kpi-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .mini-kpi { background: #f8fafc; border: 1px solid var(--border); padding: 10px 8px; border-radius: 10px; text-align: center; }
+    .year-tabs { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .y-tab { flex: 1; text-align: center; padding: 7px 6px; border-radius: 7px; font-size: 11.5px; font-weight: 700; background: #f1f5f9; color: #475569; cursor: pointer; border: 1px solid var(--border); white-space: nowrap; transition: 0.15s; }
+    .y-tab.active { background: var(--accent-sky); color: #fff; border-color: var(--accent-sky); }
+    .rep-card { border: 1px solid var(--border); border-left: 4px solid #cbd5e1; border-radius: 10px; padding: 12px; margin-bottom: 9px; background: #fcfdff; }
+    .rep-card.done { border-left-color: var(--ok); background: #f0fdf4; }
+    .rep-card.progress { border-left-color: var(--accent-sky); }
+    .rep-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .rep-badges { display: flex; gap: 6px; flex-wrap: wrap; font-size: 11px; margin-top: 7px; }
+    .pill { padding: 3px 7px; border-radius: 5px; font-weight: 700; }
+    .diary-item { border-bottom: 1px solid #f1f5f9; padding: 9px 0; font-size: 12px; }
+    .diary-item:last-child { border-bottom: none; }
+  </style>
+</head>
+<body class="stu-wrap">
+
+  <!-- LOGIN STUDENTE -->
+  <div id="loginStu" class="login-overlay">
+    <div class="login-box">
+      <div style="font-size:30px; margin-bottom:6px;">🎓</div>
+      <h2 style="margin:0 0 4px; font-size:18px;">Libretto Elettronico Tirocini</h2>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:16px;">Corso di Laurea in Odontoiatria e Protesi Dentaria</p>
+      <input type="text" id="matInput" placeholder="Numero di Matricola o Email" autocomplete="username">
+      <input type="password" id="passInput" placeholder="Password Personale" autocomplete="current-password">
+      <button id="btnLoginStu" class="btn" style="width:100%; margin-top:10px; padding:13px;" onclick="effettuaLoginStudente(this)">Accedi al Fascicolo</button>
+      <div id="errStu" class="login-error"></div>
+    </div>
+  </div>
+
+  <!-- CONSENSO GDPR OBBLIGATORIO AL PRIMO ACCESSO -->
+  <div id="modalPrivacy" class="modal-backdrop">
+    <div class="login-box" style="max-width:390px;">
+      <div style="font-size:28px; margin-bottom:6px;">🛡️</div>
+      <h2 style="margin:0 0 8px; font-size:17px;">Informativa GDPR & D.M. 653/2022</h2>
+      <p style="font-size:12.5px; color:#475569; line-height:1.5; margin-bottom:18px;">
+        Acconsento al trattamento dei dati accademici per la certificazione delle attività cliniche e teoriche abilitanti.
+        Il QR Code è personale e firmato crittograficamente: la sua cessione o riproduzione statica costituisce illecito disciplinare.
+      </p>
+      <button class="btn btn-ok" style="width:100%; padding:12px;" onclick="accettaPrivacy(this)">Confermo e Procedo</button>
+    </div>
+  </div>
+
+  <!-- MODALE CAMBIO PASSWORD AUTONOMO -->
+  <div id="modalPass" class="modal-backdrop">
+    <div class="login-box" style="max-width:370px;">
+      <h2 style="margin:0 0 6px; font-size:17px;">🔑 Cambia Password Personale</h2>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Scegli una nuova password di almeno 6 caratteri.</p>
+      <input type="password" id="oldPwd" placeholder="Password Attuale" autocomplete="current-password">
+      <input type="password" id="newPwd" placeholder="Nuova Password (min. 6 caratteri)" autocomplete="new-password">
+      <input type="password" id="newPwd2" placeholder="Conferma Nuova Password" autocomplete="new-password">
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button id="btnSavePwd" class="btn btn-ok" style="flex:1;" onclick="salvaNuovaPassword(this)">Salva</button>
+        <button class="btn btn-secondary" style="flex:1;" onclick="document.getElementById('modalPass').style.display='none'">Annulla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD QR CODE DINAMICO FIRMATO -->
+  <section class="stu-box" style="text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:10px; flex-wrap:wrap;">
+      <span id="badgeCoorte" class="badge status-progress">Coorte -</span>
+      <div style="display:flex; gap:6px;">
+        <button class="btn btn-small btn-outline" title="Aggiorna dati" onclick="caricaFascicolo(this)">🔄</button>
+        <button id="btnOpenPwd" class="btn btn-small btn-outline" title="Cambia password" onclick="apriModalPassword()" style="display:none;">🔑</button>
+        <button class="btn btn-small btn-outline" onclick="logoutStudente()">Esci</button>
+      </div>
+    </div>
+
+    <h2 id="nomeSt" style="justify-content:center; margin-bottom:10px;">Studente</h2>
+
+    <div class="qr-card">
+      <canvas id="qr"></canvas>
+    </div>
+
+    <div style="margin-top:10px;">
+      <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:5px;">
+        <span>⏳ Validità QR firmato</span>
+        <span id="timerLabel" style="color:var(--text);">--</span>
+      </div>
+      <div class="bar-bg"><div id="qrBar" class="bar-fill" style="width:100%;"></div></div>
+    </div>
+  </section>
+
+  <!-- CARD AVANZAMENTO GLOBALE E MATRICE 1°-6° ANNO -->
+  <section class="stu-box">
+    <h2>
+      <span>Avanzamento Carriera (1° - 6° Anno)</span>
+      <span id="badgeIdoneo" class="badge status-progress">IN CORSO</span>
+    </h2>
+
+    <div class="kpi-3">
+      <div class="mini-kpi">
+        <div style="font-size:10px; color:var(--muted); font-weight:700;">1° OP (TPV)</div>
+        <div style="font-size:15px; font-weight:900; color:var(--accent-sky);"><span id="totTpv">0</span>/<span id="tarTpv">0</span>h</div>
+      </div>
+      <div class="mini-kpi">
+        <div style="font-size:10px; color:var(--muted); font-weight:700;">2° OPERATORE</div>
+        <div style="font-size:15px; font-weight:900; color:var(--teal);"><span id="totSec">0</span>/<span id="tarSec">0</span>h</div>
+      </div>
+      <div class="mini-kpi">
+        <div style="font-size:10px; color:var(--muted); font-weight:700;">TEORICO FRONT.</div>
+        <div style="font-size:15px; font-weight:900; color:var(--purple);"><span id="totTeo">0</span>/<span id="tarTeo">0</span>h</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px; display:flex; justify-content:space-between; font-weight:700; margin-bottom:14px; flex-wrap:wrap; gap:6px;">
+      <span>Prove Pratiche Valutative (PPV): <b id="totPpv" style="color:var(--ok);">0/0</b></span>
+      <span id="infoBonus" style="color:var(--muted); font-weight:600;"></span>
+    </div>
+
+    <h2>Piano Tirocini per Anno di Corso</h2>
+    <div class="year-tabs" id="stuYearTabs">
+      <div class="y-tab" onclick="cambiaAnnoVista('1')">1° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('2')">2° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('3')">3° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('4')">4° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('5')">5° Anno</div>
+      <div class="y-tab" onclick="cambiaAnnoVista('6')">6° Anno</div>
+    </div>
+    <div id="listaRepartiAnno"></div>
+  </section>
+
+  <!-- DIARIO CRONOLOGICO -->
+  <section class="stu-box">
+    <h2>
+      <span>Registro Cronologico Prestazioni</span>
+      <span id="cntDiario" class="badge status-todo">0</span>
+    </h2>
+    <div id="diarioNote"></div>
+  </section>
+
+  <div class="footer-tribute">
+    🏛️ Università degli Studi "G. d'Annunzio" Chieti-Pescara<br>
+    Sistema Abilitante D.M. 653/2022 — Architecture by <b style="color:var(--text);">Mohaidine Aariouach</b>
+  </div>
+
+<script>
+  const SCOPE = 'studente';
+  let qrInstance = null;
+  let stuState = {
+    token: UDA.session.get(SCOPE),
+    studente: null,
+    config: { qr_validita_sec: 60, studente_cambio_password: true },
+    piani: [],
+    timbrature: [],
+    annoVista: null,
+    qrGeneratedAt: 0,
+    qrWindowSec: 60
+  };
+  let tickTimer = null;
+  let qrGenerating = false;
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    qrInstance = new QRious({ element: document.getElementById('qr'), size: 210, level: 'M' });
+    UDA.ui.bindEnter(['matInput', 'passInput'], () => effettuaLoginStudente(document.getElementById('btnLoginStu')));
+    UDA.ui.bindEnter(['oldPwd', 'newPwd', 'newPwd2'], () => salvaNuovaPassword(document.getElementById('btnSavePwd')));
+
+    if (stuState.token) {
+      try {
+        const chk = await UDA.rpc('rpc_verifica_sessione', { p_token: stuState.token });
+        if (chk && chk.valida && chk.ruolo === 'studente') {
+          document.getElementById('loginStu').style.display = 'none';
+          await caricaFascicolo();
+          avviaTickQr();
+          return;
+        }
+      } catch (_) {}
+      UDA.session.clear(SCOPE);
+      stuState.token = null;
+    }
+  });
+
+  async function effettuaLoginStudente(btn) {
+    const id = document.getElementById('matInput').value.trim();
+    const pass = document.getElementById('passInput').value;
+    const err = document.getElementById('errStu');
+    err.style.display = 'none';
+
+    if (!id || !pass) {
+      err.textContent = 'Inserire matricola (o email) e password.';
+      err.style.display = 'block';
+      return;
+    }
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const res = await UDA.rpc('rpc_login', {
+          p_identificativo: id,
+          p_segreto: pass,
+          p_ruoli: ['studente']
+        });
+        stuState.token = res.token;
+        UDA.session.set(SCOPE, res.token);
+        UDA.time.sync(res.server_epoch);
+        document.getElementById('loginStu').style.display = 'none';
+        document.getElementById('passInput').value = '';
+        await caricaFascicolo();
+        avviaTickQr();
+      } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+      }
+    }, 'Accesso...');
+  }
+
+  async function logoutStudente() {
+    clearInterval(tickTimer);
+    try { if (stuState.token) await UDA.rpc('rpc_logout', { p_token: stuState.token }); } catch (_) {}
+    UDA.session.clear(SCOPE);
+    location.reload();
+  }
+
+  async function accettaPrivacy(btn) {
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_studente_accetta_privacy', { p_token: stuState.token });
+        document.getElementById('modalPrivacy').style.display = 'none';
+        if (stuState.studente) stuState.studente.privacy_accettata = true;
+        UDA.ui.toast('Consenso GDPR registrato.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  function apriModalPassword() {
+    document.getElementById('oldPwd').value = '';
+    document.getElementById('newPwd').value = '';
+    document.getElementById('newPwd2').value = '';
+    document.getElementById('modalPass').style.display = 'flex';
+  }
+
+  async function salvaNuovaPassword(btn) {
+    const oldP = document.getElementById('oldPwd').value;
+    const newP = document.getElementById('newPwd').value.trim();
+    const newP2 = document.getElementById('newPwd2').value.trim();
+
+    if (!oldP || newP.length < 6) return UDA.ui.toast('Inserisci la password attuale e una nuova di almeno 6 caratteri.', 'warn');
+    if (newP !== newP2) return UDA.ui.toast('Le due nuove password non coincidono.', 'warn');
+
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        await UDA.rpc('rpc_studente_cambia_password', {
+          p_token: stuState.token, p_vecchia: oldP, p_nuova: newP
+        });
+        document.getElementById('modalPass').style.display = 'none';
+        UDA.ui.toast('Password aggiornata con successo.', 'success');
+      } catch (e) { UDA.ui.toast(e.message, 'error'); }
+    });
+  }
+
+  function cambiaAnnoVista(anno) {
+    stuState.annoVista = anno;
+    renderFascicolo();
+  }
+
+  async function caricaFascicolo(btn) {
+    await UDA.ui.lockBtn(btn, async () => {
+      try {
+        const data = await UDA.rpc('rpc_studente_fascicolo', { p_token: stuState.token });
+        UDA.time.sync(data.server_epoch);
+        stuState.studente = data.studente;
+        stuState.config = data.config || {};
+        stuState.piani = (data.piano || []).map(p => ({ ...p, coorte: data.studente.coorte }));
+        stuState.timbrature = data.timbrature || [];
+
+        if (!stuState.annoVista) {
+          stuState.annoVista = data.studente.anno_corso === 'FC' ? '6' : (data.studente.anno_corso || '5');
+        }
+
+        if (!data.studente.privacy_accettata) {
+          document.getElementById('modalPrivacy').style.display = 'flex';
+        }
+
+        document.getElementById('btnOpenPwd').style.display =
+          stuState.config.studente_cambio_password !== false ? 'inline-flex' : 'none';
+
+        renderFascicolo();
+        await generaQrFirmato(true);
+        if (btn) UDA.ui.toast('Libretto aggiornato.', 'success');
+      } catch (e) {
+        if (String(e.raw || '').includes('NON_AUTORIZZATO')) {
+          UDA.session.clear(SCOPE);
+          location.reload();
+        } else {
+          UDA.ui.toast(e.message, 'error');
+        }
+      }
+    }, '...');
+  }
+
+  function renderFascicolo() {
+    const st = stuState.studente;
+    if (!st) return;
+    const esc = UDA.ui.esc;
+    const m = UDA.calc.metricheStudente(st, stuState.piani, stuState.timbrature);
+
+    document.getElementById('nomeSt').textContent = `${st.nominativo} (${st.matricola})`;
+    document.getElementById('badgeCoorte').textContent = `Coorte ${st.coorte || '-'} • ${st.anno_corso === 'FC' ? 'Fuori Corso' : st.anno_corso + '° Anno'}`;
+    document.getElementById('totTpv').textContent = UDA.ui.formatNum(m.oreTpv);
+    document.getElementById('tarTpv').textContent = UDA.ui.formatNum(m.targetTpv);
+    document.getElementById('totSec').textContent = UDA.ui.formatNum(m.oreSec);
+    document.getElementById('tarSec').textContent = UDA.ui.formatNum(m.targetSec);
+    document.getElementById('totTeo').textContent = UDA.ui.formatNum(m.oreTeo);
+    document.getElementById('tarTeo').textContent = UDA.ui.formatNum(m.targetTeo);
+    document.getElementById('totPpv').textContent = `${m.ppv}/${m.targetPpv}`;
+    document.getElementById('infoBonus').textContent = st.ore_pregresse_bonus > 0 ? `(Include ${UDA.ui.formatNum(st.ore_pregresse_bonus)}h pregresse)` : '';
+
+    const bId = document.getElementById('badgeIdoneo');
+    bId.className = `badge ${m.isIdoneo ? 'status-done' : (m.isRischio ? 'status-risk' : 'status-progress')}`;
+    bId.textContent = m.isIdoneo ? 'IDONEO LAUREA' : (m.isRischio ? 'ATTENZIONE 6° ANNO' : 'IN CORSO');
+
+    document.querySelectorAll('#stuYearTabs .y-tab').forEach((el, idx) => {
+      el.classList.toggle('active', String(idx + 1) === String(stuState.annoVista));
+    });
+
+    const repAnno = stuState.piani.filter(p => String(p.anno_corso) === String(stuState.annoVista));
+    const contRep = document.getElementById('listaRepartiAnno');
+
+    if (!repAnno.length) {
+      contRep.innerHTML = `<div style="font-size:12px; color:var(--muted); text-align:center; padding:14px;">Nessun reparto configurato per il ${esc(stuState.annoVista)}° Anno.</div>`;
+    } else {
+      contRep.innerHTML = repAnno.map(r => {
+        const sTpv = stuState.timbrature.filter(t => t.id_reparto === r.id_reparto && t.ruolo === 'Primo').reduce((s, t) => s + parseFloat(t.ore), 0);
+        const sSec = stuState.timbrature.filter(t => t.id_reparto === r.id_reparto && t.ruolo === 'Secondo').reduce((s, t) => s + parseFloat(t.ore), 0);
+        const sTeo = stuState.timbrature.filter(t => t.id_reparto === r.id_reparto && t.ruolo === 'Teorico').reduce((s, t) => s + parseFloat(t.ore), 0);
+        const sPpv = stuState.timbrature.filter(t => t.id_reparto === r.id_reparto && t.ppv).length;
+
+        const stRep = UDA.calc.statoReparto(sTpv, r.target_tpv, sSec, r.target_secondo, sTeo, r.target_teorico, sPpv, r.target_ppv);
+        const totTarget = parseFloat(r.target_tpv) + parseFloat(r.target_secondo) + parseFloat(r.target_teorico);
+        const totSvolte = Math.min(sTpv, r.target_tpv) + Math.min(sSec, r.target_secondo) + Math.min(sTeo, r.target_teorico);
+        const perc = totTarget > 0 ? Math.min(100, Math.round((totSvolte / totTarget) * 100)) : (stRep.code === 'done' ? 100 : 0);
+
+        return `
+          <div class="rep-card ${stRep.code}">
+            <div class="rep-title">
+              <span>${esc(r.reparto)}</span>
+              <span class="badge status-${stRep.code}">${stRep.label} (${perc}%)</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill ${stRep.code === 'done' ? 'done' : ''}" style="width:${perc}%;"></div></div>
+            <div class="rep-badges">
+              ${r.target_tpv > 0 ? `<span class="pill" style="background:#e0f2fe; color:#0369a1;">1° Op: ${UDA.ui.formatNum(sTpv)}/${UDA.ui.formatNum(r.target_tpv)}h</span>` : ''}
+              ${r.target_secondo > 0 ? `<span class="pill" style="background:#ccfbf1; color:#0f766e;">2° Op: ${UDA.ui.formatNum(sSec)}/${UDA.ui.formatNum(r.target_secondo)}h</span>` : ''}
+              ${r.target_teorico > 0 ? `<span class="pill" style="background:#f3e8ff; color:#6b21a8;">📚 Teorico: ${UDA.ui.formatNum(sTeo)}/${UDA.ui.formatNum(r.target_teorico)}h</span>` : ''}
+              ${r.target_ppv > 0 ? `<span class="pill" style="background:#fef3c7; color:#92400e;">★ PPV: ${sPpv}/${r.target_ppv}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('cntDiario').textContent = stuState.timbrature.length;
+    document.getElementById('diarioNote').innerHTML = stuState.timbrature.map(t => `
+      <div class="diary-item">
+        <div style="display:flex; justify-content:space-between; font-weight:700; gap:8px;">
+          <span>${UDA.ui.formatDateIt(t.data)} • ${esc(t.reparto)} (${UDA.ui.formatNum(t.ore)}h)</span>
+          <span style="color:var(--accent-sky); white-space:nowrap;">${t.ruolo === 'Primo' ? '1° Op' : (t.ruolo === 'Secondo' ? '2° Op' : 'Teorico')} ${t.ppv ? '★ PPV' : ''}</span>
+        </div>
+        <div style="color:#334155; margin-top:3px;">📝 <i>"${esc(t.nota || '-')}"</i> — <span style="color:var(--muted);">${esc(t.docente)} (${esc(t.turno)})</span></div>
+      </div>
+    `).join('') || '<div style="font-size:12px; color:var(--muted); text-align:center; padding:12px;">Nessuna presenza registrata nel fascicolo.</div>';
+  }
+
+  function avviaTickQr() {
+    clearInterval(tickTimer);
+    tickTimer = setInterval(aggiornaTimerQr, 1000);
+  }
+
+  async function generaQrFirmato(forza = false) {
+    if (!stuState.studente || qrGenerating) return;
+    const validSec = parseInt(stuState.config.qr_validita_sec, 10);
+    const windowSec = validSec > 0 ? Math.max(10, validSec - 5) : 60;
+    const now = UDA.time.now();
+
+    if (!forza && (now - stuState.qrGeneratedAt) < windowSec && qrInstance.value) return;
+
+    qrGenerating = true;
+    try {
+      stuState.qrWindowSec = windowSec;
+      stuState.qrGeneratedAt = now;
+      qrInstance.value = await UDA.crypto.buildQrToken(stuState.studente.matricola, now, stuState.studente.qr_secret);
+      aggiornaTimerQr();
+    } finally {
+      qrGenerating = false;
+    }
+  }
+
+  function aggiornaTimerQr() {
+    if (!stuState.studente || !stuState.qrGeneratedAt) return;
+    const validSec = parseInt(stuState.config.qr_validita_sec, 10);
+    const elapsed = Math.max(0, UDA.time.now() - stuState.qrGeneratedAt);
+    const remaining = Math.max(0, stuState.qrWindowSec - elapsed);
+
+    if (remaining <= 0) {
+      generaQrFirmato(true);
+      caricaFascicolo();
+      return;
+    }
+
+    const pct = Math.round((remaining / stuState.qrWindowSec) * 100);
+    document.getElementById('timerLabel').textContent = validSec > 0 ? `${remaining}s` : `Rinnovo tra ${remaining}s`;
+    document.getElementById('qrBar').style.width = `${pct}%`;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "Ud'A Tirocini Odontoiatria (D.M. 653/2022)",
+  "short_name": "Tirocini Ud'A",
+  "description": "Gestione tirocini clinici, teorici e PPV per il CdS in Odontoiatria e Protesi Dentaria",
+  "lang": "it-IT",
+  "start_url": "./studente.html",
+  "display": "standalone",
+  "background_color": "#0b192c",
+  "theme_color": "#0b192c",
+  "shortcuts": [
+    { "name": "Portale Studente", "url": "./studente.html" },
+    { "name": "Terminale Docenti", "url": "./index.html" },
+    { "name": "Cruscotto Presidenza", "url": "./presidenza.html" },
+    { "name": "Direzione Sistema", "url": "./admin.html" }
+  ]
+}
